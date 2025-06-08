@@ -1,0 +1,92 @@
+!SceneAsset
+Id: deba1f75-6fae-4182-871b-61f06e69efcd
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+ChildrenIds: []
+Parent: 6c0109f0-907a-46b6-bb0d-d1e10192d7c3:TerrainScene
+Offset: {X: 0.0, Y: 0.0, Z: 0.0}
+Hierarchy:
+    RootParts:
+        - ref!! 415628b1-13e0-4971-bdda-fb097eaecb7c
+    Parts:
+        -   Entity:
+                Id: 415628b1-13e0-4971-bdda-fb097eaecb7c
+                Name: TerrainMapPainter
+                Components:
+                    99a7089cf7fc7e13e34aae2c8966dc9b: !TransformComponent
+                        Id: 63d13607-1c35-4b5e-b6d5-e282c3d1b222
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            54a333c1696a0ef25b18cce33b0b5d2b: ref!! 8b9bc827-87a0-45e5-89bd-80fb39e261d1
+                            874b72a2b953e4dabb48d6704e45a995: ref!! 4eed5664-4450-4066-9405-55679d65a732
+                            8d05d3b89c7c2f0b01627d9d3abfff84: ref!! 087e2b23-44a3-48f3-be5f-34b77c2d9116
+                    e718e0369b9c634135104bc605ef88ae: !SceneEditorExtensionExample.WorldTerrain.Terrain3d.Editor.TerrainMapPainterComponent,SceneEditorExtensionExample
+                        Id: 91c2e888-0a36-40f0-9285-9a5b6f572ae2
+                        TerrainMap: b0132d19-e9ff-448d-bc58-906f301c3f1f:Terrain/ExampleTerrain
+                        SelectedCursorMode: Disabled
+                        DisplayMode: Normal
+                        TerrainMaterial: 448ed89d-d831-4b13-a36f-637445b4af4f:Terrain/TerrainMaterial
+                    e573b4eb927845aadcf1ab6e0172b450: !UIComponent
+                        Id: 47f2c9b3-a6d2-4daa-8032-9fe5ee034a8f
+                        Enabled: false
+                        Page: bfe5d5bb-2523-462c-85a5-17e2c5b50dd9:Terrain/Editor/TerrainEditorPage
+                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
+                        Size: {X: 1.28, Y: 0.72, Z: 1.0}
+        -   Entity:
+                Id: 8ccfb513-d857-48bb-baf8-00def1cfff43
+                Name: ModelLayer2
+                Components:
+                    e424156eb7d217c025ccf258b032296d: !TransformComponent
+                        Id: 4eed5664-4450-4066-9405-55679d65a732
+                        Position: {X: 43.57303, Y: -8.0, Z: 32.119904}
+                        Rotation: {X: 0.0, Y: 0.20858827, Z: 0.0, W: 0.97800356}
+                        Scale: {X: 20.14636, Y: 12.880611, Z: 29.07177}
+                        Children: {}
+                    a6c9e348d93538c4ec7a1972227639e9: !SceneEditorExtensionExample.WorldTerrain.Terrain3d.Layers.ModelHeightmapLayerComponent,SceneEditorExtensionExample
+                        Id: 81452cf8-a196-4391-b75f-f42a242eeb22
+                        LayerId: 98315aac-4a0b-43f4-a467-6e26fe653295
+                        LayerBlendType: Maximum
+                        ShowDebug: false
+                    673cfd635a5baa4e1ddfaa588c4cd15e: !ModelComponent
+                        Id: 7c6a745c-11b2-410d-b9c0-84a45dfe158b
+                        Enabled: false
+                        Model: 5d063c0f-daa6-447f-a716-48a73b7bf743:Terrain/Sphere
+                        Materials: {}
+        -   Folder: null
+            Entity:
+                Id: e206d29c-23fc-419d-831a-e4a6bf2d3675
+                Name: TextureHeightmapLayer
+                Components:
+                    e424156eb7d217c025ccf258b032296d: !TransformComponent
+                        Id: 087e2b23-44a3-48f3-be5f-34b77c2d9116
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    abdaed7bb0d648c012b584c80ff9d508: !SceneEditorExtensionExample.WorldTerrain.Terrain3d.Layers.TextureHeightmapLayerComponent,SceneEditorExtensionExample
+                        Id: 8a23ce9c-7129-4eff-b56a-e5362491f19f
+                        LayerId: 473636e0-69ee-4873-9a7f-babbb49661eb
+                        HeightmapTexture: 0f7939e2-25f9-4938-b193-cdd1bff853ba:Terrain/ExampleHeightmap
+                        LayerBlendType: Maximum
+        -   Entity:
+                Id: e85f1f1d-29d7-44c9-8cf5-46d8a0ad98cb
+                Name: ModelLayer1
+                Components:
+                    e424156eb7d217c025ccf258b032296d: !TransformComponent
+                        Id: 8b9bc827-87a0-45e5-89bd-80fb39e261d1
+                        Position: {X: 23.258896, Y: -5.0, Z: 16.860409}
+                        Rotation: {X: 0.0, Y: 0.5353193, Z: 0.0, W: 0.84464973}
+                        Scale: {X: 11.920181, Y: 7.7024155, Z: 11.715153}
+                        Children: {}
+                    a6c9e348d93538c4ec7a1972227639e9: !SceneEditorExtensionExample.WorldTerrain.Terrain3d.Layers.ModelHeightmapLayerComponent,SceneEditorExtensionExample
+                        Id: 740615a1-9a40-4c89-9b04-f92dc08bd0b1
+                        LayerId: c4d1ebe4-3572-4f8d-87c5-0c115b0020c5
+                        LayerBlendType: Maximum
+                        ShowDebug: false
+                    673cfd635a5baa4e1ddfaa588c4cd15e: !ModelComponent
+                        Id: 51b96443-e75f-49ce-bb59-cc4b7f051013
+                        Enabled: false
+                        Model: 5d063c0f-daa6-447f-a716-48a73b7bf743:Terrain/Sphere
+                        Materials: {}

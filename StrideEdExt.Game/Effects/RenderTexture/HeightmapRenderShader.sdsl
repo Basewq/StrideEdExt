@@ -1,0 +1,19 @@
+﻿namespace SceneEditorExtensionExample.Rendering
+{
+    shader HeightmapRenderShader : ShaderBase, PositionStream4
+    {
+        stage override void PSMain()
+        {
+            base.PSMain();
+            streams.ColorTarget = this.ComputeHeightmapValue();
+        }
+
+        stage float4 ComputeHeightmapValue()
+        {
+            // Assume R16G16_Float format - b/a channels aren't usable.
+            float height = streams.PositionWS.y;
+            return float4(height, 1.0f, 1.0f, 1.0f);
+        }
+    
+    };
+}

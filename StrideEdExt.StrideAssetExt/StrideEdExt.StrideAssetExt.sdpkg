@@ -1,0 +1,20 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: SceneEditorExtensionExample.StrideAssetExt
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders: []
+ResourceFolders: []
+OutputGroupDirectories: {}
+ExplicitFolders: []
+Bundles: []
+TemplateFolders:
+    -   Path: !dir Templates/Assets
+        Group: !dir Assets
+        Files:
+            - !file Templates/Assets/FoliagePlacement.sdtpl
+            - !file Templates/Assets/TerrainMap.sdtpl
+RootAssets: []

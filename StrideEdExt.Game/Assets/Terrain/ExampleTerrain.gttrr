@@ -1,0 +1,32 @@
+!SceneEditorExtensionExample.StrideAssetExt.Assets.TerrainMapAsset,SceneEditorExtensionExample.StrideAssetExt
+Id: b0132d19-e9ff-448d-bc58-906f301c3f1f
+SerializedVersion: {SceneEditorExtensionExample: 0.0.0.1}
+Tags: []
+LayerMetadataList:
+    9102cb7de2c17949b932a6789ec8b8d0: !SceneEditorExtensionExample.SharedData.ModelHeightmapLayerMetadata,SceneEditorExtensionExample.StrideAssetExt
+        LayerId: c4d1ebe4-3572-4f8d-87c5-0c115b0020c5
+        LastModifiedIntermediateFile: 2025-05-10T04:16:56.2892755Z
+        HeightmapTexturePixelStartPosition: {X: 15, Y: 9}
+        LastModifiedSourceFile: null
+        ModelAssetUrl: Terrain/Sphere
+        HeightmapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_c4d1ebe435724f8d87c50c115b0020c5.txt
+    af6175e063a97d9f01df1606a1ed095c: !SceneEditorExtensionExample.SharedData.ModelHeightmapLayerMetadata,SceneEditorExtensionExample.StrideAssetExt
+        LayerId: 98315aac-4a0b-43f4-a467-6e26fe653295
+        LastModifiedIntermediateFile: 2025-05-10T04:16:56.2912756Z
+        HeightmapTexturePixelStartPosition: {X: 28, Y: 15}
+        LastModifiedSourceFile: null
+        ModelAssetUrl: Terrain/Sphere
+        HeightmapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_98315aac4a0b43f4a4676e26fe653295.txt
+    e01c54c09b30f2e762872f3c047f5955: !SceneEditorExtensionExample.SharedData.TextureHeightmapLayerMetadata,SceneEditorExtensionExample.StrideAssetExt
+        LayerId: 473636e0-69ee-4873-9a7f-babbb49661eb
+        LastModifiedIntermediateFile: 2025-05-10T04:16:56.3102767Z
+        HeightmapTexturePixelStartPosition: {X: 0, Y: 0}
+        LastModifiedSourceFile: 2025-05-09T11:56:55.3192668Z
+        HeightmapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_473636e069ee48739a7fbabbb49661eb.txt
+ResourceFolderPath: !dir ../../Resources/Terrain/ExampleTerrainData
+MapSize: {X: 63, Y: 63}
+QuadPerMesh: {X: 16, Y: 16}
+MeshQuadSize: {X: 1.0, Y: 1.0}
+MeshPerChunk: Count2x2
+HeightRange: {X: -10.0, Y: 5.0}
+LastGenerated: 2025-05-06T18:27:59.3679931

@@ -1,0 +1,11 @@
+!TemplateAssetFactory
+Id: 4B676C43-AC0F-4010-B407-E3BE312A195D
+AssetTypeName: TerrainMapAsset
+Name: Terrain Map
+Scope: Asset
+Description: Terrain Map
+Group: Terrain
+Icon: ../.sdtpl/TerrainMap.png
+Order: 1000
+DefaultOutputName: Terrain
+FactoryTypeName: TerrainMapAssetFactory

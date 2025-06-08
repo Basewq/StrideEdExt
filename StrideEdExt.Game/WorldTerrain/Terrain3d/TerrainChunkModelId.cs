@@ -1,0 +1,5 @@
+﻿using SceneEditorExtensionExample.SharedData.Terrain3d;
+
+namespace SceneEditorExtensionExample.WorldTerrain.Terrain3d;
+
+public record struct TerrainChunkModelId(TerrainChunkIndex2d ChunkIndex, TerrainChunkSubCellIndex2d ChunkSubCellIndex);

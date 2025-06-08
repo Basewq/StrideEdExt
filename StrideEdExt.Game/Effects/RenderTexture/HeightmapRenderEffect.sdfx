@@ -1,0 +1,24 @@
+﻿using Stride.Rendering.Data;
+using Stride.Shaders.Compiler;
+
+namespace SceneEditorExtensionExample.Rendering
+{
+    effect HeightmapRenderEffect
+    {
+        using params StrideEffectBaseKeys;
+
+        mixin ShaderBase;
+
+        if (StrideEffectBaseKeys.HasInstancing)
+        {
+            mixin macro StrideEffectBaseKeys.ModelTransformUsage;
+            mixin TransformationWAndVPInstanced;
+        }
+        else
+        {
+            mixin TransformationWAndVP;
+        }
+
+        mixin HeightmapRenderShader;
+    };
+}

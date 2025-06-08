@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Configurations>Debug;Release;DebugExGameEditor</Configurations>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Stride.Assets.Presentation" Version="4.2.0.2374" />
+    <PackageReference Include="Stride.Core.Assets.Editor" Version="4.2.0.2374" />
+    <PackageReference Include="Stride.Editor" Version="4.2.0.2374" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SceneEditorExtensionExample.StrideAssetExt\SceneEditorExtensionExample.StrideAssetExt.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources\SceneEditorExtensionExampleAssetsXaml.Designer.cs">
+      <DependentUpon>SceneEditorExtensionExampleAssetsXaml.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Resources\SceneEditorExtensionExampleAssetsThumbnails.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SceneEditorExtensionExampleAssetsThumbnails.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>
