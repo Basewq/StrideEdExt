@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using StrideBuffer = Stride.Graphics.Buffer;
 
-namespace SceneEditorExtensionExample;
+namespace StrideEdExt;
 
 public struct ModelMeshData
 {
@@ -196,5 +196,20 @@ public static class ModelHelper
         }
 
         return true;
+    }
+
+    public static void DisposeModel(Model model)
+    {
+        foreach (var mesh in model.Meshes)
+        {
+            if (mesh.Draw is MeshDraw meshDraw)
+            {
+                foreach (var vertBuffer in meshDraw.VertexBuffers)
+                {
+                    vertBuffer.Buffer.Dispose();
+                }
+                meshDraw.IndexBuffer.Buffer.Dispose();
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace SceneEditorExtensionExample.Rendering
+﻿namespace StrideEdExt.Rendering
 {
     shader MaterialGrassDiffuseMap<bool IsBrightnessMapEnabled, bool HasBrightnessMap> : MaterialSurfaceDiffuse, IMaterialSurfacePixel,
         ShaderBaseStream, Texturing, NormalStream, PositionStream4

@@ -1,6 +1,6 @@
 ﻿shader MyUtils
 {
-    static const float Epsilon = 0.0001;
+    static const float Epsilon = 0.0000001;
 
     float2 GetPanningTextureMapUv(float3 vertWorldPos, float texMapWorldLength, float2 uvOffsetDirection, float uvSpeed)
     {
@@ -26,5 +26,33 @@
             normal.z = sqrt(max(0, 1.0f - (normal.x * normal.x + normal.y * normal.y)));
         }
         return normal;
+    }
+
+    static float2 GetHalfPixelUvOffset(float2 textureSize)
+    {
+        float2 texOffset = 0.5 / textureSize;
+        return texOffset;
+    }
+
+    static float InverseLerp(float minValue, float maxValue, float amount)
+    {
+        float range = maxValue - minValue;
+        if (range == 0)
+        {
+            return 0;
+        }
+        float lerpAmount = (amount - minValue) / range;
+        return lerpAmount;
+    }
+
+    static float SmoothStep(float amount)
+    {
+        return smoothstep(0.0, 1.0, amount);
+    }
+
+    static float SmootherStep(float amount)
+    {
+        amount = saturate(amount);
+        return amount * amount * amount * ((amount * ((amount * 6.0) - 15.0)) + 10.0);
     }
 };

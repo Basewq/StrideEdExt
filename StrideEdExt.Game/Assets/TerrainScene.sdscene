@@ -8,10 +8,13 @@ Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
         - ref!! f2a55734-3448-4624-b4fb-4fbcaf368abd
-        - ref!! 68597875-3710-404f-b4ab-ca7887aace59
         - ref!! 939f19f3-d4b0-47ca-b109-0e696d7cb5a1
         - ref!! 1fcb9377-d6dd-47ae-8a1d-7626f970fff7
         - ref!! de74d2a4-08e2-4e56-a0ec-7077bc6f8b45
+        - ref!! 7c2e005b-a5d8-464b-bf14-0c06cac8a60a
+        - ref!! 78d1d7f1-9ec9-4485-a88e-c4cb1e1f588f
+        - ref!! 2aa8ef90-8872-4d18-a4d1-eca5784ff034
+        - ref!! a0839d2f-1a43-43bb-9a9d-9279b016aefd
     Parts:
         -   Entity:
                 Id: 1fcb9377-d6dd-47ae-8a1d-7626f970fff7
@@ -19,7 +22,7 @@ Hierarchy:
                 Components:
                     2a57aa1d7353c188d189a459498b35b1: !TransformComponent
                         Id: 48e619ff-03a5-4702-807e-67f2f382af22
-                        Position: {X: 12.599998, Y: 21.600002, Z: 32.0}
+                        Position: {X: 43.0, Y: 22.0, Z: 66.0}
                         Rotation: {X: -0.3368241, Y: 0.16317591, Z: 0.059391182, W: 0.9254165}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
@@ -28,9 +31,10 @@ Hierarchy:
                         Name: null
                         Projection: Perspective
                         Slot: 5e0e1370-0868-40e6-b712-6e27f2e151a1
-                    fb3b1f84aedc9fa58ee5bf524ee6ee11: !SceneEditorExtensionExample.BasicCameraController,SceneEditorExtensionExample
+                    fb3b1f84aedc9fa58ee5bf524ee6ee11: !StrideEdExt.BasicCameraController,StrideEdExt.Game
                         Id: 9091ceeb-292d-4c30-89c4-7121fb555105
                         TerrainComponent: ref!! 6af87079-3dda-479f-aca6-f026b6e1ee27
+                        MouseControlledEntity: ref!! 2aa8ef90-8872-4d18-a4d1-eca5784ff034
                         Gamepad: false
                         KeyboardMovementSpeed: {X: 5.0, Y: 5.0, Z: 5.0}
                         TouchMovementSpeed: {X: 0.7, Y: 0.7, Z: 0.3}
@@ -40,7 +44,7 @@ Hierarchy:
                         TouchRotationSpeed: {X: 1.0, Y: 0.7}
                         IsTerrainScene: true
                         NextScene: 8f167372-0485-4eae-a7d0-28cd5947ed77:MainScene
-                    1f9f887d070fc214eba11bb84d17643a: !SceneEditorExtensionExample.GameProfiler,SceneEditorExtensionExample
+                    1f9f887d070fc214eba11bb84d17643a: !StrideEdExt.GameProfiler,StrideEdExt.Game
                         Id: c4cf081e-89cb-4eb3-91d8-85951381ee62
                         Enabled: true
                         TextColor: {R: 144, G: 238, B: 144, A: 255}
@@ -48,22 +52,90 @@ Hierarchy:
                         SortingMode: ByTime
                         FilteringMode: Fps
                         ResultPage: 1
-        -   Entity:
-                Id: 68597875-3710-404f-b4ab-ca7887aace59
-                Name: Ambient light
+        -   Folder: null
+            Entity:
+                Id: 2aa8ef90-8872-4d18-a4d1-eca5784ff034
+                Name: MouseSphere
                 Components:
-                    e9083f003c0bee011a7fa79ee3064e33: !TransformComponent
-                        Id: 7b4adc4e-9efb-4034-a886-4012ff65b40b
+                    56f213a86112b48ff93ecc3886c6173f: !TransformComponent
+                        Id: a2e40bda-fa68-4141-9133-7c5dc7b78d29
                         Position: {X: 0.0, Y: 0.0, Z: 0.0}
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    2d77f399a7c041fd5c5d7b99b51bf2f2: !LightComponent
-                        Id: 4841d8a4-578d-409c-85ff-1120fc173de4
-                        Type: !LightAmbient
-                            Color: !ColorRgbProvider
-                                Value: {R: 1.0, G: 1.0, B: 1.0}
-                        Intensity: 2.0
+                    9d70d7ca30aafef01eaf7fe5ad4cf22d: !ModelComponent
+                        Id: b34289ce-a805-4a6c-847a-e6981cd8ef41
+                        Model: 051e78a2-9700-4bf8-a7a1-0c4fe2dde2b9:Sphere
+                        Materials: {}
+        -   Folder: null
+            Entity:
+                Id: 78d1d7f1-9ec9-4485-a88e-c4cb1e1f588f
+                Name: Sphere
+                Components:
+                    56f213a86112b48ff93ecc3886c6173f: !TransformComponent
+                        Id: 4f0b69d7-a4b9-454d-972d-b672b5f40eb2
+                        Position: {X: 39.0, Y: 6.999999, Z: 34.000004}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    9d70d7ca30aafef01eaf7fe5ad4cf22d: !ModelComponent
+                        Id: d3fa63aa-4f0a-4c11-b4c8-05a19287218a
+                        Model: 051e78a2-9700-4bf8-a7a1-0c4fe2dde2b9:Sphere
+                        Materials: {}
+                    68d41c05a08a69320337efeca1583521: !RigidbodyComponent
+                        Id: 116cb8f7-31bc-465d-b1e7-387c68086bb0
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            bdf1b06a2bb607d2499ea94c8520a82f: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+        -   Entity:
+                Id: 7c2e005b-a5d8-464b-bf14-0c06cac8a60a
+                Name: Sphere
+                Components:
+                    56f213a86112b48ff93ecc3886c6173f: !TransformComponent
+                        Id: 8da04fb5-d63e-4c85-b4d2-a5ea060ed545
+                        Position: {X: 41.0, Y: 6.999999, Z: 34.000004}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    9d70d7ca30aafef01eaf7fe5ad4cf22d: !ModelComponent
+                        Id: d8ca1c1b-326d-4871-bdd4-44d252865e3c
+                        Model: 051e78a2-9700-4bf8-a7a1-0c4fe2dde2b9:Sphere
+                        Materials: {}
+                    68d41c05a08a69320337efeca1583521: !RigidbodyComponent
+                        Id: 823844c6-ae47-47c8-acca-20eb5c948377
+                        CanSleep: false
+                        Restitution: 0.0
+                        Friction: 0.5
+                        RollingFriction: 0.0
+                        CcdMotionThreshold: 0.0
+                        CcdSweptSphereRadius: 0.0
+                        IsTrigger: false
+                        IsKinematic: false
+                        Mass: 1.0
+                        LinearDamping: 0.0
+                        AngularDamping: 0.0
+                        OverrideGravity: false
+                        Gravity: {X: 0.0, Y: 0.0, Z: 0.0}
+                        NodeName: null
+                        ColliderShapes:
+                            bdf1b06a2bb607d2499ea94c8520a82f: !SphereColliderShapeDesc
+                                Is2D: false
+                                LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
         -   Entity:
                 Id: 939f19f3-d4b0-47ca-b109-0e696d7cb5a1
                 Name: Directional light
@@ -89,6 +161,19 @@ Hierarchy:
                                 ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 2.0
+        -   Entity:
+                Id: a0839d2f-1a43-43bb-9a9d-9279b016aefd
+                Name: Navigation bounding box
+                Components:
+                    83bc7af03559d9af6c02715761448f06: !TransformComponent
+                        Id: 4c100bb4-80eb-4a5a-9044-55434ebfe413
+                        Position: {X: 32.0, Y: 0.0, Z: 32.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    efd8df8e7f89636c8949da91ef406df8: !Stride.Navigation.NavigationBoundingBoxComponent,Stride.Navigation
+                        Id: cf929863-c69b-430a-bb52-7c15d05474f5
+                        Size: {X: 32.0, Y: 20.0, Z: 32.0}
         -   Folder: Environment
             Entity:
                 Id: de74d2a4-08e2-4e56-a0ec-7077bc6f8b45
@@ -100,12 +185,12 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    15c6775f7591e6e5e48d36e2f3e7b5d2: !SceneEditorExtensionExample.WorldTerrain.Terrain3d.TerrainComponent,SceneEditorExtensionExample
+                    15c6775f7591e6e5e48d36e2f3e7b5d2: !StrideEdExt.WorldTerrain.Terrain3d.TerrainComponent,StrideEdExt.Game
                         Id: 6af87079-3dda-479f-aca6-f026b6e1ee27
+                        IsEnabled: true
                         TerrainMap: b0132d19-e9ff-448d-bc58-906f301c3f1f:Terrain/ExampleTerrain
                         CameraComponent: ref!! 0a7e9171-69cf-4dcd-a368-f98d69ec6413
-                        MaxInstancingRenderDistance: 100.0
-                        TerrainMaterial: 448ed89d-d831-4b13-a36f-637445b4af4f:Terrain/TerrainMaterial
+                        MaxChunkRenderDistance: 100.0
         -   Entity:
                 Id: f2a55734-3448-4624-b4fb-4fbcaf368abd
                 Name: Skybox
@@ -123,3 +208,4 @@ Hierarchy:
                         Id: 77fa6962-c046-4fab-9dfe-3564ea8756d1
                         Type: !LightSkybox
                             Skybox: 07d35c79-2524-4601-8b95-69905066dbcb:Skybox
+                        Intensity: 1.5

@@ -1,9 +1,7 @@
 ﻿using Stride.Graphics;
-using System;
-using System.Runtime.CompilerServices;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace SceneEditorExtensionExample.Rendering;
+namespace StrideEdExt.Rendering;
 
 internal static class GraphicsDeviceExtensions
 {

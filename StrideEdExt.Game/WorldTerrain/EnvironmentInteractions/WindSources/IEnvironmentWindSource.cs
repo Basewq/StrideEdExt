@@ -1,8 +1,8 @@
-﻿using SceneEditorExtensionExample.Rendering;
+﻿using StrideEdExt.Rendering;
 using Stride.Core;
 using Stride.Games;
 
-namespace SceneEditorExtensionExample.WorldTerrain.EnvironmentInteractions.WindSources;
+namespace StrideEdExt.WorldTerrain.EnvironmentInteractions.WindSources;
 
 public interface IEnvironmentWindSource
 {

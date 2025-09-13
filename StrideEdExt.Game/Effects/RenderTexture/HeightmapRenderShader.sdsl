@@ -1,4 +1,4 @@
-﻿namespace SceneEditorExtensionExample.Rendering
+﻿namespace StrideEdExt.Rendering
 {
     shader HeightmapRenderShader : ShaderBase, PositionStream4
     {

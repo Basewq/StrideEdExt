@@ -1,7 +1,7 @@
 using Stride.Core;
 using Stride.Core.Reflection;
 
-namespace SceneEditorExtensionExample.StrideAssetExt;
+namespace StrideEdExt.StrideAssetExt;
 
 /**
  * This class is used to make Game Studio aware of this assembly to make it recognize our custom asset(s).

@@ -1,6 +1,6 @@
 using Stride.Core.Assets;
 
-namespace SceneEditorExtensionExample.StrideAssetExt.Assets;
+namespace StrideEdExt.StrideAssetExt.Assets;
 
 public class FoliagePlacementAssetFactory : AssetFactory<FoliagePlacementAsset>
 {

@@ -9,9 +9,24 @@ Hierarchy:
     RootParts:
         - ref!! 415628b1-13e0-4971-bdda-fb097eaecb7c
     Parts:
+        -   Folder: Material Layers
+            Entity:
+                Id: 297ee064-a1c7-4ff6-99f2-2edc8fe7856e
+                Name: MatLayer2
+                Components:
+                    1234d7604ea975f843fe29cb3554a057: !TransformComponent
+                        Id: f0a059db-5e22-4143-999e-6883ebab3492
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    15d8cdf2dc503bb73ff01d9ad92dcf53: !StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps.TextureMaterialWeightMapLayerComponent,StrideEdExt.Game
+                        Id: 487f2a25-29f3-42b2-aef1-bf5280ac03b1
+                        MaterialName: MatLayer2
+                        MaterialWeightMapTexture: d721370b-ed4c-45c6-afea-35565ee8def3:Terrain/ExampleMaterialWeightMap2
         -   Entity:
                 Id: 415628b1-13e0-4971-bdda-fb097eaecb7c
-                Name: TerrainMapPainter
+                Name: TerrainMapEditor
                 Components:
                     99a7089cf7fc7e13e34aae2c8966dc9b: !TransformComponent
                         Id: 63d13607-1c35-4b5e-b6d5-e282c3d1b222
@@ -19,22 +34,35 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
-                            54a333c1696a0ef25b18cce33b0b5d2b: ref!! 8b9bc827-87a0-45e5-89bd-80fb39e261d1
-                            874b72a2b953e4dabb48d6704e45a995: ref!! 4eed5664-4450-4066-9405-55679d65a732
-                            8d05d3b89c7c2f0b01627d9d3abfff84: ref!! 087e2b23-44a3-48f3-be5f-34b77c2d9116
-                    e718e0369b9c634135104bc605ef88ae: !SceneEditorExtensionExample.WorldTerrain.Terrain3d.Editor.TerrainMapPainterComponent,SceneEditorExtensionExample
+                            c8fe5149fefe25cc8d133d93367fb44f: ref!! dfeb8e3d-0117-4f54-ade6-0cda1d750ee1
+                            75db4ec66443c0f75d7b8c85849b52e9: ref!! 8b9bc827-87a0-45e5-89bd-80fb39e261d1
+                            d886895f2551ae3c46ae8a2a2bb5fd34: ref!! 4eed5664-4450-4066-9405-55679d65a732
+                            7404ebc8216f9fc5ff1e7f63bdf0107a: ref!! 087e2b23-44a3-48f3-be5f-34b77c2d9116
+                            b94f4e354497601cc045556b4a415e95: ref!! 1996a9c8-d18b-4cb5-b196-46305ab4630e
+                            12581535b2c199745b7f73b933c2e286: ref!! 863ee0a8-daf6-4efc-bd7a-9c3327f32290
+                            a76ce45a2a8c6c71c573fa30b0c901e9: ref!! f0a059db-5e22-4143-999e-6883ebab3492
+                            fbb1b93ab7cebbd485a8572e87d6e219: ref!! eb00d8db-0b61-4538-bd5d-4d3bf5738a97
+                    e718e0369b9c634135104bc605ef88ae: !StrideEdExt.WorldTerrain.Terrain3d.Editor.TerrainMapEditorComponent,StrideEdExt.Game
                         Id: 91c2e888-0a36-40f0-9285-9a5b6f572ae2
                         TerrainMap: b0132d19-e9ff-448d-bc58-906f301c3f1f:Terrain/ExampleTerrain
-                        SelectedCursorMode: Disabled
-                        DisplayMode: Normal
-                        TerrainMaterial: 448ed89d-d831-4b13-a36f-637445b4af4f:Terrain/TerrainMaterial
-                    e573b4eb927845aadcf1ab6e0172b450: !UIComponent
-                        Id: 47f2c9b3-a6d2-4daa-8032-9fe5ee034a8f
-                        Enabled: false
-                        Page: bfe5d5bb-2523-462c-85a5-17e2c5b50dd9:Terrain/Editor/TerrainEditorPage
-                        Resolution: {X: 1280.0, Y: 720.0, Z: 1000.0}
-                        Size: {X: 1.28, Y: 0.72, Z: 1.0}
-        -   Entity:
+                        PaintPlacementPreviewPrefab: 3a492f6e-f082-447b-ac0f-0d2d935f76f1:Terrain/Editor/PainterPreviewPrefab
+        -   Folder: Material Layers
+            Entity:
+                Id: 43e3624a-2b7b-46eb-b18d-91f74f3df68d
+                Name: BaseMaterialLayer
+                Components:
+                    1234d7604ea975f843fe29cb3554a057: !TransformComponent
+                        Id: eb00d8db-0b61-4538-bd5d-4d3bf5738a97
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    15d8cdf2dc503bb73ff01d9ad92dcf53: !StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps.TextureMaterialWeightMapLayerComponent,StrideEdExt.Game
+                        Id: a9824b40-71b9-4f06-bb9c-cff16c1a1150
+                        MaterialName: BaseMaterial
+                        MaterialWeightMapTexture: 9ce2c580-8b4b-42b6-95ad-4ec6c1ba04ed:Terrain/ExampleMaterialWeightMap1
+        -   Folder: Heightmap Layers
+            Entity:
                 Id: 8ccfb513-d857-48bb-baf8-00def1cfff43
                 Name: ModelLayer2
                 Components:
@@ -44,9 +72,8 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.20858827, Z: 0.0, W: 0.97800356}
                         Scale: {X: 20.14636, Y: 12.880611, Z: 29.07177}
                         Children: {}
-                    a6c9e348d93538c4ec7a1972227639e9: !SceneEditorExtensionExample.WorldTerrain.Terrain3d.Layers.ModelHeightmapLayerComponent,SceneEditorExtensionExample
-                        Id: 81452cf8-a196-4391-b75f-f42a242eeb22
-                        LayerId: 98315aac-4a0b-43f4-a467-6e26fe653295
+                    a6c9e348d93538c4ec7a1972227639e9: !StrideEdExt.WorldTerrain.Terrain3d.Layers.Heightmaps.ModelHeightmapLayerComponent,StrideEdExt.Game
+                        Id: 98315aac-4a0b-43f4-a467-6e26fe653295
                         LayerBlendType: Maximum
                         ShowDebug: false
                     673cfd635a5baa4e1ddfaa588c4cd15e: !ModelComponent
@@ -54,7 +81,45 @@ Hierarchy:
                         Enabled: false
                         Model: 5d063c0f-daa6-447f-a716-48a73b7bf743:Terrain/Sphere
                         Materials: {}
-        -   Folder: null
+        -   Folder: Material Layers
+            Entity:
+                Id: c7c98edd-76ea-47ea-b49c-0e12a698b8d0
+                Name: PaintMaterialLayer
+                Components:
+                    f90806fba89b67b53f343c4a3c72bdfd: !TransformComponent
+                        Id: 1996a9c8-d18b-4cb5-b196-46305ab4630e
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    c55d9fa5552b25d78b103d3ca8062e0d: !StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialWeightMaps.PainterMaterialWeightMapLayerComponent,StrideEdExt.Game
+                        Id: 3c5bf180-e44e-4c8e-8963-1a4e4256c34a
+                        MaterialName: MatLayer3
+                        BrushSettings:
+                            PaintModeType: Paint
+                            BrushDiameter: 5.0
+                            BrushStrength: 1.0
+                            Opacity: 1.0
+                            StampSpacingPercentage: 10.0
+                            BrushShape: !StrideEdExt.Painting.Brushes.PaintCircularBrushShape,StrideEdExt.Game
+                                FalloffType: SmoothStep
+                                FalloffStartPercentage: 75.0
+        -   Folder: Material Layers
+            Entity:
+                Id: cc7bca8a-53ad-4ee2-bef4-56b5d048f657
+                Name: MatLayer3
+                Components:
+                    1234d7604ea975f843fe29cb3554a057: !TransformComponent
+                        Id: 863ee0a8-daf6-4efc-bd7a-9c3327f32290
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    13faa59d586a9b25c777bf4edd1f5e0a: !StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps.TextureMaterialWeightMapLayerComponent,StrideEdExt.Game
+                        Id: 0e91fc44-6c8a-4f8b-8a9c-4c3c492cae79
+                        MaterialName: MatLayer3
+                        MaterialWeightMapTexture: 0f389583-b792-4c38-af89-76b1a513b72c:Terrain/ExampleMaterialWeightMap3
+        -   Folder: Heightmap Layers
             Entity:
                 Id: e206d29c-23fc-419d-831a-e4a6bf2d3675
                 Name: TextureHeightmapLayer
@@ -65,24 +130,23 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    abdaed7bb0d648c012b584c80ff9d508: !SceneEditorExtensionExample.WorldTerrain.Terrain3d.Layers.TextureHeightmapLayerComponent,SceneEditorExtensionExample
-                        Id: 8a23ce9c-7129-4eff-b56a-e5362491f19f
-                        LayerId: 473636e0-69ee-4873-9a7f-babbb49661eb
+                    abdaed7bb0d648c012b584c80ff9d508: !StrideEdExt.WorldTerrain.Terrain3d.Layers.Heightmaps.TextureHeightmapLayerComponent,StrideEdExt.Game
+                        Id: 473636e0-69ee-4873-9a7f-babbb49661eb
                         HeightmapTexture: 0f7939e2-25f9-4938-b193-cdd1bff853ba:Terrain/ExampleHeightmap
                         LayerBlendType: Maximum
-        -   Entity:
+        -   Folder: Heightmap Layers
+            Entity:
                 Id: e85f1f1d-29d7-44c9-8cf5-46d8a0ad98cb
                 Name: ModelLayer1
                 Components:
                     e424156eb7d217c025ccf258b032296d: !TransformComponent
                         Id: 8b9bc827-87a0-45e5-89bd-80fb39e261d1
-                        Position: {X: 23.258896, Y: -5.0, Z: 16.860409}
+                        Position: {X: 29.671965, Y: -5.0, Z: 27.940998}
                         Rotation: {X: 0.0, Y: 0.5353193, Z: 0.0, W: 0.84464973}
                         Scale: {X: 11.920181, Y: 7.7024155, Z: 11.715153}
                         Children: {}
-                    a6c9e348d93538c4ec7a1972227639e9: !SceneEditorExtensionExample.WorldTerrain.Terrain3d.Layers.ModelHeightmapLayerComponent,SceneEditorExtensionExample
-                        Id: 740615a1-9a40-4c89-9b04-f92dc08bd0b1
-                        LayerId: c4d1ebe4-3572-4f8d-87c5-0c115b0020c5
+                    a6c9e348d93538c4ec7a1972227639e9: !StrideEdExt.WorldTerrain.Terrain3d.Layers.Heightmaps.ModelHeightmapLayerComponent,StrideEdExt.Game
+                        Id: c4d1ebe4-3572-4f8d-87c5-0c115b0020c5
                         LayerBlendType: Maximum
                         ShowDebug: false
                     673cfd635a5baa4e1ddfaa588c4cd15e: !ModelComponent
@@ -90,3 +154,25 @@ Hierarchy:
                         Enabled: false
                         Model: 5d063c0f-daa6-447f-a716-48a73b7bf743:Terrain/Sphere
                         Materials: {}
+        -   Folder: Heightmap Layers
+            Entity:
+                Id: efc10ca8-112d-46ca-8106-4e05ca3b818d
+                Name: PaintHeightmapLayer
+                Components:
+                    9204e35d0743d0fe1e4b5819a5df5dcb: !TransformComponent
+                        Id: dfeb8e3d-0117-4f54-ade6-0cda1d750ee1
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    0adce618c6b3e41c426fa0f9aa6d4479: !StrideEdExt.WorldTerrain.Terrain3d.Layers.Heightmaps.PainterHeightmapLayerComponent,StrideEdExt.Game
+                        Id: ad7b0ccc-2ebf-41e9-abd9-1e5cefbc2bab
+                        LayerBlendType: Maximum
+                        BrushSettings:
+                            PaintModeType: Raise
+                            BrushDiameter: 5.0
+                            TerrainHeight: 1.0
+                            Opacity: 1.0
+                            StampSpacingPercentage: 10.0
+                            BrushShape: !StrideEdExt.Painting.Brushes.PaintTextureBrushShape,StrideEdExt.Game
+                                Texture: 37e59f8f-3197-428a-bb52-af7d9afd54cc:Terrain/Brushes/ExampleBrush

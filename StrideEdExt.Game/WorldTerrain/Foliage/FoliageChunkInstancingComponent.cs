@@ -1,11 +1,11 @@
-﻿using SceneEditorExtensionExample.Rendering;
+﻿using StrideEdExt.Rendering;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Graphics;
 using System;
 
-namespace SceneEditorExtensionExample.WorldTerrain.Foliage;
+namespace StrideEdExt.WorldTerrain.Foliage;
 
 /// <summary>
 /// Additional instancing data specifically for the foliage instancing.
@@ -28,8 +28,7 @@ internal class FoliageChunkInstancingComponent : EntityComponent, IDisposable
         {
             if (disposing)
             {
-                InstanceDataBuffer?.Dispose();
-                InstanceDataBuffer = null;
+                DisposableExtensions.DisposeAndNull(ref InstanceDataBuffer);
             }
 
             IsDisposed = true;

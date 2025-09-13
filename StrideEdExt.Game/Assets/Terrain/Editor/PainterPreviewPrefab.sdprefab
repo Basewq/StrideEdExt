@@ -1,0 +1,22 @@
+!PrefabAsset
+Id: 3a492f6e-f082-447b-ac0f-0d2d935f76f1
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! deed2b61-49b5-4c8e-a244-b4fd593a3d6b
+    Parts:
+        -   Entity:
+                Id: deed2b61-49b5-4c8e-a244-b4fd593a3d6b
+                Name: PainterPreviewSphere
+                Components:
+                    d56d30cf5d84f63eecbfd3ebfe90a135: !TransformComponent
+                        Id: 32658057-bd0f-4343-a5e3-6e3e47e33a1c
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    29cc42d3fedfb316e1c160924bb967b7: !ModelComponent
+                        Id: 1899113e-08be-4662-a79f-e881916844e8
+                        Model: 59d1152d-b865-4d9b-9e80-be485f6176cd:Terrain/Editor/PainterPreviewSphere
+                        Materials: {}

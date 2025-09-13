@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
-namespace SceneEditorExtensionExample;
+namespace StrideEdExt;
 
 public static class DisposableExtensions
 {

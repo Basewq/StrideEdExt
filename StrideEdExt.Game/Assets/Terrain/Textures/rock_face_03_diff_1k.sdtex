@@ -1,0 +1,7 @@
+!Texture
+Id: f129ca2e-9070-4832-8f12-f142b833e30e
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Terrain/textures/rock_face_03_diff_1k.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

@@ -1,7 +1,4 @@
 ﻿#if GAME_EDITOR
-using SceneEditorExtensionExample.SharedData;
-using SceneEditorExtensionExample.StrideAssetExt.Assets;
-using SceneEditorExtensionExample.StrideEditorExt;
 using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Game;
@@ -13,21 +10,18 @@ using Stride.Core.Mathematics;
 using Stride.Core.Presentation.Dirtiables;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
-using Stride.Editor.EditorGame.Game;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Input;
 using Stride.Rendering;
 using Stride.Rendering.Lights;
-using System;
-using System.Collections.Generic;
+using StrideEdExt.SharedData;
+using StrideEdExt.StrideAssetExt.Assets;
+using StrideEdExt.StrideEditorExt;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
-namespace SceneEditorExtensionExample.WorldTerrain.Foliage.Editor;
+namespace StrideEdExt.WorldTerrain.Foliage.Editor;
 
 class FoliagePainterProcessor : EntityProcessor<FoliagePainterComponent, FoliagePainterProcessor.AssociatedData>
 {
@@ -41,7 +35,7 @@ class FoliagePainterProcessor : EntityProcessor<FoliagePainterComponent, Foliage
     private IStrideEditorService _strideEditorService = default!;
     private FoliageMeshManager _foliageMeshManager = default!;
     private Task _foliageMeshManagerInitializeTask = default!;
-    private FoliagePainterEditorMouseService _painterMouseService = default!;
+    private IStrideEditorMouseService _editorMouseService = default!;
 
     private bool _isInstancingRenderFeatureCheckRequired = true;
 
@@ -62,46 +56,7 @@ class FoliagePainterProcessor : EntityProcessor<FoliagePainterComponent, Foliage
         _foliageMeshManager = new FoliageMeshManager(_strideEditorService);
         _foliageMeshManagerInitializeTask =_foliageMeshManager.Initialize();
 
-        _painterMouseService = _sceneEditorGame.EditorServices.Get<FoliagePainterEditorMouseService>();
-        if (_painterMouseService is null)
-        {
-            Debug.WriteLine($"{nameof(FoliagePainterEditorMouseService)} added.");
-
-            _painterMouseService = new();
-
-            // HACK: Every EditorGameMouseServiceBase derived classes hold a LOCAL copy of
-            // every other mouse service instead of reading from some common registry...
-            // This code manually goes through every other mouse service and add our one in.
-            var mouseServiceType = typeof(EditorGameMouseServiceBase);
-            var mouseSvceListFieldInfo = mouseServiceType.GetField("mouseServices", BindingFlags.Instance | BindingFlags.NonPublic);
-            Debug.Assert(mouseSvceListFieldInfo is not null);
-
-            foreach (var editorService in _sceneEditorGame.EditorServices.Services)
-            {
-                if (editorService is not EditorGameMouseServiceBase mouseSvce)
-                {
-                    continue;
-                }
-                var mouseSvceList = mouseSvceListFieldInfo.GetValue(mouseSvce) as List<IEditorGameMouseService>;
-                if (mouseSvceList is not null)
-                {
-                    Debug.WriteLine($"Found mouse services: {mouseSvceList.Count}");
-                    mouseSvceList.Add(_painterMouseService);
-                }
-            }
-
-            _painterMouseService.InitializeService(_sceneEditorGame);
-
-            var editorServiceType = typeof(EditorGameServiceBase);
-            var editorSvceRegisterMouseServicesMethodInfo = mouseServiceType.GetMethod("RegisterMouseServices", BindingFlags.Instance | BindingFlags.NonPublic);
-            EditorGameServiceRegistry serviceRegistry = _sceneEditorGame.EditorServices;
-            editorSvceRegisterMouseServicesMethodInfo?.Invoke(_painterMouseService, [serviceRegistry]);
-            _sceneEditorGame.EditorServices.Add(_painterMouseService);
-        }
-        else
-        {
-            Debug.WriteLine($"{nameof(FoliagePainterEditorMouseService)} already registered.");
-        }
+        _editorMouseService = StrideEditorMouseService.GetOrCreate(Services);
 
         var selectionService = _sceneEditorGame.EditorServices.Get<IEditorGameEntitySelectionService>();
         if (selectionService is not null)
@@ -329,7 +284,7 @@ class FoliagePainterProcessor : EntityProcessor<FoliagePainterComponent, Foliage
         }
         if (painterComp.PaintMode == FoliagePlacementPaintMode.Disabled || data.PaintPreviewEntity is null)
         {
-            _painterMouseService.SetIsControllingMouse(false);
+            _editorMouseService.SetIsControllingMouse(false, this);
             return false;
         }
 
@@ -340,12 +295,12 @@ class FoliagePainterProcessor : EntityProcessor<FoliagePainterComponent, Foliage
         }
 
         Debug.Assert(_sceneEditorGame is not null);
-        var normalisedMousePosition = _inputManager.MousePosition;
+        var normalizedMousePosition = _inputManager.MousePosition;
         var absMousePosition = _inputManager.AbsoluteMousePosition;
 
         var cameraService = _sceneEditorGame.EditorServices.Get<IEditorGameCameraService>();
         var camFrustum = cameraService.Component.Frustum;
-        var mouseRay = SceneEditorExtensions.CalculateRayFromMousePosition(cameraService.Component, normalisedMousePosition, Matrix.Invert(cameraService.ViewMatrix));
+        var mouseRay = SceneEditorExtensions.CalculateRayFromMousePosition(cameraService.Component, normalizedMousePosition, Matrix.Invert(cameraService.ViewMatrix));
 
         float tileCellLength = painterComp.TileCellLength;
         var tileCellIndexToPos = new Vector3(tileCellLength, tileCellLength * 0.5f, tileCellLength);
@@ -484,29 +439,14 @@ class FoliagePainterProcessor : EntityProcessor<FoliagePainterComponent, Foliage
             else
             {
                 // Hasn't hit anything, so just default to hitting the scene's ground level.
-                cursorWorldPosition = _sceneEditorGame.GetPositionInScene(normalisedMousePosition);
+                cursorWorldPosition = _sceneEditorGame.GetPositionInScene(normalizedMousePosition);
             }
         }
 
-        bool isLeftMousePressed = _inputManager.IsMouseButtonPressed(MouseButton.Left);
-        bool isLeftMouseDown = _inputManager.IsMouseButtonDown(MouseButton.Left);
-        bool isLeftMouseReleased = _inputManager.IsMouseButtonReleased(MouseButton.Left);
-        var mouseButtonState = MouseButtonState.Up;
-        if (isLeftMousePressed)
-        {
-            mouseButtonState = MouseButtonState.JustPressed;
-        }
-        else if (isLeftMouseReleased)
-        {
-            mouseButtonState = MouseButtonState.JustReleased;
-        }
-        else if (isLeftMouseDown)
-        {
-            mouseButtonState = MouseButtonState.HeldDown;
-        }
-        _painterMouseService.SetIsControllingMouse(isLeftMouseDown);    // TODO Should only be set if just pressed was valid?
-
-        if (isLeftMousePressed || isLeftMouseDown || isLeftMouseReleased)
+        var leftMouseBtnState = MouseButtonStateExtensions.GetButtonState(_inputManager, MouseButton.Left);
+        bool isLeftMouseBtnDown = leftMouseBtnState.IsDown();
+        _editorMouseService.SetIsControllingMouse(isLeftMouseBtnDown, owner: this);
+        if (leftMouseBtnState != MouseButtonState.Up)
         {
             _strideEditorService.Invoke(sessionVmObj =>
             {
@@ -515,11 +455,11 @@ class FoliagePainterProcessor : EntityProcessor<FoliagePainterComponent, Foliage
 
                 if (painterComp.PaintMode == FoliagePlacementPaintMode.Paint)
                 {
-                    ProcessPainterPaintMode(painterComp, data, visibleModelCompSet, mouseButtonState, cursorSphere, upVec, posToTileCellIndex, tileCellIndexToPos);
+                    ProcessPainterPaintMode(painterComp, data, visibleModelCompSet, leftMouseBtnState, cursorSphere, upVec, posToTileCellIndex, tileCellIndexToPos);
                 }
                 else if (painterComp.PaintMode == FoliagePlacementPaintMode.Erase)
                 {
-                    ProcessPainterEraseMode(painterComp, data, visibleModelCompSet, mouseButtonState, cursorSphere, upVec, posToTileCellIndex, tileCellIndexToPos);
+                    ProcessPainterEraseMode(painterComp, data, visibleModelCompSet, leftMouseBtnState, cursorSphere, upVec, posToTileCellIndex, tileCellIndexToPos);
                 }
             });
         }

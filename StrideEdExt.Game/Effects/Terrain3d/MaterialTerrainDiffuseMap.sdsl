@@ -1,0 +1,177 @@
+﻿namespace StrideEdExt.Rendering
+{
+    shader MaterialTerrainDiffuseMap : IMaterialSurfacePixel, MyUtils,
+        Texturing, NormalStream
+    {
+        static const float MaxMaterialIndexPerTerrain = 255.0;     // Denormalize the texture value
+
+        rgroup PerMaterial
+        {
+            stage Texture2D MaterialIndexMap;
+            stage Texture2DArray DiffuseMap;
+            stage Texture2DArray NormalMap;
+            stage Texture2DArray HeightBlendMap;
+        }
+
+        cbuffer PerMaterial
+        {
+            stage float2 MaterialIndexMapSize;      // Texture size of MaterialIndexMap
+        }
+
+        stage SamplerState MaterialIndexMapSampler
+        {
+            Filter = MIN_MAG_MIP_POINT;
+            AddressU = CLAMP;
+            AddressV = CLAMP;
+        };
+
+        struct MaterialData
+        {
+            float4 Diffuse;
+            float3 Normal;
+            float Height;
+        };
+
+        MaterialData BlendMaterialLayer(float materialIndex, float transitionAlpha, float2 materialTexCoord, in MaterialData currentMaterialData)
+        {
+            MaterialData nextMaterialData = currentMaterialData;
+
+            // When (transitionAlpha + height map) are added together, it is possible for both the
+            // the 'from' & 'to' materials to both zero out sooner causing areas to have no materials.
+            // We multiply by 2 to push the alpha gradiant 'inwards' to ensure at least the 'from'
+            // material is visible (at least from 0 to 0.5)
+            float remappedTransitionAlpha = (2.0 * transitionAlpha) - 0.5;      // Change to [-0.5...1.5] range
+
+            float heightBase = currentMaterialData.Height;
+            float heightNext = HeightBlendMap.Sample(LinearRepeatSampler, float3(materialTexCoord, materialIndex)).r;
+            float heightDiff = heightNext - heightBase;
+            float contrast = 4.0;   // TODO make as setting?
+            float heightMask = heightDiff + (remappedTransitionAlpha * contrast);
+
+            // Renormalize mask value to fit blend range [0...1]
+            float finalBlendWeight = (heightMask + 0.5) / 2.0;
+            finalBlendWeight = saturate(finalBlendWeight);
+            finalBlendWeight = smoothstep(0, 1, finalBlendWeight);
+
+            float4 diffuse = DiffuseMap.Sample(LinearRepeatSampler, float3(materialTexCoord, materialIndex));
+            float3 normal = NormalMap.Sample(LinearRepeatSampler, float3(materialTexCoord, materialIndex)).xyz;
+            nextMaterialData.Diffuse = lerp(currentMaterialData.Diffuse, diffuse, finalBlendWeight);
+            nextMaterialData.Normal = lerp(currentMaterialData.Normal, normal, finalBlendWeight);
+            nextMaterialData.Height = max(currentMaterialData.Height, heightNext);
+
+            return nextMaterialData;
+        }
+
+        float4 GatherMaterialIndices(float2 uv)
+        {
+            // Gather samples counter-clockwise in the order:
+            // ----------> U
+            // | w | z |
+            // |---+---|
+            // | x | y |
+            // |--------
+            // v
+            // V
+            
+            float4 values = MaterialIndexMap.GatherRed(MaterialIndexMapSampler, uv);
+            // Need to denormalize value to get back the material index
+            return values * MaxMaterialIndexPerTerrain;
+        }
+
+        override void Compute()
+        {
+            float2 terrainTexCoord = streams.TexCoord1;     // TexCoord1 contains the UV on the terrain heightmap because TexCoord0 contains the *local* mesh UV.
+            float2 matIndexTexOffset = MyUtils.GetHalfPixelUvOffset(MaterialIndexMapSize);      // The vertex should be directly in the center of the texel of a material index.
+            float4 sampledMatIndices = GatherMaterialIndices(terrainTexCoord + matIndexTexOffset);
+
+            float2 materialTexCoord = terrainTexCoord * MaterialIndexMapSize;
+            
+            // Sampling requires additional offset as per link:
+            // https://www.reedbeta.com/blog/texture-gathers-and-coordinate-precision/
+            // Weird quirk but we need this offset to snap the 'tex coord' to be consistent with the coords that MaterialIndexMap.Gather actually samples
+            const float FracOffset = 1.0 / 512.0;
+            float2 subPixel = frac(materialTexCoord + FracOffset);
+            // Alpha array in the same order as texture Gather (start bottom-left, move counter-clockwise)
+            // This is the amount of influence of each vertices have on this pixel point.
+            float4 sampledAlphas = float4(
+                (1.0 - subPixel.x) * subPixel.y,            // Bottom-Left
+                subPixel.x * subPixel.y,                    // Bottom-Right
+                subPixel.x * (1.0 - subPixel.y),            // Top-Right
+                (1.0 - subPixel.x) * (1.0 - subPixel.y)     // Top-Left
+            );
+
+            float sortedMatIndices[4] = { 0, 0, 0, 0 };
+            float sortedTransitionAlphas[4] = { 0, 0, 0, 0 };
+            uint materialLayerCount = 0;
+            {   // Sort materials from lowest to highest, and accumulate alphas where redundant
+                const float NaN = asfloat(-1);
+                for (uint i = 0; i < 4; i++)
+                {
+                    float materialIndex = min(sampledMatIndices.x, min(sampledMatIndices.y, min(sampledMatIndices.z, sampledMatIndices.w)));
+                    sortedMatIndices[i] = materialIndex;
+                    // Sum alphas with matching material index
+                    sortedTransitionAlphas[i] =
+                        (sampledMatIndices.x == materialIndex ? sampledAlphas.x : 0.0)
+                        + (sampledMatIndices.y == materialIndex ? sampledAlphas.y : 0.0)
+                        + (sampledMatIndices.z == materialIndex ? sampledAlphas.z : 0.0)
+                        + (sampledMatIndices.w == materialIndex ? sampledAlphas.w : 0.0);
+                    materialLayerCount++;
+
+                    // Remove all matched material index
+                    sampledMatIndices = float4(
+                        sampledMatIndices.x == materialIndex ? NaN : sampledMatIndices.x,
+                        sampledMatIndices.y == materialIndex ? NaN : sampledMatIndices.y,
+                        sampledMatIndices.z == materialIndex ? NaN : sampledMatIndices.z,
+                        sampledMatIndices.w == materialIndex ? NaN : sampledMatIndices.w
+                    );
+                    
+                    // Breaks early if all are NaN
+                    if (!any(sampledMatIndices + 1))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            MaterialData materialData;
+            materialData.Diffuse = 0;
+            materialData.Normal = streams.meshNormal;
+            materialData.Height = 0;
+            {   // Calculate final color/normal
+                [unroll(4)]     // Suppresses warning X3570 'gradient instruction used in a loop with varying iteration'
+                for (uint i = 0; i < materialLayerCount; i++)
+                {
+                    float matIndex = sortedMatIndices[i];
+                    float transitionAlpha = sortedTransitionAlphas[i];
+                    materialData = BlendMaterialLayer(matIndex, transitionAlpha, materialTexCoord, materialData);
+                }
+                // Uncomment to see the unblended material indices (the top-left corner of the material texture is where its vertices are).
+                //float matIndex = MaterialIndexMap.Sample(MaterialIndexMapSampler, terrainTexCoord).r * MaxMaterialIndexPerTerrain;
+                //materialData.Diffuse = DiffuseMap.Sample(LinearRepeatSampler, float3(materialTexCoord, matIndex));
+                //materialData.Normal = NormalMap.Sample(LinearRepeatSampler, float3(materialTexCoord, matIndex));
+          
+                //float matIndex = sortedMatIndices[0];
+                //float matIdxColor = (matIndex / 32) + 0.025;
+                //materialData.Diffuse = float4(matIdxColor, matIdxColor, matIdxColor, 1.0);
+       
+                //int idx = 0;
+                //materialData.Diffuse = float4(sortedTransitionAlphas[idx], 0, 0, 1);
+                //materialData.Normal = float4(0,0,1,0);
+
+                //materialData.Diffuse = float4(MyUtils.ReconstructNormalFromXY(materialData.Normal, 1.0), 1.0);
+                //materialData.Diffuse = float4(0.5, 0.5, 0.5, 1.0);
+            }
+
+            // Output as per MaterialSurfaceDiffuse 
+            streams.matDiffuse = materialData.Diffuse;
+            // Because matDiffuse can be modified when using a metalness, we are storing the colorBase into matColorBase
+            // so that we are able to query the original diffuse color without any modifications.
+            streams.matColorBase = materialData.Diffuse;
+
+            // Note that we can set the surface normal in this shader without a NormalMapFeature because
+            // the diffuse shader occurs before surface/normal calculations, but this will flow through correctly.
+            // Don't normalize the streams.matNormal here, it's being normalize when streams.normalWS is calculated
+            streams.matNormal = MyUtils.ReconstructNormalFromXY(materialData.Normal, 1.0);
+        }
+    };
+}

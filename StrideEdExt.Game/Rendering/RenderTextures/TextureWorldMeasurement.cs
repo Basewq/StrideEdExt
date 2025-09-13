@@ -1,9 +1,8 @@
 using Stride.Core.Mathematics;
-using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace SceneEditorExtensionExample.Rendering.RenderTextures;
+namespace StrideEdExt.Rendering.RenderTextures;
 
 [DebuggerDisplay("{DebugDisplayString,nq}")]
 public struct TextureWorldMeasurement : IEquatable<TextureWorldMeasurement>
@@ -52,8 +51,8 @@ public struct TextureWorldMeasurement : IEquatable<TextureWorldMeasurement>
     /// </summary>
     public readonly RectangleF GetWorldViewRegionXZ(in Int2 textureCoords1, in Int2 textureCoords2)
     {
-        MathExt.MinMax(textureCoords1.X, textureCoords2.X, out int minCoordsX, out int maxCoordsX);
-        MathExt.MinMax(textureCoords1.Y, textureCoords2.Y, out int minCoordsY, out int maxCoordsY);
+        MathExt.GetMinMax(textureCoords1.X, textureCoords2.X, out int minCoordsX, out int maxCoordsX);
+        MathExt.GetMinMax(textureCoords1.Y, textureCoords2.Y, out int minCoordsY, out int maxCoordsY);
 
         // Subtract half TexelWorldSize because the origin sits in the center of the texel
         float x = TextureOriginWorldPosition.X + (minCoordsX * TexelWorldSize.X) - (0.5f * TexelWorldSize.X);

@@ -1,6 +1,6 @@
 using Stride.Core;
 
-namespace SceneEditorExtensionExample.SharedData.Terrain3d;
+namespace StrideEdExt.SharedData.Terrain3d;
 
 /// <summary>
 /// The number of terrain meshes that a terrain chunk contains.

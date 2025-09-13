@@ -1,0 +1,28 @@
+!StrideEdExt.StrideAssetExt.Assets.Terrain3d.TerrainMaterialAsset,StrideEdExt.StrideAssetExt
+Id: 056ab625-3409-4995-91e9-d07caf4e7ccb
+SerializedVersion: {StrideEdExt: 0.0.0.1}
+Tags: []
+GenerateMipmaps: true
+IsStreamable: true
+DiffuseTextureSize: Size512
+NormalMapTextureSize: Size512
+HeightBlendMapTextureSize: Size512
+MaterialLayers:
+    9e5152f799bdd0f6b4ae2448f478ab3c:
+        MaterialName: BaseMaterial
+        DiffuseMap: 44a4d110-3878-440b-99e0-e433005e0d15:Terrain/Textures/forrest_ground_01_diff_1k
+        NormalMap: 1d3a788b-b5dc-497a-9cdc-c151ceb27752:Terrain/Textures/forrest_ground_01_nor_dx_1k
+        NormalMapInvertY: true
+        HeightBlendMap: a18db960-4a84-4556-a983-4872d91bcbf7:Terrain/Textures/forrest_ground_01_disp_1k
+    6cf0634a07a1573bc34c809e7196a98a:
+        MaterialName: MatLayer2
+        DiffuseMap: b10e9403-9024-4296-9a49-7c41191b7148:Terrain/Textures/ganges_river_pebbles_diff_1k
+        NormalMap: dadbee2a-3475-4645-91b6-48b2d4ad88dc:Terrain/Textures/ganges_river_pebbles_nor_dx_1k
+        NormalMapInvertY: true
+        HeightBlendMap: 602bdc09-6e00-4b72-a4c4-8b2d18986c7a:Terrain/Textures/ganges_river_pebbles_disp_1k
+    2e4c9f591251b4f9576f87e1f00c4a61:
+        MaterialName: MatLayer3
+        DiffuseMap: f129ca2e-9070-4832-8f12-f142b833e30e:Terrain/Textures/rock_face_03_diff_1k
+        NormalMap: bd01ee8e-6628-4806-bd76-16de222032e9:Terrain/Textures/rock_face_03_nor_dx_1k
+        NormalMapInvertY: true
+        HeightBlendMap: 4fc17b3e-8869-4f3a-be0a-5d7be2cb56a4:Terrain/Textures/rock_face_03_disp_1k

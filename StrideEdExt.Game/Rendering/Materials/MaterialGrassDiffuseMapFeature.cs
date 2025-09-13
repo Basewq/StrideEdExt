@@ -6,7 +6,7 @@ using Stride.Rendering.Materials;
 using Stride.Shaders;
 using System.Collections.Generic;
 
-namespace SceneEditorExtensionExample.Rendering.Materials;
+namespace StrideEdExt.Rendering.Materials;
 
 [DataContract]
 [Display("Grass Diffuse Map")]

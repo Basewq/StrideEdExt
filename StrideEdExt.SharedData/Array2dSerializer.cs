@@ -1,6 +1,6 @@
 using Stride.Core.Serialization;
 
-namespace SceneEditorExtensionExample.SharedData;
+namespace StrideEdExt.SharedData;
 
 // Code adapted from the following:
 // Stride.Core.Serialization.Serializers.ArraySerializer<T>

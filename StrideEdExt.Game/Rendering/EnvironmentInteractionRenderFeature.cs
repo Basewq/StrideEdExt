@@ -1,6 +1,6 @@
 ﻿using Stride.Rendering;
 
-namespace SceneEditorExtensionExample.Rendering;
+namespace StrideEdExt.Rendering;
 
 public partial class EnvironmentInteractionRenderFeature : SubRenderFeature
 {

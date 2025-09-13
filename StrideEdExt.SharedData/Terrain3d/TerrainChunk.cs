@@ -1,7 +1,8 @@
 using Stride.Core.Mathematics;
 using Stride.Rendering;
+using System.Diagnostics.CodeAnalysis;
 
-namespace SceneEditorExtensionExample.SharedData.Terrain3d;
+namespace StrideEdExt.SharedData.Terrain3d;
 
 public class TerrainChunk
 {
@@ -16,7 +17,6 @@ public class TerrainChunk
     /// </summary>
     public Rectangle HeightmapTextureRegion;
 
-
     public TerrainChunk(TerrainMap terrainMap, TerrainChunkIndex2d chunkIndex)
     {
         TerrainMap = terrainMap;
@@ -28,38 +28,39 @@ public class TerrainChunk
 
     private static Rectangle CalculateChunkHeightmapRegion(TerrainMap terrainMap, TerrainChunkIndex2d chunkIndex)
     {
-        var mapSize = terrainMap.MapSize;
+        var heightmapTextureSize = terrainMap.HeightmapTextureSize;
         var quadPerChunk = terrainMap.QuadPerChunk;
-        int x = chunkIndex.X;
-        int y = chunkIndex.Z;
-
+        int chunkX = chunkIndex.X;
+        int chunkY = chunkIndex.Z;
         // +1 because it requires 2x2 cells/vertices to form a quad
-        int cellIndexEndX = Math.Min(x + quadPerChunk.X + 1, mapSize.X - 1);
-        int cellIndexEndY = Math.Min(y + quadPerChunk.Y + 1, mapSize.Y - 1);
-        int hmWidth = cellIndexEndX - x;
-        int hmHeight = cellIndexEndY - y;
+        int cellIndexEndXExcl = Math.Min((chunkX + 1) * quadPerChunk.X + 1, heightmapTextureSize.Width);
+        int cellIndexEndYExcl = Math.Min((chunkY + 1) * quadPerChunk.Y + 1, heightmapTextureSize.Height);
+        int hmWidth = cellIndexEndXExcl - (chunkX * quadPerChunk.X);
+        int hmHeight = cellIndexEndYExcl - (chunkY * quadPerChunk.Y);
 
-        var heightmapTextureRegion = new Rectangle(x * quadPerChunk.X, y * quadPerChunk.Y, hmWidth, hmHeight);
+        var heightmapTextureRegion = new Rectangle(chunkX * quadPerChunk.X, chunkY * quadPerChunk.Y, hmWidth, hmHeight);
         return heightmapTextureRegion;
     }
 
     private void RebuildChunkMeshArray()
     {
+        var heightmapTextureSize = TerrainMap.HeightmapTextureSize;
         int meshPerChunkSingleAxisLength = TerrainMap.MeshPerChunk.GetSingleAxisLength();
-        var quadPerMesh = TerrainMap.QuadPerMesh;
+        var quadsPerMesh = TerrainMap.QuadsPerMesh;
+        var verticesPerMesh = quadsPerMesh + Int2.One;
         _chunkMeshArray2d = new Array2d<TerrainSubChunk>(meshPerChunkSingleAxisLength, meshPerChunkSingleAxisLength);
         for (int y = 0; y < meshPerChunkSingleAxisLength; y++)
         {
             var meshHeightmapTextureRegion = Rectangle.Empty;
-            meshHeightmapTextureRegion.Y = HeightmapTextureRegion.Y + y * quadPerMesh.Y;
-            int cellIndexEndY = Math.Min(meshHeightmapTextureRegion.Y + quadPerMesh.Y, TerrainMap.MapSize.Y);
-            meshHeightmapTextureRegion.Height = cellIndexEndY - meshHeightmapTextureRegion.Y + 1;
+            meshHeightmapTextureRegion.Y = HeightmapTextureRegion.Y + y * quadsPerMesh.Y;
+            int cellIndexEndYExcl = Math.Min(meshHeightmapTextureRegion.Y + verticesPerMesh.Y, heightmapTextureSize.Height);
+            meshHeightmapTextureRegion.Height = cellIndexEndYExcl - meshHeightmapTextureRegion.Y;
 
             for (int x = 0; x < meshPerChunkSingleAxisLength; x++)
             {
-                meshHeightmapTextureRegion.X = HeightmapTextureRegion.X + x * quadPerMesh.X;
-                int cellIndexEndX = Math.Min(meshHeightmapTextureRegion.X + quadPerMesh.X, TerrainMap.MapSize.X);
-                meshHeightmapTextureRegion.Width = cellIndexEndX - meshHeightmapTextureRegion.X + 1;
+                meshHeightmapTextureRegion.X = HeightmapTextureRegion.X + x * quadsPerMesh.X;
+                int cellIndexEndXExcl = Math.Min(meshHeightmapTextureRegion.X + verticesPerMesh.X, heightmapTextureSize.Width);
+                meshHeightmapTextureRegion.Width = cellIndexEndXExcl - meshHeightmapTextureRegion.X;
 
                 var chunkMesh = new TerrainSubChunk
                 {
@@ -76,6 +77,12 @@ public class TerrainChunk
     {
         var subChunk = _chunkMeshArray2d[subCellIndex.X, subCellIndex.Z];
         return subChunk;
+    }
+
+    public bool TryGetSubChunk(TerrainChunkSubCellIndex2d subCellIndex, [NotNullWhen(true)] out TerrainSubChunk? subChunk)
+    {
+        bool isFound = _chunkMeshArray2d.TryGetValue((Int2)subCellIndex, out subChunk);
+        return isFound;
     }
 }
 

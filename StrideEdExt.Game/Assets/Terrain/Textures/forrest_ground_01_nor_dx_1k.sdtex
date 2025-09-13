@@ -1,0 +1,6 @@
+!Texture
+Id: 1d3a788b-b5dc-497a-9cdc-c151ceb27752
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Terrain/textures/forrest_ground_01_nor_dx_1k.png
+Type: !NormalMapTextureType {}

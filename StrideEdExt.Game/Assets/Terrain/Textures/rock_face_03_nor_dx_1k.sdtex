@@ -1,0 +1,6 @@
+!Texture
+Id: bd01ee8e-6628-4806-bd76-16de222032e9
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Terrain/textures/rock_face_03_nor_dx_1k.png
+Type: !NormalMapTextureType {}

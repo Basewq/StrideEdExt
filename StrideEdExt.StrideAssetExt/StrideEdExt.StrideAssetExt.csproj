@@ -9,8 +9,13 @@
     <PackageReference Include="Stride.Assets" Version="4.2.0.2374" />
     <PackageReference Include="Stride.Assets.Models" Version="4.2.0.2374" />
     <PackageReference Include="Stride.Core.Assets" Version="4.2.0.2374" />
+    <PackageReference Include="Stride.Core.Assets.Quantum" Version="4.2.0.2374" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SceneEditorExtensionExample.SharedData\SceneEditorExtensionExample.SharedData.csproj" />
+    <ProjectReference Include="..\StrideEdExt.SharedData\StrideEdExt.SharedData.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="StrideEdExt.GameStudioExt" />
+    <InternalsVisibleTo Include="StrideEdExt.Tests" />
   </ItemGroup>
 </Project>

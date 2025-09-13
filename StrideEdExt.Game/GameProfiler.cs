@@ -7,7 +7,7 @@ using Stride.Engine;
 using Stride.Profiling;
 using Stride.Core;
 
-namespace SceneEditorExtensionExample
+namespace StrideEdExt
 {
     public class GameProfiler : AsyncScript
     {

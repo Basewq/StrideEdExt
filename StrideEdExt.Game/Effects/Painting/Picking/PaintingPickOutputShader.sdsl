@@ -1,0 +1,34 @@
+﻿namespace StrideEdExt.Rendering
+{
+    // The shader that outputs 0 or 1 on a texture for a model, and writes the cursor hit result in PickHitResultData.
+    shader PaintingPickOutputShader : PositionStream4, Transformation, ShaderBase, NormalStream
+    {
+        // This is the same structure as the C# struct PaintingPickHitResultData
+        // Because this appears as a shader key, be sure to make the namespace declaration
+        // the SAME as the C#'s version, otherwise it won't reference that one properly
+        // in the generated shader key file.
+
+        struct PaintingPickObjectInfoData
+        {
+            bool IsPickable;
+        };
+        cbuffer PerDraw
+        {
+            stage PaintingPickObjectInfoData PickObjectInfo;
+        }
+
+        stage override void PSMain()
+        {
+            //if (!PickObjectInfo.IsPickable)
+            //{
+            //    discard;
+            //}
+
+            base.PSMain();
+
+            streams.ColorTarget = float4(1, 0, 0, 1);
+            streams.ColorTarget1 = streams.PositionWS;
+            streams.ColorTarget2 = float4(streams.meshNormalWS, 0);
+        }
+    };
+}

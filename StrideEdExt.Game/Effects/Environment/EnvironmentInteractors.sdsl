@@ -1,4 +1,4 @@
-﻿namespace SceneEditorExtensionExample.Rendering
+﻿namespace StrideEdExt.Rendering
 {
     shader EnvironmentInteractors
     {
@@ -8,14 +8,14 @@
             float Radius;
         };
 
-        cbuffer PerView.EnvironmentInteractors
-        {
-            stage int EnvironmentInteractorCount;
-        }
-
         rgroup PerView.EnvironmentInteractors
         {
             stage StructuredBuffer<EnvironmentInteractorData> EnvironmentInteractorArray;
+        }
+
+        cbuffer PerView.EnvironmentInteractors
+        {
+            stage int EnvironmentInteractorCount;
         }
     };
 }

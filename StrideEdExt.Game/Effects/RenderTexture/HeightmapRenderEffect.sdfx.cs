@@ -16,7 +16,7 @@ using Buffer = Stride.Graphics.Buffer;
 
 using Stride.Rendering.Data;
 using Stride.Shaders.Compiler;
-namespace SceneEditorExtensionExample.Rendering
+namespace StrideEdExt.Rendering
 {
     internal static partial class ShaderMixins
     {

@@ -1,0 +1,11 @@
+!TemplateAssetFactory
+Id: F7E54D00-C9B2-4FA1-AAAC-BDB8273CC7CA
+AssetTypeName: TerrainMaterialAsset
+Name: Terrain Material
+Scope: Asset
+Description: Terrain Material
+Group: Terrain
+Icon: ../.sdtpl/TerrainMaterial.png
+Order: 1010
+DefaultOutputName: TerrainMaterial
+FactoryTypeName: TerrainMaterialAssetFactory

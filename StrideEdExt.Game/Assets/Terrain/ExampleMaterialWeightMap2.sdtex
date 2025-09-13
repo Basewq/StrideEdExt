@@ -1,0 +1,9 @@
+!Texture
+Id: d721370b-ed4c-45c6-afea-35565ee8def3
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../Resources/Terrain/ExampleMaterialWeightMap2.png
+IsCompressed: false
+Type: !GrayscaleTextureType {}
+GenerateMipmaps: false
+IsStreamable: false

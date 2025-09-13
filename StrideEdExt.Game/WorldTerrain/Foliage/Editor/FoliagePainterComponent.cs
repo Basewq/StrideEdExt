@@ -1,5 +1,5 @@
-﻿using SceneEditorExtensionExample.SharedData;
-using SceneEditorExtensionExample.StrideEditorExt;
+﻿using StrideEdExt.SharedData;
+using StrideEdExt.StrideEditorExt;
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Serialization;
@@ -8,13 +8,13 @@ using Stride.Rendering;
 using System.Collections.Generic;
 
 #if GAME_EDITOR
-using SceneEditorExtensionExample.StrideAssetExt.Assets;
+using StrideEdExt.StrideAssetExt.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Engine.Design;
 using System.Diagnostics;
 #endif
 
-namespace SceneEditorExtensionExample.WorldTerrain.Foliage.Editor;
+namespace StrideEdExt.WorldTerrain.Foliage.Editor;
 
 [DataContract]
 public enum FoliagePlacementPaintMode

@@ -1,11 +1,11 @@
-﻿using SceneEditorExtensionExample.Rendering;
+﻿using StrideEdExt.Rendering;
 using Stride.Core.Annotations;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Rendering;
 using System.Collections.Generic;
 
-namespace SceneEditorExtensionExample.WorldTerrain.EnvironmentInteractions;
+namespace StrideEdExt.WorldTerrain.EnvironmentInteractions;
 
 class EnvironmentWindSourceProcessor : EntityProcessor<EnvironmentWindSourceComponent, EnvironmentWindSourceProcessor.AssociatedData>, IEntityComponentRenderProcessor
 {

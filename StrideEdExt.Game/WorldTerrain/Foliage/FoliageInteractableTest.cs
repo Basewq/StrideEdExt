@@ -2,7 +2,7 @@
 using Stride.Engine;
 using System;
 
-namespace SceneEditorExtensionExample.WorldTerrain.Foliage;
+namespace StrideEdExt.WorldTerrain.Foliage;
 
 [ComponentCategory("Environment")]
 public class FoliageInteractableTest : SyncScript

@@ -2,19 +2,25 @@ using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
-using System;
-using System.Collections.Generic;
+using StrideEdExt.SharedData.StrideEditorExt.EditorRuntimeInterfacing;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace SceneEditorExtensionExample.StrideEditorExt;
+namespace StrideEdExt.StrideEditorExt;
 
 [ComponentCategory("Scene Editors")]
 [DataContract(Inherited = true)]
 [DefaultEntityComponentProcessor(typeof(SceneEditorExtProcessor), ExecutionMode = ExecutionMode.Editor)]
 public abstract class SceneEditorExtBase : EntityComponent, INotifyPropertyChanged
 {
+    internal bool IsInitialized { get; private set; }
+
+    [DataMemberIgnore]
+    protected internal IRuntimeToEditorMessagingService? RuntimeToEditorMessagingService { get; private set; }
+
 #if GAME_EDITOR
+    [DataMemberIgnore]
+    protected internal IServiceRegistry Services { get; private set; } = default!;
     [DataMemberIgnore]
     protected internal IStrideEditorService StrideEditorService { get; private set; } = default!;
     protected internal UIComponent? UIComponent { get; private set; } = default!;
@@ -37,15 +43,15 @@ public abstract class SceneEditorExtBase : EntityComponent, INotifyPropertyChang
         }
     }
 
-    internal bool IsInitialized { get; private set; }
-
     protected internal abstract void Initialize();
     protected internal abstract void Deinitialize();
     protected internal virtual void Update(GameTime gameTime) { }
 
     internal void Initialize(IServiceRegistry services, UIComponent? uiComponent)
     {
+        Services = services;
         StrideEditorService = services.GetSafeServiceAs<IStrideEditorService>();
+        RuntimeToEditorMessagingService = services.GetSafeServiceAs<IRuntimeToEditorMessagingService>();
         UIComponent = uiComponent;
 
         Initialize();

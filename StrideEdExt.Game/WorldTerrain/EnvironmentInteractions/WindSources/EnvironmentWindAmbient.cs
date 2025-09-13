@@ -1,6 +1,6 @@
-﻿using SceneEditorExtensionExample.Rendering;
+﻿using StrideEdExt.Rendering;
 
-namespace SceneEditorExtensionExample.WorldTerrain.EnvironmentInteractions.WindSources;
+namespace StrideEdExt.WorldTerrain.EnvironmentInteractions.WindSources;
 
 public class EnvironmentWindAmbient : EnvironmentWindSourceBase
 {

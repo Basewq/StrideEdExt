@@ -5,7 +5,7 @@ using Stride.Core.Annotations;
 using Stride.Games;
 #endif
 
-namespace SceneEditorExtensionExample.StrideEditorExt;
+namespace StrideEdExt.StrideEditorExt;
 
 class SceneEditorExtProcessor : EntityProcessor<SceneEditorExtBase>
 {

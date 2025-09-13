@@ -10,6 +10,7 @@ using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Serialization;
 using Stride.Editor.EditorGame.ContentLoader;
@@ -24,7 +25,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace SceneEditorExtensionExample.StrideEditorExt;
+namespace StrideEdExt.StrideEditorExt;
 
 class StrideEditorService : IStrideEditorService
 {
@@ -53,6 +54,19 @@ class StrideEditorService : IStrideEditorService
         }
     }
 
+    public IViewModelServiceProvider? ViewModelServiceProvider
+    {
+        get
+        {
+            var returnValue = InvokeOnUI(() =>
+            {
+                var serviceProvider = _editorViewModels?.SessionViewModel?.ServiceProvider;
+                return serviceProvider;
+            });
+            return returnValue;
+        }
+    }
+
     public void Invoke(Action action)
     {
         var gsVm = GameStudioViewModel.GameStudio;
@@ -68,7 +82,7 @@ class StrideEditorService : IStrideEditorService
         });
     }
 
-    public void Invoke(Action<object> action)
+    public void Invoke(Action<SessionViewModel> action)
     {
         var gsVm = GameStudioViewModel.GameStudio;
         if (!IsValid(gsVm))
@@ -99,7 +113,7 @@ class StrideEditorService : IStrideEditorService
         return task;
     }
 
-    public Task InvokeAsync(Func<object, Task> actionAsync)
+    public Task InvokeAsync(Func<SessionViewModel, Task> actionAsync)
     {
         var gsVm = GameStudioViewModel.GameStudio;
         if (!IsValid(gsVm))
@@ -322,14 +336,14 @@ class StrideEditorService : IStrideEditorService
         return assetSideSceneEntityComp;
     }
 
-    public void UpdateAssetComponentData<T>(T runtimeComponent, string propertyName, object newValue)
+    public void UpdateAssetComponentData<T>(T runtimeComponent, string propertyName, object? newValue)
         where T : EntityComponent
     {
         var sceneEntity = runtimeComponent.Entity;
         (this as IStrideEditorService).UpdateAssetComponentDataByEntityId<T>(sceneEntity.Id, propertyName, newValue);
     }
 
-    public void UpdateAssetComponentDataByEntityId<T>(Guid entityId, string propertyName, object newValue)
+    public void UpdateAssetComponentDataByEntityId<T>(Guid entityId, string propertyName, object? newValue)
         where T : EntityComponent
     {
         EnsureInsideInvokeCall(_editorViewModels);
@@ -353,14 +367,14 @@ class StrideEditorService : IStrideEditorService
         entityCompPropertyNode.Update(newValue);
     }
 
-    public void UpdateAssetComponentArrayData<T>(T runtimeComponent, string propertyName, object newValue, int arrayIndex)
+    public void UpdateAssetComponentArrayData<T>(T runtimeComponent, string propertyName, object? newValue, int arrayIndex)
         where T : EntityComponent
     {
         var sceneEntity = runtimeComponent.Entity;
         (this as IStrideEditorService).UpdateAssetComponentArrayDataByEntityId<T>(sceneEntity.Id, propertyName, newValue, arrayIndex);
     }
 
-    public void UpdateAssetComponentArrayDataByEntityId<T>(Guid entityId, string propertyName, object newValue, int arrayIndex)
+    public void UpdateAssetComponentArrayDataByEntityId<T>(Guid entityId, string propertyName, object? newValue, int arrayIndex)
         where T : EntityComponent
     {
         EnsureInsideInvokeCall(_editorViewModels);
@@ -381,13 +395,12 @@ class StrideEditorService : IStrideEditorService
         entityCompPropertyObjectNode.Update(newValue, new NodeIndex(arrayIndex));
     }
 
-    public void UpdateAssetProperty(object assetObject, string propertyName, object newValue)
+    public void UpdateAssetProperty(object assetObject, string propertyName, object? newValue)
     {
         EnsureInsideInvokeCall(_editorViewModels);
-        var sceneEditorVm = _editorViewModels.Value.SceneEditorViewModel;
-        EnsureInsideInvokeCall(sceneEditorVm);
+        var sessionVm = _editorViewModels.Value.SessionViewModel;
 
-        var nodeContainer = sceneEditorVm.Session.AssetNodeContainer;
+        var nodeContainer = sessionVm.AssetNodeContainer;
         var assetObjectNode = nodeContainer.GetNode(assetObject);
         var assetObjectPropertyNodeRaw = assetObjectNode[propertyName];
         var assetObjectPropertyNode = assetObjectPropertyNodeRaw as IAssetMemberNode;
@@ -399,10 +412,9 @@ class StrideEditorService : IStrideEditorService
     public void RefreshAssetCollection(object assetCollectionContainerObject, string collectionMemberName)
     {
         EnsureInsideInvokeCall(_editorViewModels);
-        var sceneEditorVm = _editorViewModels.Value.SceneEditorViewModel;
-        EnsureInsideInvokeCall(sceneEditorVm);
+        var sessionVm = _editorViewModels.Value.SessionViewModel;
 
-        var nodeContainer = sceneEditorVm.Session.AssetNodeContainer;
+        var nodeContainer = sessionVm.AssetNodeContainer;
         var collContainerNode = nodeContainer.GetNode(assetCollectionContainerObject);
         var collectionNode = collContainerNode[collectionMemberName];
         collectionNode.Target.ItemReferences.Refresh(collectionNode, nodeContainer);

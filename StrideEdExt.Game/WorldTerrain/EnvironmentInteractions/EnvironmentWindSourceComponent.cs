@@ -1,10 +1,10 @@
-﻿using SceneEditorExtensionExample.WorldTerrain.EnvironmentInteractions.WindSources;
+﻿using StrideEdExt.WorldTerrain.EnvironmentInteractions.WindSources;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
 
-namespace SceneEditorExtensionExample.WorldTerrain.EnvironmentInteractions;
+namespace StrideEdExt.WorldTerrain.EnvironmentInteractions;
 
 [ComponentCategory("Environment")]
 [DataContract]

@@ -1,6 +1,6 @@
-!SceneEditorExtensionExample.StrideAssetExt.Assets.FoliagePlacementAsset,SceneEditorExtensionExample.StrideAssetExt
+!StrideEdExt.StrideAssetExt.Assets.FoliagePlacementAsset,StrideEdExt.StrideAssetExt
 Id: 70b5e4a8-33a9-4349-89a6-754c52f7d2fe
-SerializedVersion: {SceneEditorExtensionExample: 0.0.0.1}
+SerializedVersion: {StrideEdExt: 0.0.0.1}
 Tags: []
 ModelPlacementCount: 6998
 ModelPlacements:

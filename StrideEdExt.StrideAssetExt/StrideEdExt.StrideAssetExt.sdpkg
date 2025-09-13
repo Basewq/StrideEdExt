@@ -1,7 +1,7 @@
 !Package
 SerializedVersion: {Assets: 3.1.0.0}
 Meta:
-    Name: SceneEditorExtensionExample.StrideAssetExt
+    Name: StrideEdExt.StrideAssetExt
     Version: 1.0.0
     Authors: []
     Owners: []
@@ -17,4 +17,5 @@ TemplateFolders:
         Files:
             - !file Templates/Assets/FoliagePlacement.sdtpl
             - !file Templates/Assets/TerrainMap.sdtpl
+            - !file Templates/Assets/TerrainMaterial.sdtpl
 RootAssets: []

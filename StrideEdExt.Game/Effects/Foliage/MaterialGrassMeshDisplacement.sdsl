@@ -1,9 +1,9 @@
-﻿namespace SceneEditorExtensionExample.Rendering
+﻿namespace StrideEdExt.Rendering
 {
     shader MaterialGrassMeshDisplacement : FoliageInstancingShared, EnvironmentInteractors, EnvironmentWindSources, IMaterialSurface,
         TransformationInstancing, PositionStream4, NormalStream, Texturing, MyUtils
     {
-        SamplerState WindNoiseMapSampler
+        stage SamplerState WindNoiseMapSampler
         {
             Filter = MIN_MAG_MIP_LINEAR;
             AddressU = Wrap;

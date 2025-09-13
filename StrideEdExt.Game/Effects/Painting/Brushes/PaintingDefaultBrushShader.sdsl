@@ -1,0 +1,51 @@
+﻿namespace StrideEdExt.Rendering
+{
+    // The shader used to display the default brush cursor (a circle outline)
+    shader PaintingDefaultBrushShader : ComputeColor, PositionStream4, Texturing
+    {
+        cbuffer PerMaterial
+        {
+            stage float FalloffStartPercentage;
+        }
+
+        override float4 Compute()
+        {
+            const float ActivePaintAlpha = 0.035;
+            const float CircleRadius = 0.5;
+            const float CircleThickness = 0.01;
+
+            // Change position from [0, 1] range to [-0.5, 0.5] range
+            float2 circleRelativePos = streams.TexCoord - 0.5;
+            float currentPointDistance = length(circleRelativePos);
+            float falloffOutlineRadius = CircleRadius * FalloffStartPercentage / 100;
+
+            float activePaintRadius = falloffOutlineRadius;
+            float displayAlpha = step(currentPointDistance, activePaintRadius) * ActivePaintAlpha;
+            float circleOutlineAlpha = GetCircleOutlineOpacity(currentPointDistance, CircleRadius, CircleThickness);
+            displayAlpha = max(displayAlpha, circleOutlineAlpha);
+            if (FalloffStartPercentage > 0)
+            {
+                float falloffOutlineOpacity = GetCircleOutlineOpacity(currentPointDistance, falloffOutlineRadius, CircleThickness);
+                falloffOutlineOpacity *= 0.35;
+                displayAlpha = max(displayAlpha, falloffOutlineOpacity);
+            }
+            return float4(1.0, 1.0, 1.0, 1.0) * displayAlpha;
+        }
+
+        float GetCircleOutlineOpacity(float currentPointDistance, float circleRadius, float circleThickness)
+        {
+            // Note that the circle outline is drawn inwards
+            float minOutlineRadius = circleRadius - circleThickness;
+            float maxOutlineRadius = circleRadius;
+            if (minOutlineRadius <= currentPointDistance && currentPointDistance <= maxOutlineRadius)
+            {
+                float outlineAlpha = 1 - smoothstep(0, 1, abs(currentPointDistance - circleRadius) / circleRadius);
+                return saturate(outlineAlpha);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+    };
+}

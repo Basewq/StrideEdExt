@@ -1,10 +1,10 @@
-﻿using SceneEditorExtensionExample.Rendering;
+﻿using StrideEdExt.Rendering;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Games;
 using System;
 
-namespace SceneEditorExtensionExample.WorldTerrain.EnvironmentInteractions.WindSources;
+namespace StrideEdExt.WorldTerrain.EnvironmentInteractions.WindSources;
 
 public class EnvironmentWindDirectional : EnvironmentWindSourceBase
 {

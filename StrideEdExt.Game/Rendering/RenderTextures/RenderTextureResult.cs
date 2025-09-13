@@ -1,8 +1,7 @@
 using Stride.Core.Mathematics;
 using Stride.Graphics;
-using System;
 
-namespace SceneEditorExtensionExample.Rendering.RenderTextures;
+namespace StrideEdExt.Rendering.RenderTextures;
 
 public class RenderTextureResult
 {
@@ -19,7 +18,6 @@ public class RenderTextureResult
 
 public enum RenderTextureResultStateType
 {
-    InProgress,
+    Failed,
     Success,
-    Failed
 }

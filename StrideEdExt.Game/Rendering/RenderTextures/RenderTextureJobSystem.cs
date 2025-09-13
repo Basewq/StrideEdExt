@@ -1,11 +1,11 @@
-using SceneEditorExtensionExample.Rendering.RenderTextures.Requests;
 using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
-using System.Collections.Generic;
+using Stride.Graphics;
+using StrideEdExt.Rendering.RenderTextures.Requests;
 
-namespace SceneEditorExtensionExample.Rendering.RenderTextures;
+namespace StrideEdExt.Rendering.RenderTextures;
 
 // Adapted from Stride.Editor.Thumbnails.ThumbnailGenerator
 public class RenderTextureJobSystem : GameSystem
@@ -52,17 +52,34 @@ public class RenderTextureJobSystem : GameSystem
         _renderTextureSceneSystem.Dispose();
     }
 
-    public RenderTextureResult EnqueueRequest(IRenderTextureRequest request)
+    //public RenderTextureResult EnqueueRequest(IRenderTextureRequest request)
+    //{
+    //    lock (_requestQueue)
+    //    {
+    //        var result = new RenderTextureResult
+    //        {
+    //            State = RenderTextureResultStateType.InProgress
+    //        };
+    //        var pendingRequest = new PendingRequestRenderTexture(request, result);
+    //        _requestQueue.Enqueue(pendingRequest);
+    //        return result;
+    //    }
+    //}
+
+    public Task<TRenderTextureResult> EnqueueRequest<TRenderTextureResult>(IRenderTextureRequest<TRenderTextureResult> request)
+        where TRenderTextureResult : RenderTextureResult
     {
         lock (_requestQueue)
         {
-            var result = new RenderTextureResult
+            var tcs = new TaskCompletionSource<TRenderTextureResult>();
+            Action<SceneSystem, GraphicsDevice> onCompletion = (sceneSystem, graphicsDevice) =>
             {
-                State = RenderTextureResultStateType.InProgress
+                var result = request.RenderCompleted(sceneSystem, graphicsDevice);
+                tcs.SetResult(result);
             };
-            var pendingRequest = new PendingRequestRenderTexture(request, result);
+            var pendingRequest = new PendingRequestRenderTexture(request.SetUpScene, onCompletion);
             _requestQueue.Enqueue(pendingRequest);
-            return result;
+            return tcs.Task;
         }
     }
 
@@ -78,7 +95,7 @@ public class RenderTextureJobSystem : GameSystem
         }
 
         _activeRequest = pendingRequest;
-        pendingRequest.Request.SetUpScene(_renderTextureSceneSystem, GraphicsDevice);
+        pendingRequest.SetUpSceneAction(_renderTextureSceneSystem, GraphicsDevice);
         return true;
     }
 
@@ -97,11 +114,21 @@ public class RenderTextureJobSystem : GameSystem
                 _renderTextureSceneSystem.BeginDraw();
                 _renderTextureSceneSystem.Draw(_nullGameTime);
                 _renderTextureSceneSystem.EndDraw();
-                _activeRequest!.Request.RenderCompleted(_renderTextureSceneSystem, GraphicsDevice, _activeRequest.Result);
+                _activeRequest!.RenderCompletedAction(_renderTextureSceneSystem, GraphicsDevice);
                 _activeRequest = null;
             }
         }
     }
 
-    private record PendingRequestRenderTexture(IRenderTextureRequest Request, RenderTextureResult Result);
+    private record PendingRequestRenderTexture
+    {
+        public PendingRequestRenderTexture(Action<SceneSystem, GraphicsDevice> setUpSceneAction, Action<SceneSystem, GraphicsDevice> renderCompletedAction)
+        {
+            SetUpSceneAction = setUpSceneAction;
+            RenderCompletedAction = renderCompletedAction;
+        }
+
+        public Action<SceneSystem, GraphicsDevice> SetUpSceneAction { get; }
+        public Action<SceneSystem, GraphicsDevice> RenderCompletedAction { get; }
+    }
 }

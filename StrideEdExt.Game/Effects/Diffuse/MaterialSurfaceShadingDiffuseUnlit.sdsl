@@ -1,0 +1,27 @@
+﻿namespace StrideEdExt.Rendering
+{
+    shader MaterialSurfaceShadingDiffuseUnlit<bool TIsEnergyConservative> : IMaterialSurfaceShading
+    {
+        override float3 ComputeDirectLightContribution()
+        {
+            var diffuseColor = streams.matDiffuseVisible;
+            if (TIsEnergyConservative)
+            {
+                diffuseColor *= (1 - streams.matSpecularVisible);
+            }
+            //return diffuseColor / PI * streams.matDiffuseSpecularAlphaBlend.x;
+            return diffuseColor;
+        }
+
+        override float3 ComputeEnvironmentLightContribution()
+        {
+            var diffuseColor = streams.matDiffuseVisible;
+            if (TIsEnergyConservative)
+            {
+                diffuseColor *= (1 - streams.matSpecularVisible);
+            }
+
+            return diffuseColor;
+        }
+    };
+}

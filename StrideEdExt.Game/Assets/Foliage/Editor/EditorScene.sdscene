@@ -19,7 +19,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    8671f4790d3c6dbbcf2a2bdcc21710ae: !SceneEditorExtensionExample.WorldTerrain.Foliage.Editor.FoliagePainterComponent,SceneEditorExtensionExample
+                    8671f4790d3c6dbbcf2a2bdcc21710ae: !StrideEdExt.WorldTerrain.Foliage.Editor.FoliagePainterComponent,StrideEdExt.Game
                         Id: fc508fc0-39f1-4660-a0d2-a83ff2391b90
                         FoliagePlacementAsset: 70b5e4a8-33a9-4349-89a6-754c52f7d2fe:Foliage/MainSceneFoliagePlacement
                         PaintPlacementPreviewPrefab: 8a5814d7-6f36-4bb9-b3ca-7ee2534acea4:Foliage/Editor/PainterPreviewPrefab

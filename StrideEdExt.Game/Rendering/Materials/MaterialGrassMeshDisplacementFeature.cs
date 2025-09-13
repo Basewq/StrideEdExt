@@ -3,7 +3,7 @@ using Stride.Graphics;
 using Stride.Rendering.Materials;
 using Stride.Shaders;
 
-namespace SceneEditorExtensionExample.Rendering.Materials;
+namespace StrideEdExt.Rendering.Materials;
 
 [DataContract]
 [Display("Grass Mesh Displacement")]

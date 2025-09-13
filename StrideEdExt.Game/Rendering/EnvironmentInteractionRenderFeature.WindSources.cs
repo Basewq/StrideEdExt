@@ -1,4 +1,4 @@
-﻿using SceneEditorExtensionExample.WorldTerrain.EnvironmentInteractions;
+﻿using StrideEdExt.WorldTerrain.EnvironmentInteractions;
 using Stride.Core;
 using Stride.Core.Collections;
 using Stride.Core.Mathematics;
@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace SceneEditorExtensionExample.Rendering;
+namespace StrideEdExt.Rendering;
 
 public partial class EnvironmentInteractionRenderFeature : SubRenderFeature
 {

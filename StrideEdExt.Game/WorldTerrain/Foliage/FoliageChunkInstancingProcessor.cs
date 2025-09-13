@@ -1,10 +1,10 @@
-﻿using SceneEditorExtensionExample.Rendering;
+﻿using StrideEdExt.Rendering;
 using Stride.Core.Annotations;
 using Stride.Engine;
 using Stride.Rendering;
 using System.Collections.Generic;
 
-namespace SceneEditorExtensionExample.WorldTerrain.Foliage;
+namespace StrideEdExt.WorldTerrain.Foliage;
 
 // Adapted from Stride.Engine.Processors.InstancingProcessor
 class FoliageChunkInstancingProcessor : EntityProcessor<FoliageChunkInstancingComponent, FoliageChunkInstancingProcessor.AssociatedData>, IEntityComponentRenderProcessor

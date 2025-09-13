@@ -1,0 +1,77 @@
+﻿namespace StrideEdExt.Rendering
+{
+    shader MaterialTerrainEditPreviewDiffuseMap : MaterialTerrainEditPreviewInputShared, StrokeMapPaintingInputShared,
+        MaterialTerrainDiffuseMap
+    {
+        static const uint MaterialMapPaintModeType_Paint            = 0;
+        static const uint MaterialMapPaintModeType_Erase            = 1;
+
+        rgroup PerMaterial
+        {
+            stage Texture2D TerrainMaterialWeightMap;       // Values in [0...1] range.
+            stage Texture2D EditLayerMaterialWeightMap;     // Values in [0...1] range.
+        }
+
+        cbuffer PerMaterial
+        {
+            stage float2 TerrainMaterialWeightMapSize;
+
+            stage uint OverrideMaterialIndex;
+            stage uint MaterialMapPaintModeType;
+        }
+
+        override float4 GatherMaterialIndices(float2 uv)
+        {
+            float4 values = base.GatherMaterialIndices(uv);
+            if (EditPreviewType != EditPreviewType_Material)
+            {
+                return values;
+            }
+            if (MaterialMapPaintModeType == MaterialMapPaintModeType_Erase)
+            {
+                return values;
+            }
+
+            float4 terrainWeightMapValues = TerrainMaterialWeightMap.GatherRed(MaterialIndexMapSampler, uv);
+            float4 editLayerMatWeightValues = EditLayerMaterialWeightMap.GatherRed(MaterialIndexMapSampler, uv);
+
+            float2 strokeMapUv = GetPixelCenteredUv(StrokeMapTextureSize, streams.TexCoord);
+            float4 overrideMatWeightValues = StrokeMapTexture.GatherRed(StrokeMapTextureSampler, strokeMapUv);
+            overrideMatWeightValues += editLayerMatWeightValues;
+            values = float4(
+                (overrideMatWeightValues.x == 0 || overrideMatWeightValues.x < terrainWeightMapValues.x) ? values.x : OverrideMaterialIndex,
+                (overrideMatWeightValues.y == 0 || overrideMatWeightValues.y < terrainWeightMapValues.y) ? values.y : OverrideMaterialIndex,
+                (overrideMatWeightValues.z == 0 || overrideMatWeightValues.z < terrainWeightMapValues.z) ? values.z : OverrideMaterialIndex,
+                (overrideMatWeightValues.w == 0 || overrideMatWeightValues.w < terrainWeightMapValues.w) ? values.w : OverrideMaterialIndex
+            );
+            return values;
+        }
+
+        override void Compute()
+        {
+            base.Compute();
+
+            if (EditPreviewType == EditPreviewType_NotSet || !IsPaintingActive)
+            {
+                return;
+            }
+
+            float2 strokeMapUv = GetPixelCenteredUv(StrokeMapTextureSize, streams.TexCoord);
+            float strokeMapValue = StrokeMapTexture.SampleLevel(StrokeMapTextureSampler, strokeMapUv, 0).x;
+
+            const float4 WhiteColor = float4(1.0, 1.0, 1.0, 1.0);
+            const float4 PaintColor = float4(0.75, 1.0, 0.75, 1.0);
+            const float4 EraseColor = float4(1.0, 0.5, 0.5, 1.0);
+            float4 highlightColor = PaintColor;
+            if (EditPreviewType == EditPreviewType_Material && MaterialMapPaintModeType == MaterialMapPaintModeType_Erase)
+            {
+                highlightColor = EraseColor;
+            }
+            float4 modifiedColor = lerp(WhiteColor, highlightColor, strokeMapValue);
+
+            // Output as per MaterialSurfaceDiffuse
+            streams.matDiffuse *= modifiedColor;
+            streams.matColorBase *= modifiedColor;
+        }
+    };
+}

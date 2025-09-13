@@ -1,0 +1,6 @@
+!Texture
+Id: 4fc17b3e-8869-4f3a-be0a-5d7be2cb56a4
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Terrain/textures/rock_face_03_disp_1k.png
+Type: !GrayscaleTextureType {}

@@ -3,13 +3,13 @@ Id: 6082e0d7-0f02-46a7-8b92-a8121de63790
 SerializedVersion: {Stride: 2.0.0.0}
 Tags: []
 Attributes:
-    Displacement: !SceneEditorExtensionExample.Rendering.Materials.MaterialGrassMeshDisplacementFeature,SceneEditorExtensionExample
+    Displacement: !StrideEdExt.Rendering.Materials.MaterialGrassMeshDisplacementFeature,StrideEdExt.Game
         WindNoiseMap: d6dd8de3-e138-43f7-a6f3-d679cdcc239e:Foliage/WindNoise
         AmbientWindNoiseMapWorldLength: 5.0
         AmbientWindMaxDisplacementY: 0.1
         ActiveWindNoiseMapWorldLength: 30.0
         ActiveWindMaxDisplacementXZ: 0.75
-    Diffuse: !SceneEditorExtensionExample.Rendering.Materials.MaterialGrassDiffuseMapFeature,SceneEditorExtensionExample
+    Diffuse: !StrideEdExt.Rendering.Materials.MaterialGrassDiffuseMapFeature,StrideEdExt.Game
         IsBrightnessMapEnabled: true
         BrightnessMap: 81345e4e-071f-44dd-8702-5f73e9074a01:Foliage/GrassBrightnessMap
         BrightnessMapWorldLength: 30.0

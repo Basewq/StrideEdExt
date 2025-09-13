@@ -1,10 +1,10 @@
 using Stride.Engine;
 using Stride.Graphics;
 
-namespace SceneEditorExtensionExample.Rendering.RenderTextures.Requests;
+namespace StrideEdExt.Rendering.RenderTextures.Requests;
 
-public interface IRenderTextureRequest
+public interface IRenderTextureRequest<TRenderTextureResult> where TRenderTextureResult : RenderTextureResult
 {
     void SetUpScene(SceneSystem sceneSystem, GraphicsDevice graphicsDevice);
-    void RenderCompleted(SceneSystem sceneSystem, GraphicsDevice graphicsDevice, RenderTextureResult result);
+    TRenderTextureResult RenderCompleted(SceneSystem sceneSystem, GraphicsDevice graphicsDevice);
 }

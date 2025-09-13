@@ -1,0 +1,12 @@
+!ProceduralModelAsset
+Id: 59d1152d-b865-4d9b-9e80-be485f6176cd
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Type: !SphereProceduralModel
+    Radius: 1.0
+    Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+    UvScale: {X: 1.0, Y: 1.0}
+    LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
+    NumberOfTextureCoordinates: 1
+    MaterialInstance:
+        Material: f4c3da84-f628-437c-b935-432a3fca21eb:Terrain/Editor/PainterPreviewMaterial

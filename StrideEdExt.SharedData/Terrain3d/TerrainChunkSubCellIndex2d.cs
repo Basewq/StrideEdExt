@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
-namespace SceneEditorExtensionExample.SharedData.Terrain3d;
+namespace StrideEdExt.SharedData.Terrain3d;
 
 [DataContract]
 [DebuggerDisplay("{DebugDisplayString,nq}")]

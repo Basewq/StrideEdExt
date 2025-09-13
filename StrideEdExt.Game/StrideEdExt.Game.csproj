@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net8.0-windows</TargetFrameworks>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>StrideEdExt</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Configurations>Debug;Release;DebugExGameEditor</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-windows|AnyCPU'">
@@ -21,15 +23,25 @@
     <PackageReference Include="Stride.Core.Assets.CompilerApp" Version="4.2.0.2374" IncludeAssets="build;buildTransitive" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SceneEditorExtensionExample.SharedData\SceneEditorExtensionExample.SharedData.csproj" />
-    <ProjectReference Include="..\SceneEditorExtensionExample.StrideAssetExt\SceneEditorExtensionExample.StrideAssetExt.csproj" />
+    <ProjectReference Include="..\StrideEdExt.SharedData\StrideEdExt.SharedData.csproj" />
+    <ProjectReference Include="..\StrideEdExt.StrideAssetExt\StrideEdExt.StrideAssetExt.csproj" />
   </ItemGroup>
   <ItemGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($(DefineConstants), '^(.*;)*GAME_EDITOR(;.*)*$'))">
     <!--Editor specific-->
     <PackageReference Include="Stride.GameStudio" Version="4.2.0.2374" GeneratePathProperty="true" />
-    <ProjectReference Include="..\SceneEditorExtensionExample.GameStudioExt\SceneEditorExtensionExample.GameStudioExt.csproj" />
+    <ProjectReference Include="..\StrideEdExt.GameStudioExt\StrideEdExt.GameStudioExt.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Effects\Decal\DecalShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Diffuse\MaterialSurfaceShadingDiffuseUnlit.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Effects\Environment\EnvironmentInteractors.sdsl.cs">
       <DesignTime>True</DesignTime>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
@@ -58,12 +70,139 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
     </Compile>
+    <Compile Update="Effects\Foliage\MaterialTerrainDiffuseMap.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Effects\HeightmapRenderEffect.sdfx.cs">
       <DesignTime>True</DesignTime>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
     </Compile>
+    <Compile Update="Effects\MaterialSurfaceShadingDiffuseUnlit.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Effects\MyUtils.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\ObjectInfo\ObjectInfoInputShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\ObjectInfo\ObjectInfoOutputEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\ObjectInfo\ObjectInfoOutputShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\ObjectInfo\ObjectInfoOutputTestShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\ObjectInfo\ObjectInfoStrideBaseEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\Brushes\PaintingDefaultBrushShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\Brushes\PaintingTextureBrushShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\ObjectInfoInputShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\ObjectInfoOutputEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\ObjectInfoOutputShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\ObjectInfoStrideBaseEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\PaintingStrideBaseEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\PaintingTextureBrushShader.sdsl.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>%(Filename)</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\PaintingDefaultBrushShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\PaintingPickInputShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\PaintingPickOutputEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\PaintingPickOutputShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\PaintingPickStrideBaseEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\Picking\PaintingPickOutputEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\Picking\PaintingPickOutputShader.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\StrokeMapPainting\StrokeMapPaintingOutputEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\StrokeMapPainting\StrokeMapPaintingInputShared.sdsl.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>%(Filename)</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Painting\StrokeMapPainting\StrokeMapPaintingOutputShader.sdsl.cs">
       <DesignTime>True</DesignTime>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
@@ -79,6 +218,47 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
     </Compile>
+    <Compile Update="Effects\Terrain3d\MaterialTerrainEditPreviewInputShared.sdsl.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>%(Filename)</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Terrain3d\MaterialTerrainEditPreviewDiffuseMap.sdsl.cs">
+      <DependentUpon>MaterialTerrainEditPreviewDiffuseMap.sdsl</DependentUpon>
+    </Compile>
+    <Compile Update="Effects\Terrain3d\MaterialTerrainEditPreviewHeightmap.sdsl.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>MaterialTerrainEditPreviewHeightmap.sdsl</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Terrain3d\MaterialTerrainEditPreviewDiffuseMap.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Terrain3d\MaterialTerrainCommon.sdsl.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>%(Filename)</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Terrain3d\MaterialTerrainDiffuseMap.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Terrain3d\MaterialTerrainNormalMap.sdsl.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Effects\Terrain\HeightmapRenderEffect.sdfx.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Effects\Terrain\HeightmapRenderEffect.sdfx.cs">
       <DesignTime>True</DesignTime>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
@@ -86,6 +266,12 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Update="Effects\Decal\DecalShader.sdsl">
+      <LastGenOutput>DecalShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Diffuse\MaterialSurfaceShadingDiffuseUnlit.sdsl">
+      <LastGenOutput>MaterialSurfaceShadingDiffuseUnlit.sdsl.cs</LastGenOutput>
+    </None>
     <None Update="Effects\Environment\EnvironmentInteractors.sdsl">
       <LastGenOutput>EnvironmentInteractors.sdsl.cs</LastGenOutput>
     </None>
@@ -101,19 +287,107 @@
     <None Update="Effects\Foliage\MaterialGrassMeshDisplacement.sdsl">
       <LastGenOutput>MaterialGrassMeshDisplacement.sdsl.cs</LastGenOutput>
     </None>
+    <None Update="Effects\Foliage\MaterialTerrainDiffuseMap.sdsl">
+      <LastGenOutput>MaterialTerrainDiffuseMap.sdsl.cs</LastGenOutput>
+    </None>
     <None Update="Effects\HeightmapRenderEffect.sdfx">
       <LastGenOutput>HeightmapRenderEffect.sdfx.cs</LastGenOutput>
     </None>
-    <None Update="Effects\MyUtils - Copy.sdsl">
-      <LastGenOutput>MyUtils - Copy.sdsl.cs</LastGenOutput>
+    <None Update="Effects\MaterialSurfaceShadingDiffuseUnlit.sdsl">
+      <LastGenOutput>MaterialSurfaceShadingDiffuseUnlit.sdsl.cs</LastGenOutput>
     </None>
     <None Update="Effects\MyUtils.sdsl">
       <LastGenOutput>MyUtils.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\ObjectInfo\ObjectInfoInputShader.sdsl">
+      <LastGenOutput>ObjectInfoInputShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\ObjectInfo\ObjectInfoOutputEffect.sdfx">
+      <LastGenOutput>ObjectInfoOutputEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\ObjectInfo\ObjectInfoOutputShader.sdsl">
+      <LastGenOutput>ObjectInfoOutputShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\ObjectInfo\ObjectInfoOutputTestShader.sdsl">
+      <LastGenOutput>ObjectInfoOutputTestShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\ObjectInfo\ObjectInfoStrideBaseEffect.sdfx">
+      <LastGenOutput>ObjectInfoStrideBaseEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\Brushes\PaintingDefaultBrushShader.sdsl">
+      <LastGenOutput>PaintingDefaultBrushShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\Brushes\PaintingTextureBrushShader.sdsl">
+      <LastGenOutput>PaintingTextureBrushShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\PaintingStrideBaseEffect.sdfx">
+      <LastGenOutput>PaintingStrideBaseEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\PaintingTextureBrushShader.sdsl">
+      <LastGenOutput>PaintingTextureBrushShader.sdsl.cs</LastGenOutput>
+      <Generator>StrideShaderKeyGenerator</Generator>
+    </None>
+    <None Update="Effects\Painting\PaintingDefaultBrushShader.sdsl">
+      <LastGenOutput>PaintingDefaultBrushShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\PaintingPickInputShader.sdsl">
+      <LastGenOutput>PaintingPickInputShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\PaintingPickOutputEffect.sdfx">
+      <LastGenOutput>PaintingPickOutputEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\PaintingPickOutputShader.sdsl">
+      <LastGenOutput>PaintingPickOutputShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\PaintingPickStrideBaseEffect.sdfx">
+      <LastGenOutput>PaintingPickStrideBaseEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\Picking\PaintingPickOutputEffect.sdfx">
+      <LastGenOutput>PaintingPickOutputEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\Picking\PaintingPickOutputShader.sdsl">
+      <LastGenOutput>PaintingPickOutputShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\StrokeMapPainting\StrokeMapPaintingInputShared.sdsl">
+      <LastGenOutput>StrokeMapPaintingInputShared.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Shared\PaintingStrideBaseEffect.sdfx">
+      <LastGenOutput>PaintingStrideBaseEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\StrokeMapPainting\StrokeMapPaintingOutputEffect.sdfx">
+      <LastGenOutput>StrokeMapPaintingOutputEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\StrokeMapPainting\PaintingTextureBrushShader.sdsl">
+      <LastGenOutput>PaintingTextureBrushShader.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Painting\StrokeMapPainting\StrokeMapPaintingOutputShader.sdsl">
+      <LastGenOutput>StrokeMapPaintingOutputShader.sdsl.cs</LastGenOutput>
     </None>
     <None Update="Effects\RenderTexture\HeightmapRenderShader.sdsl">
       <LastGenOutput>HeightmapRenderShader.sdsl.cs</LastGenOutput>
     </None>
     <None Update="Effects\RenderTexture\HeightmapRenderEffect.sdfx">
+      <LastGenOutput>HeightmapRenderEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Terrain3d\MaterialTerrainEditPreviewInputShared.sdsl">
+      <LastGenOutput>MaterialTerrainEditPreviewInputShared.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Terrain3d\MaterialTerrainEditPreviewHeightmap.sdsl">
+      <LastGenOutput>MaterialTerrainEditPreviewHeightmap.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Terrain3d\MaterialTerrainEditPreviewDiffuseMap.sdsl">
+      <LastGenOutput>MaterialTerrainEditPreviewDiffuseMap.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Terrain3d\MaterialTerrainCommon.sdsl">
+      <LastGenOutput>MaterialTerrainCommon.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Terrain3d\MaterialTerrainDiffuseMap.sdsl">
+      <LastGenOutput>MaterialTerrainDiffuseMap.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Terrain3d\MaterialTerrainNormalMap.sdsl">
+      <LastGenOutput>MaterialTerrainNormalMap.sdsl.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Terrain\HeightmapRenderEffect.sdfx">
       <LastGenOutput>HeightmapRenderEffect.sdfx.cs</LastGenOutput>
     </None>
     <None Update="Effects\Terrain\HeightmapRenderEffect.sdfx">

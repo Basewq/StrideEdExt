@@ -1,0 +1,6 @@
+!Texture
+Id: dadbee2a-3475-4645-91b6-48b2d4ad88dc
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Terrain/textures/ganges_river_pebbles_nor_dx_1k.png
+Type: !NormalMapTextureType {}

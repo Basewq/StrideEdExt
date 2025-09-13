@@ -1,11 +1,13 @@
 using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
+using Stride.Graphics;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace SceneEditorExtensionExample.SharedData.Terrain3d;
+namespace StrideEdExt.SharedData.Terrain3d;
 
 /**
  * This is the custom data as seen at run-time.
@@ -13,11 +15,12 @@ namespace SceneEditorExtensionExample.SharedData.Terrain3d;
 [DataContract]
 [ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<TerrainMap>), Profile = "Content")]
 [ContentSerializer(typeof(DataContentSerializer<TerrainMap>))]
-//[ContentSerializer(typeof(TerrainMapContentSerializer))]
-//[DataSerializer(typeof(TerrainMapDataSerializer))]
 public class TerrainMap
 {
     private readonly Dictionary<TerrainChunkIndex2d, TerrainChunk> _chunkIndexToChunkMap = [];
+
+    [Display(Browsable = false)]
+    public AssetId TerrainMapAssetId { get; set; }
 
     [DataMemberIgnore]
     public bool IsInitialized { get; private set; }
@@ -25,19 +28,25 @@ public class TerrainMap
     [DataMemberIgnore]
     public int LoadedChunkCount => _chunkIndexToChunkMap.Count;
 
-    //public Dictionary<string, Prefab> TileSetNameToTileSetPrefabMap { get; } = [];
-
     /// <summary>
-    /// The maximum map size in terms of quad count.<br/>
-    /// Note that the size of <see cref="MapSize"/> is always (<see cref="HeightmapData"/> - <see cref="Int2.One"/>).<br/>
-    /// Value should try to be a value of (2^x - 1) or less to minimize unused terrain texture spaces, 
-    /// eg. a map size of 15x15 requires a 16x16px texture because each pixel on a texture represents a vertex point.
+    /// The maximum map size in terms of quad count.
+    /// <br/>
+    /// Note that this size is always (<see cref="HeightmapTextureSize"/>.Length2d - <see cref="Int2.One"/>)
+    /// since each pixel represents a single vertex.
     /// </summary>
-    public Int2 MapSize { get; set; }
+    [DataMemberIgnore]
+    public Size2 MapSize => HeightmapTextureSize.Subtract(Int2.One);
+    /// <summary>
+    /// Size of the texture maps for heightmap & material maps required to generate the whole map.
+    /// <br/>
+    /// Value should try to be a multiple of 2 or less, to minimize unused terrain texture spaces.
+    /// </summary>
+    public Size2 HeightmapTextureSize { get; set; }
+
     /// <summary>
     /// The number of quads per terrain mesh.
     /// </summary>
-    public Int2 QuadPerMesh { get; set; }
+    public Int2 QuadsPerMesh { get; set; }
     /// <summary>
     /// The world size of a single terrain mesh quad.
     /// </summary>
@@ -55,17 +64,18 @@ public class TerrainMap
     /// Note that the size of <see cref="HeightmapData"/> is always (<see cref="MapSize"/> + <see cref="Int2.One"/>).
     /// </summary>
     public Array2d<float>? HeightmapData { get; set; }
-    //public Texture? HeightmapTexture { get; set; }
 
-    //public Material? TerrainMaterial { get; set; }
+    public Texture? MaterialIndexMapTexture { get; set; }
+    public Vector2 MaterialIndexMapSize => new(MaterialIndexMapTexture?.Width ?? 0, MaterialIndexMapTexture?.Height ?? 0);
+    public TerrainMaterial? TerrainMaterial { get; set; }
 
     /// <summary>
     /// The total width/height quad count contained in a single chunk.
     /// </summary>
-    public Int2 QuadPerChunk => QuadPerMesh * MeshPerChunk.GetSingleAxisLength();
+    public Int2 QuadPerChunk => QuadsPerMesh * MeshPerChunk.GetSingleAxisLength();
 
-    public int MaxChunkX => (int)Math.Ceiling(MapSize.X / (float)QuadPerChunk.X);
-    public int MaxChunkY => (int)Math.Ceiling(MapSize.Y / (float)QuadPerChunk.Y);
+    public int MaxChunkX => (int)Math.Ceiling(MapSize.Width / (float)QuadPerChunk.X);
+    public int MaxChunkY => (int)Math.Ceiling(MapSize.Height / (float)QuadPerChunk.Y);
 
     /// <summary>
     /// Returns the world size of a single chunk.
@@ -86,10 +96,15 @@ public class TerrainMap
     {
         get
         {
-            var chunkSize = MeshQuadSize * (Vector2)QuadPerMesh;
+            var chunkSize = MeshQuadSize * (Vector2)QuadsPerMesh;
             return chunkSize;
         }
     }
+
+    /// <summary>
+    /// Returns the world size of the entire map.
+    /// </summary>
+    public Vector2 MapWorldSize => MeshQuadSize * MapSize.ToVector2();
 
     public void Initialize()
     {
@@ -169,8 +184,10 @@ public class TerrainMap
                 for (int chunkSubCellX = 0; chunkSubCellX < meshPerChunkSingleAxisLength; chunkSubCellX++)
                 {
                     var chunkSubCellIndex = new TerrainChunkSubCellIndex2d(chunkSubCellX, chunkSubCellY);
-                    var subChunk = chunk.GetSubChunk(chunkSubCellIndex);
-                    subChunk.Mesh = null;
+                    if (chunk.TryGetSubChunk(chunkSubCellIndex, out var subChunk))
+                    {
+                        subChunk.Mesh = null;
+                    }
                 }
             }
         }

@@ -2,7 +2,7 @@ using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Half = System.Half;
 
-namespace SceneEditorExtensionExample.SharedData.Rendering;
+namespace StrideEdExt.SharedData.Rendering;
 
 public static class HeightmapTextureHelper
 {
@@ -13,6 +13,7 @@ public static class HeightmapTextureHelper
 
     public static readonly Func<float, ushort> NormalizedFloatToInt16 = floatValue => (ushort)Math.Clamp(MathF.Round((float)floatValue * ushort.MaxValue), 0, ushort.MaxValue);
     public static readonly Func<Half, ushort> NormalizedHalfToInt16 = halfValue => NormalizedFloatToInt16((float)halfValue);
+    public static readonly Func<Half, byte> NormalizedHalfToByte = halfValue => (byte)Math.Clamp(MathF.Round((float)halfValue * byte.MaxValue), 0, byte.MaxValue);
 
     public static readonly Func<byte, ushort> ExpandByteToInt16 = byteValue => (ushort)(byteValue * (ushort.MaxValue / byte.MaxValue));
 

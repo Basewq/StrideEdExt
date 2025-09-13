@@ -3,7 +3,7 @@ using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Design;
 
-namespace SceneEditorExtensionExample.WorldTerrain.EnvironmentInteractions;
+namespace StrideEdExt.WorldTerrain.EnvironmentInteractions;
 
 [ComponentCategory("Environment")]
 [DataContract]

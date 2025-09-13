@@ -7,7 +7,7 @@ using Stride.Rendering.Compositing;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SceneEditorExtensionExample
+namespace StrideEdExt
 {
     public class DebugPhysicsShapes : AsyncScript
     {

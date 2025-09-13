@@ -1,30 +1,30 @@
 ﻿#if GAME_EDITOR
 using Stride.Core.Assets;
+using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Mathematics;
+using Stride.Core.Presentation.ViewModels;
 using Stride.Core.Quantum;
 using Stride.Core.Serialization;
 using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Engine;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 #endif
 
-namespace SceneEditorExtensionExample.StrideEditorExt;
+namespace StrideEdExt.StrideEditorExt;
 
 public interface IStrideEditorService
 {
 #if GAME_EDITOR
     bool IsActive { get; }
     IAssetFinder? AssetFinder { get; }
+    IViewModelServiceProvider? ViewModelServiceProvider { get; }
 
     /// <summary>
     /// Invoke an <see cref="Action"/> on the UI thread.
     /// </summary>
     void Invoke(Action action);
     Task InvokeAsync(Func<Task> actionAsync);
-    void Invoke(Action<object> action);
-    Task InvokeAsync(Func<object, Task> actionAsync);
+    void Invoke(Action<SessionViewModel> action);
+    Task InvokeAsync(Func<SessionViewModel, Task> actionAsync);
 
     Task GameThreadInvokeAsync(Func<Task> actionAsync);
 
@@ -45,13 +45,13 @@ public interface IStrideEditorService
     /// <returns>The asset version of the editor scene entity component.</returns>
     T GetAssetComponent<T>(T runtimeComponent) where T : EntityComponent;
 
-    void UpdateAssetComponentData<T>(T runtimeComponent, string propertyName, object newValue) where T : EntityComponent;
-    void UpdateAssetComponentDataByEntityId<T>(Guid entityId, string propertyName, object newValue) where T : EntityComponent;
+    void UpdateAssetComponentData<T>(T runtimeComponent, string propertyName, object? newValue) where T : EntityComponent;
+    void UpdateAssetComponentDataByEntityId<T>(Guid entityId, string propertyName, object? newValue) where T : EntityComponent;
 
-    void UpdateAssetComponentArrayData<T>(T runtimeComponent, string propertyName, object newValue, int arrayIndex) where T : EntityComponent;
-    void UpdateAssetComponentArrayDataByEntityId<T>(Guid entityId, string propertyName, object newValue, int arrayIndex) where T : EntityComponent;
+    void UpdateAssetComponentArrayData<T>(T runtimeComponent, string propertyName, object? newValue, int arrayIndex) where T : EntityComponent;
+    void UpdateAssetComponentArrayDataByEntityId<T>(Guid entityId, string propertyName, object? newValue, int arrayIndex) where T : EntityComponent;
 
-    void UpdateAssetProperty(object assetObject, string propertyName, object newValue);
+    void UpdateAssetProperty(object assetObject, string propertyName, object? newValue);
     void RefreshAssetCollection(object assetCollectionContainerObject, string collectionMemberName);
 
     IDisposable CreateUndoRedoTransaction(string transactionName);

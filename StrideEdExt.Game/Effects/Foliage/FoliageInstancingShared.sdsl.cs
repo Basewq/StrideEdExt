@@ -14,7 +14,7 @@ using Stride.Shaders;
 using Stride.Core.Mathematics;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace SceneEditorExtensionExample.Rendering
+namespace StrideEdExt.Rendering
 {
     public static partial class FoliageInstancingSharedKeys
     {

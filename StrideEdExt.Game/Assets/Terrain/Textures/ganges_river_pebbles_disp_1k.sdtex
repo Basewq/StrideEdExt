@@ -1,0 +1,6 @@
+!Texture
+Id: 602bdc09-6e00-4b72-a4c4-8b2d18986c7a
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Terrain/textures/ganges_river_pebbles_disp_1k.png
+Type: !GrayscaleTextureType {}

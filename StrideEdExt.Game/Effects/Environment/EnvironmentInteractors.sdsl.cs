@@ -14,11 +14,11 @@ using Stride.Shaders;
 using Stride.Core.Mathematics;
 using Buffer = Stride.Graphics.Buffer;
 
-namespace SceneEditorExtensionExample.Rendering
+namespace StrideEdExt.Rendering
 {
     public static partial class EnvironmentInteractorsKeys
     {
-        public static readonly ValueParameterKey<int> EnvironmentInteractorCount = ParameterKeys.NewValue<int>();
         public static readonly ObjectParameterKey<Buffer> EnvironmentInteractorArray = ParameterKeys.NewObject<Buffer>();
+        public static readonly ValueParameterKey<int> EnvironmentInteractorCount = ParameterKeys.NewValue<int>();
     }
 }

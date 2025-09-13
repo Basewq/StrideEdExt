@@ -5,13 +5,11 @@ using Stride.Graphics;
 using Stride.Rendering;
 using Stride.Rendering.Compositing;
 using Stride.Rendering.Materials;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace SceneEditorExtensionExample.Rendering.RenderTextures.Requests;
+namespace StrideEdExt.Rendering.RenderTextures.Requests;
 
-public class RenderHeightmapTextureRequest : IRenderTextureRequest
+public class RenderHeightmapTextureRequest : IRenderTextureRequest<RenderTextureResult>
 {
     private const string GraphicsCompositorKey = "RenderHeightmapTextureKey";
 
@@ -38,9 +36,7 @@ public class RenderHeightmapTextureRequest : IRenderTextureRequest
 
         // Create the model entity
         var modelEntity = new Entity { Name = "Render Heightmap Model" };
-        modelEntity.Transform.Position = TransformTRS.Position;
-        modelEntity.Transform.Rotation = TransformTRS.Rotation;
-        modelEntity.Transform.Scale = TransformTRS.Scale;
+        TransformTRS.SetToEntity(modelEntity);
         var entityBoundingBox = (BoundingBox)new BoundingBoxExt(Model.BoundingBox.Center, Model.BoundingBox.Extent * TransformTRS.Scale);
         BoundingSphere.FromBox(ref entityBoundingBox, out var entityBoundingSphere);
         var modelComp = new ModelComponent
@@ -83,16 +79,20 @@ public class RenderHeightmapTextureRequest : IRenderTextureRequest
         sceneSystem.SceneInstance.RootScene.Children.Add(entityScene);
     }
 
-    public void RenderCompleted(SceneSystem sceneSystem, GraphicsDevice graphicsDevice, RenderTextureResult result)
+    public RenderTextureResult RenderCompleted(SceneSystem sceneSystem, GraphicsDevice graphicsDevice)
     {
         sceneSystem.SceneInstance.RootScene.Children.Clear();
         SetRenderTexture(renderTargetTexture: null, sceneSystem.GraphicsCompositor);
         sceneSystem.GraphicsCompositor = null;
 
         Debug.Assert(_renderTargetTexture is not null);
-        result.Texture = _renderTargetTexture;
-        result.TexturePixelStartPosition = _texturePixelStartPosition;
-        result.State = RenderTextureResultStateType.Success;
+        var result = new RenderTextureResult
+        {
+            Texture = _renderTargetTexture,
+            TexturePixelStartPosition = _texturePixelStartPosition,
+            State = RenderTextureResultStateType.Success,
+        };
+        return result;
     }
 
     private static void SetRenderTexture(Texture? renderTargetTexture, GraphicsCompositor graphicsCompositor)
@@ -100,7 +100,7 @@ public class RenderHeightmapTextureRequest : IRenderTextureRequest
         if (graphicsCompositor.Game is SceneCameraRenderer cameraRenderer
             && cameraRenderer.Child is RenderTextureSceneRenderer rendTexSceneRenderer)
         {
-            rendTexSceneRenderer.RenderTexture = renderTargetTexture;
+            rendTexSceneRenderer.RenderTexture = renderTargetTexture!;
         }
         else
         {

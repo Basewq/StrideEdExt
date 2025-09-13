@@ -1,18 +1,18 @@
-﻿using Stride.Core.Annotations;
+﻿using Stride.Core;
+using Stride.Core.Annotations;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Rendering;
-using Stride.Core;
-using SceneEditorExtensionExample.WorldTerrain.Terrain3d.Editor;
-using SceneEditorExtensionExample.StrideEditorExt;
-using SceneEditorExtensionExample.StrideAssetExt.Assets;
+using StrideEdExt.SharedData.Terrain3d.RuntimeToEditorRequests;
+using StrideEdExt.WorldTerrain.Terrain3d.Editor;
 
 #if GAME_EDITOR
+using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Game;
 #endif
 
-namespace SceneEditorExtensionExample.WorldTerrain.Terrain3d.Layers;
+namespace StrideEdExt.WorldTerrain.Terrain3d.Layers;
 
 class TerrainLayerProcessor : EntityProcessor<TerrainLayerComponentBase, TerrainLayerProcessor.AssociatedData>
 {
@@ -29,18 +29,55 @@ class TerrainLayerProcessor : EntityProcessor<TerrainLayerComponentBase, Terrain
     {
 #if GAME_EDITOR
         _sceneEditorGame = (Services.GetSafeServiceAs<IGame>() as SceneEditorGame)!;
+
+        var selectionService = _sceneEditorGame.EditorServices.Get<IEditorGameEntitySelectionService>();
+        if (selectionService is not null)
+        {
+            selectionService.SelectionUpdated += EntitySelectionService_OnSelectionUpdated;
+        }
+#endif
+    }
+
+#if GAME_EDITOR
+    private void EntitySelectionService_OnSelectionUpdated(object? sender, EntitySelectionEventArgs e)
+    {
+        // Stop painting if the user changed entity selection
+        var deselectedLayers = ComponentDatas
+                                    .Select(x => x.Key)
+                                    .Where(layerComp => !e.NewSelection.Any(selectedEntity => selectedEntity.Id == layerComp.Entity.Id))    // All layers that are not selected
+                                    .ToList();
+        if (deselectedLayers.Count > 0)
+        {
+            foreach (var layerComp in deselectedLayers)
+            {
+                layerComp.DeactivateLayerEditMode();
+            }
+        }
+
+        // Only one can be active at a time
+        if (e.NewSelection.Count == 1)
+        {
+            var selectedLayer = ComponentDatas
+                                    .Select(x => x.Key)
+                                    .Where(layerComp => e.NewSelection.Any(selectedEntity => selectedEntity.Id == layerComp.Entity.Id))     // All layers that are selected
+                                    .FirstOrDefault();
+            if (selectedLayer is not null)
+            {
+                selectedLayer.ActivateLayerEditMode();
+            }
+        }
+    }
 #endif
 
-        EntityManager.EntityAdded += OnEntityAdded;
-        EntityManager.EntityRemoved += OnEntityRemoved;
-    }
-
-    private void OnEntityAdded(object? sender, Entity e)
+    protected override void OnSystemRemove()
     {
-    }
-
-    private void OnEntityRemoved(object? sender, Entity e)
-    {
+#if GAME_EDITOR
+        var selectionService = _sceneEditorGame.EditorServices.Get<IEditorGameEntitySelectionService>();
+        if (selectionService is not null)
+        {
+            selectionService.SelectionUpdated -= EntitySelectionService_OnSelectionUpdated;
+        }
+#endif
     }
 
     protected override AssociatedData GenerateComponentData([NotNull] Entity entity, [NotNull] TerrainLayerComponentBase component)
@@ -58,54 +95,34 @@ class TerrainLayerProcessor : EntityProcessor<TerrainLayerComponentBase, Terrain
     protected override void OnEntityComponentAdding(Entity entity, [NotNull] TerrainLayerComponentBase component, [NotNull] AssociatedData data)
     {
         component.Initialize(Services);
-        component.LayerChanged += OnLayerChanged;
-    }
 
-    private void OnLayerChanged(object? sender, System.EventArgs e)
-    {
-        if (sender is not TerrainLayerComponentBase layerComp)
+        if (entity.TryFindComponentOnAncestor<TerrainMapEditorComponent>(out var editorComp))
         {
-            return;
-        }
-        if (ComponentDatas.TryGetValue(layerComp, out var data))
-        {
-            if (data.PainterComponent is null && layerComp.Entity.TryFindComponentOnAncestor<TerrainMapPainterComponent>(out var painterComp))
+            component.EditorComponent = editorComp;
+
+            editorComp.SendOrEnqueueEditorRequest(terrainMapAssetId =>
             {
-                data.PainterComponent = painterComp;
-            }
-            if (data.PainterComponent is not null)
-            {
-                data.PainterComponent.RebuildMap();
-            }
+                var request = new GetOrCreateLayerDataRequest
+                {
+                    TerrainMapAssetId = terrainMapAssetId,
+                    LayerId = component.Id,
+                    LayerDataType = component.LayerDataType
+                };
+                return request;
+            });
         }
     }
 
     protected override void OnEntityComponentRemoved(Entity entity, [NotNull] TerrainLayerComponentBase component, [NotNull] AssociatedData data)
     {
-        component.LayerChanged -= OnLayerChanged;
         component.Deinitialize();
-#if GAME_EDITOR
-        if (data.PainterComponent is not null)
+        if (component.EditorComponent is TerrainMapEditorComponent editorComp)
         {
-            var terrainMapAsset = data.PainterComponent.GetTerrainInternalAsset();
-            if (terrainMapAsset is not null)
+            if (editorComp.ActiveTerrainLayerComponent == component)
             {
-                component.UnregisterLayerMetadata(terrainMapAsset);
-                if (terrainMapAsset.HasLayerMetadataListChanged)
-                {
-                    var strideEditorService = Services.GetSafeServiceAs<IStrideEditorService>();
-                    strideEditorService.Invoke(() =>
-                    {
-                        if (strideEditorService.IsActive)   // Need to check IsActive again because the editor might be shutting down
-                        {
-                            strideEditorService.RefreshAssetCollection(terrainMapAsset, TerrainMapAsset.LayerMetadataListName);
-                        }
-                    });
-                    terrainMapAsset.HasLayerMetadataListChanged = false;
-                }
+                component.DeactivateLayerEditMode();
             }
         }
-#endif
     }
 
     public override void Update(GameTime time)
@@ -138,6 +155,6 @@ class TerrainLayerProcessor : EntityProcessor<TerrainLayerComponentBase, Terrain
 
     public class AssociatedData
     {
-        public TerrainMapPainterComponent? PainterComponent;
+        public bool HasLayerChanged = false;
     }
 }

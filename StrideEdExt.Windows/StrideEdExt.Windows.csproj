@@ -4,7 +4,7 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>SceneEditorExtensionExample</RootNamespace>
+    <RootNamespace>StrideEdExt</RootNamespace>
     <Configurations>Debug;Release;DebugExGameEditor</Configurations>
 
     <OutputPath>..\Bin\Windows\$(Configuration)\</OutputPath>
@@ -13,8 +13,11 @@
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='DebugExGameEditor|net8.0-windows|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SceneEditorExtensionExample\SceneEditorExtensionExample.csproj" />
+    <ProjectReference Include="..\StrideEdExt.Game\StrideEdExt.Game.csproj" />
   </ItemGroup>
 </Project>

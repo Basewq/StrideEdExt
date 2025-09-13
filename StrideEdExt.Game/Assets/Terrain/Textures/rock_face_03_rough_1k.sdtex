@@ -1,0 +1,6 @@
+!Texture
+Id: 83eada99-b58d-44d6-b3ef-ac2c7a909820
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Terrain/textures/rock_face_03_rough_1k.png
+Type: !GrayscaleTextureType {}

@@ -1,0 +1,23 @@
+﻿namespace StrideEdExt.Rendering
+{
+    shader StrokeMapPaintingInputShared
+    {
+        rgroup PerMaterial
+        {
+            stage Texture2D StrokeMapTexture;   // Values in [0...1] range.
+        }
+
+        cbuffer PerMaterial
+        {
+            stage float2 StrokeMapTextureSize;
+            stage bool IsPaintingActive;
+        }
+
+        stage SamplerState StrokeMapTextureSampler
+        {
+            Filter = MIN_MAG_MIP_POINT;
+            AddressU = CLAMP;
+            AddressV = CLAMP;
+        };
+    };
+}

@@ -5,7 +5,7 @@ using Stride.Core.Serialization.Contents;
 using Stride.Rendering;
 using System.Collections.Generic;
 
-namespace SceneEditorExtensionExample.SharedData
+namespace StrideEdExt.SharedData
 {
     /**
      * This is the custom data as seen at run-time.

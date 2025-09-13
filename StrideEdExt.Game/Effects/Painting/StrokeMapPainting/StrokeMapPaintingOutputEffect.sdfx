@@ -1,0 +1,13 @@
+﻿namespace StrideEdExt.Rendering
+{
+    // namespace declaration is not required for effects, but probably good practice to keep it in
+    // to avoid code naming collisions.
+
+    effect StrokeMapPaintingOutputEffect
+    {
+        //mixin StrideForwardShadingEffect;
+        mixin PaintingStrideBaseEffect;     // A cut-down version of StrideEffectBase.
+
+        mixin StrokeMapPaintingOutputShader;
+    };
+}

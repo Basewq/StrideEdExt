@@ -1,0 +1,6 @@
+!Texture
+Id: 37e59f8f-3197-428a-bb52-af7d9afd54cc
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Terrain/ExampleBrush.png
+Type: !GrayscaleTextureType {}

@@ -1,5 +1,5 @@
-﻿using SceneEditorExtensionExample.SharedData.Terrain3d;
-using SceneEditorExtensionExample.WorldTerrain.Terrain3d;
+﻿using StrideEdExt.SharedData.Terrain3d;
+using StrideEdExt.WorldTerrain.Terrain3d;
 using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -7,7 +7,7 @@ using Stride.Engine;
 using Stride.Input;
 using System;
 
-namespace SceneEditorExtensionExample
+namespace StrideEdExt
 {
     /// <summary>
     /// A script that allows to move and rotate an entity through keyboard, mouse and touch input to provide basic camera navigation.
@@ -46,6 +46,9 @@ namespace SceneEditorExtensionExample
 
         public TerrainComponent? TerrainComponent;
 
+        private bool _isTrackingEntityOverTerrain;
+        public Entity? MouseControlledEntity;
+
         public override void Start()
         {
             base.Start();
@@ -79,37 +82,35 @@ namespace SceneEditorExtensionExample
                 PrintLine("Rotate camera by holding down right mouse button", ref nextPrintLinePos);
                 if (IsTerrainScene)
                 {
+                    PrintLine("Track sphere over terrain with [Z]", ref nextPrintLinePos);
+                    if (Input.HasKeyboard && Input.IsKeyPressed(Keys.Z))
+                    {
+                        _isTrackingEntityOverTerrain = !_isTrackingEntityOverTerrain;
+                    }
                     var terrainMap = TerrainComponent?.TerrainMap;
                     if (terrainMap is not null)
                     {
                         PrintLine("", ref nextPrintLinePos);
                         var cameraComponent = Entity.Get<CameraComponent>();
-                        var normalisedMousePosition = Input.MousePosition;
-                        var ray = CreateMouseRay(cameraComponent, normalisedMousePosition);
-                        float maxRayDist = cameraComponent.FarClipPlane - cameraComponent.NearClipPlane;
-                        //if (TerrainRaycast.TryFindTile(ray.Position, ray.Direction, maxRayDist, TileEncounteredCallback, out var hitResult))
-                        //{
-                        //    var terrainLoc = TerrainMapLocation2d.FromWorldPosition(hitResult.TileWorldPosition);
-                        //    var terrainCellIndex = terrainLoc.ToTerrainCellIndex();
-                        //    PrintLine($"Mouse-Tile Map Idx: {terrainCellIndex} - Loc: {terrainLoc}", ref nextPrintLinePos);
-                        //}
-                        //else
-                        //{
-                        //    PrintLine("Mouse-Tile Map Loc: Not hit", ref nextPrintLinePos);
-                        //}
+                        var normalizedMousePosition = Input.MousePosition;
+                        var ray = CreateMouseRay(cameraComponent, normalizedMousePosition);
+                        //float maxRayDist = cameraComponent.FarClipPlane - cameraComponent.NearClipPlane;
 
-                        //bool TileEncounteredCallback(in TerrainRaycast.HitResult raycastResult)
-                        //{
-                        //    var terrainCellIndex = TerrainMapLocation2d.FromWorldPositionToTerrainCellIndex(raycastResult.TileWorldPosition);
-                        //    if (!terrainMap.TryGetTerrainCellData(terrainCellIndex, out var tile))
-                        //    {
-                        //        return false;
-                        //    }
-                        //
-                        //    //bool isHit = tile.CellType != TileCellType.Empty;
-                        //    //return isHit;
-                        //    return false;
-                        //}
+                        var terrainMapPos = TerrainComponent!.Entity.Transform.Position;
+                        if (TerrainRaycast.TryRaycast(terrainMap, ray, terrainMapPos, out var hitResult))
+                        {
+                            var terrainLoc = hitResult.HitPosition;
+                            var terrainCellIndex = hitResult.HeightmapCellIndex;
+                            PrintLine($"Mouse-Terrain Heightmap Idx: {terrainCellIndex} - Loc: {terrainLoc}", ref nextPrintLinePos);
+                            if (_isTrackingEntityOverTerrain && MouseControlledEntity is not null)
+                            {
+                                MouseControlledEntity.Transform.Position = hitResult.HitPosition;
+                            }
+                        }
+                        else
+                        {
+                            PrintLine("Mouse-Terrain Map Loc: Not hit", ref nextPrintLinePos);
+                        }
                     }
                 }
                 else

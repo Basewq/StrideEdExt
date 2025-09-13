@@ -1,9 +1,9 @@
-using SceneEditorExtensionExample.SharedData;
+using StrideEdExt.SharedData;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Serialization.Contents;
 
-namespace SceneEditorExtensionExample.StrideAssetExt.Assets;
+namespace StrideEdExt.StrideAssetExt.Assets;
 
 /**
  * The asset as seen by Game Studio.
@@ -14,8 +14,8 @@ namespace SceneEditorExtensionExample.StrideAssetExt.Assets;
 [ContentSerializer(typeof(DataContentSerializer<FoliagePlacementAsset>))]
 [AssetContentType(typeof(FoliagePlacement))]
 //[CategoryOrder(1000, "Foliage")]
-[AssetFormatVersion(SceneEditorExtensionExampleConfig.PackageName, CurrentVersion)]
-//[AssetUpgrader(SceneEditorExtensionExampleConfig.PackageName, "0.0.0.1", "1.0.0.0", typeof(FoliagePlacementAssetUpgrader))]    // Can be used to update an old asset format to a new format.
+[AssetFormatVersion(StrideEdExtConfig.PackageName, CurrentVersion)]
+//[AssetUpgrader(StrideEdExtConfig.PackageName, "0.0.0.1", "1.0.0.0", typeof(FoliagePlacementAssetUpgrader))]    // Can be used to update an old asset format to a new format.
 [Display(10000, "Foliage Placement")]
 public class FoliagePlacementAsset : Asset
 {

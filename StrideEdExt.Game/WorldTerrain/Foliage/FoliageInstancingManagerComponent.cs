@@ -1,5 +1,5 @@
-﻿using SceneEditorExtensionExample.Rendering;
-using SceneEditorExtensionExample.SharedData;
+﻿using StrideEdExt.Rendering;
+using StrideEdExt.SharedData;
 using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
@@ -17,7 +17,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace SceneEditorExtensionExample.WorldTerrain.Foliage;
+namespace StrideEdExt.WorldTerrain.Foliage;
 
 /// <summary>
 /// Foliage Manager for a given <see cref="SharedData.FoliagePlacement"/> asset, which manages

@@ -1,4 +1,4 @@
-using SceneEditorExtensionExample.SharedData;
+using StrideEdExt.SharedData;
 using Stride.Assets.Materials;
 using Stride.Assets.Models;
 using Stride.Core.Assets;
@@ -7,7 +7,7 @@ using Stride.Core.Assets.Compiler;
 using Stride.Core.BuildEngine;
 using Stride.Core.Serialization.Contents;
 
-namespace SceneEditorExtensionExample.StrideAssetExt.Assets;
+namespace StrideEdExt.StrideAssetExt.Assets;
 
 [AssetCompiler(typeof(FoliagePlacementAsset), typeof(AssetCompilationContext))]
 public class FoliagePlacementAssetCompiler : AssetCompilerBase

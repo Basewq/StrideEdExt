@@ -1,7 +1,7 @@
 using Stride.Core.Serialization;
 using Half = System.Half;
 
-namespace SceneEditorExtensionExample.SharedData;
+namespace StrideEdExt.SharedData;
 
 // Code adapted from the following:
 // Stride.Core.Serialization.Serializers.PrimitiveTypeSerializers

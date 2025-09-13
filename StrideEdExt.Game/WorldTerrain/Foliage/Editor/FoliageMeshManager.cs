@@ -1,5 +1,5 @@
 ﻿#if GAME_EDITOR
-using SceneEditorExtensionExample.StrideEditorExt;
+using StrideEdExt.StrideEditorExt;
 using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace SceneEditorExtensionExample.WorldTerrain.Foliage.Editor;
+namespace StrideEdExt.WorldTerrain.Foliage.Editor;
 
 // Adapted from Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game.NavigationMeshManager
 //[DataContract]

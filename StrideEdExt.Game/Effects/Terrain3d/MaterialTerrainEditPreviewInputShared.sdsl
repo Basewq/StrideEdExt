@@ -1,0 +1,35 @@
+﻿namespace StrideEdExt.Rendering
+{
+    shader MaterialTerrainEditPreviewInputShared
+    {
+        static const uint EditPreviewType_NotSet                = 0;
+        static const uint EditPreviewType_Heightmap             = 1;
+        static const uint EditPreviewType_Material              = 2;
+
+        cbuffer PerMaterial
+        {
+            stage uint EditPreviewType;
+        }
+
+        static float2 GetPixelCenteredUv(float2 textureSize, float2 meshUv)
+        {
+            // Need to remap the UV so the mesh's edge vertices sit in the center of texel of each edges of the texture, eg.
+            // |---+---+---|
+            // | x |   | x |
+            // |---+---+---|
+            // 0           1 (meshUv)
+            //   0       1   (remappedLocalUv + halfTexelUvOffset)
+            float texWidth  = max(textureSize.x, 1);
+            float texHeight = max(textureSize.y, 1);
+            float quadCountX = texWidth - 1;
+            float quadCountY = texHeight - 1;
+            float2 halfTexelUvOffset = float2(0.5 / texWidth, 0.5 / texHeight);
+            float2 remappedUv = float2(
+                meshUv.x * quadCountX / texWidth,
+                meshUv.y * quadCountY / texHeight
+            );
+            remappedUv += halfTexelUvOffset;
+            return remappedUv;
+        }
+    };
+}

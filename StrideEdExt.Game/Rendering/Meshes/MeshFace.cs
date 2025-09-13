@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SceneEditorExtensionExample.Rendering.Meshes;
+namespace StrideEdExt.Rendering.Meshes;
 
 [Flags]
 public enum MeshFace

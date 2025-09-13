@@ -1,0 +1,140 @@
+﻿namespace StrideEdExt.Rendering
+{
+    shader MaterialTerrainEditPreviewHeightmap : MaterialTerrainEditPreviewInputShared, StrokeMapPaintingInputShared, MyUtils,
+        IMaterialSurface,
+        PositionStream4, Transformation, Texturing
+    {
+        static const uint HeightmapPaintModeType_Raise              = 0;
+        static const uint HeightmapPaintModeType_Lower              = 1;
+        static const uint HeightmapPaintModeType_Smooth             = 2;
+        static const uint HeightmapPaintModeType_Flatten            = 3;
+
+        static const int2 CardinalIndexOffsets[4] = {
+            int2(+0, -1),    // N
+            int2(+1, +0),    // E
+            int2(+0, +1),    // S
+            int2(-1, +0)     // W
+        };
+        static const int2 IntercardinalIndexOffsets[4] = {
+            int2(-1, -1),    // NW
+            int2(+1, -1),    // NE
+            int2(+1, +1),    // SE
+            int2(-1, +1)     // SW
+        };
+        static const float IntercardinalInfluence = 0.7071067811;       // Inverse of diagonal distance, ie. 1 / sqrt(1^2 + 1^2)
+
+        rgroup PerMaterial
+        {
+            stage Texture2D TerrainHeightmap;       // Values in [0...1] range.
+        }
+
+        cbuffer PerMaterial
+        {
+            stage float2 TerrainHeightmapSize;
+            stage float2 TerrainHeightRange;
+            stage float MaxAdjustmentHeightValue;
+            stage float3 InitialBrushWorldPosition;
+
+            stage uint HeightmapPaintModeType;
+        }
+
+        stage SamplerState TerrainHeightmapTextureSampler
+        {
+            Filter = MIN_MAG_MIP_POINT;
+            AddressU = CLAMP;
+            AddressV = CLAMP;
+        };
+
+        override void Compute()
+        {
+            if (EditPreviewType != EditPreviewType_Heightmap || !IsPaintingActive)
+            {
+                return;
+            }
+
+            float2 strokeMapUv = GetPixelCenteredUv(StrokeMapTextureSize, streams.TexCoord);
+            float strokeMapValue = StrokeMapTexture.SampleLevel(StrokeMapTextureSampler, strokeMapUv, 0).x;
+            float heightOffset;
+            switch (HeightmapPaintModeType)
+            {
+                case HeightmapPaintModeType_Raise:
+                    heightOffset = CalculateRaiseHeightAdjustment(strokeMapValue, 1.0);
+                    break;
+                case HeightmapPaintModeType_Lower:
+                    heightOffset = CalculateRaiseHeightAdjustment(strokeMapValue, -1.0);
+                    break;
+                case HeightmapPaintModeType_Smooth:
+                    heightOffset = CalculateSmoothHeightAdjustment(strokeMapValue);
+                    break;
+                case HeightmapPaintModeType_Flatten:
+                    heightOffset = CalculateFlattenHeightAdjustment(strokeMapValue);
+                    break;
+                default:
+                    heightOffset = 0;
+                    break;
+            }
+            streams.Position.y += heightOffset;
+        }
+
+        float CalculateRaiseHeightAdjustment(float strokeMapValue, float raiseDirection)
+        {
+            float heightOffset = strokeMapValue * MaxAdjustmentHeightValue * raiseDirection;
+            return heightOffset;
+        }
+
+        float CalculateSmoothHeightAdjustment(float strokeMapValue)
+        {
+            float2 heightmapTexCoord = streams.TexCoord1;     // TexCoord1 contains the UV on the terrain heightmap because TexCoord0 contains the *local* mesh UV.
+            float currentHeightmapValue = GetTerrainHeightmapValue(heightmapTexCoord);
+            float summedDiffValue = 0;
+            float sampledValueCount = 0;
+            int i;
+            [unroll]        // Suppresses warning X3582 'texture access must have literal offset and multisample index, forcing loop to unroll'
+            for (i = 0; i < 4; i++)
+            {
+                int2 texOffset = CardinalIndexOffsets[i];
+                float sampledHeightmapValue = GetTerrainHeightmapValueWithUvOffset(heightmapTexCoord, texOffset);
+                float diffValue = sampledHeightmapValue - currentHeightmapValue;
+                summedDiffValue += diffValue;
+                sampledValueCount++;
+            }
+            [unroll]        // Suppresses warning X3582 'texture access must have literal offset and multisample index, forcing loop to unroll'
+            for (i = 0; i < 4; i++)
+            {
+                int2 texOffset = IntercardinalIndexOffsets[i];
+                float sampledHeightmapValue = GetTerrainHeightmapValueWithUvOffset(heightmapTexCoord, texOffset);
+                float diffValue = sampledHeightmapValue - currentHeightmapValue;
+                summedDiffValue += diffValue * IntercardinalInfluence;
+                sampledValueCount++;
+            }
+
+            float avgDiffValue = summedDiffValue / sampledValueCount;
+            float heightmapAdjustmentValue = avgDiffValue * strokeMapValue;
+            float heightRange = TerrainHeightRange.y - TerrainHeightRange.x;
+            float heightOffset = heightmapAdjustmentValue * heightRange;    // Convert heightmap to world space
+            return heightOffset;
+        }
+
+        float CalculateFlattenHeightAdjustment(float strokeMapValue)
+        {
+            float desiredHeight = InitialBrushWorldPosition.y;
+            float2 terrainTexCoord = streams.TexCoord1;     // TexCoord1 contains the UV on the terrain heightmap because TexCoord0 contains the *local* mesh UV.
+            float4 positionWorldSpace = mul(streams.Position, World);
+            float currentHeight = positionWorldSpace.y;
+            float heightOffset = (desiredHeight - currentHeight) * saturate(strokeMapValue);
+            return heightOffset;
+        }
+
+        float GetTerrainHeightmapValue(float2 terrainTexCoord)
+        {
+            float sampledHeightmapValue = TerrainHeightmap.SampleLevel(TerrainHeightmapTextureSampler, terrainTexCoord, 0).x;
+            return sampledHeightmapValue;
+        }
+
+        float GetTerrainHeightmapValueWithUvOffset(float2 terrainTexCoord, int2 texUvOffset)
+        {
+            float sampledHeightmapValue = TerrainHeightmap.SampleLevel(TerrainHeightmapTextureSampler, terrainTexCoord, 0, texUvOffset).x;
+            return sampledHeightmapValue;
+        }
+    };
+}

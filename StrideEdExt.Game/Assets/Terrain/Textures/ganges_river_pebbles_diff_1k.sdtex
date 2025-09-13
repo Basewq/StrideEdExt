@@ -1,0 +1,7 @@
+!Texture
+Id: b10e9403-9024-4296-9a49-7c41191b7148
+SerializedVersion: {Stride: 2.0.0.0}
+Tags: []
+Source: !file ../../../Resources/Terrain/textures/ganges_river_pebbles_diff_1k.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

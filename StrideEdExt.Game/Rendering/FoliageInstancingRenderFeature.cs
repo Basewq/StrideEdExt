@@ -1,13 +1,12 @@
-﻿using SceneEditorExtensionExample.WorldTerrain.Foliage;
-using Stride.Core;
+﻿using Stride.Core;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Stride.Rendering;
-using System.Collections.Generic;
+using StrideEdExt.WorldTerrain.Foliage;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace SceneEditorExtensionExample.Rendering;
+namespace StrideEdExt.Rendering;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct FoliageInstanceData

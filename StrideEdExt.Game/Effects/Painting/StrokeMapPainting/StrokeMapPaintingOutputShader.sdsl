@@ -1,0 +1,135 @@
+﻿namespace StrideEdExt.Rendering
+{
+    shader StrokeMapPaintingOutputShader : PositionStream4, Texturing, Transformation, ShaderBase, MyUtils
+    {
+        static const uint BrushModeType_CircularBrush       = 0;
+        static const uint BrushModeType_TextureBrush        = 1;
+
+        static const uint BrushFalloffType_Step             = 0;
+        static const uint BrushFalloffType_Linear           = 1;
+        static const uint BrushFalloffType_SmoothStep       = 2;
+        static const uint BrushFalloffType_SmootherStep     = 3;
+
+        struct TextureBrushData
+        {
+            float3 WorldPosition;
+            float3 WorldNormal;
+            float4x4 BrushWorldInverse;
+            float Strength;
+        };
+
+        cbuffer PerMaterial
+        {
+            stage int TextureBrushCount;
+
+            stage uint BrushModeType;
+            stage float BrushRadius;
+            stage float BrushOpacity;   // TODO how to use?
+
+            stage uint BrushFalloffType;
+            stage float FalloffStartPercentage;
+        }
+
+        rgroup PerMaterial
+        {
+            stage StructuredBuffer<TextureBrushData> TextureBrushArray;
+            stage Texture2D BrushTexture;
+            stage Texture2D PreviousStrokeMapTexture;
+        }
+
+        stage override void VSMain()
+        {
+            base.VSMain();
+
+            float2 uvPosClipSpace = float2(streams.TexCoord.x, 1 - streams.TexCoord.y);   // y-axis is flipped for clip space
+            uvPosClipSpace = (2 * uvPosClipSpace) - 1;      // Reposition to [-1, 1], [-1, 1] clip space
+            streams.ShadingPosition = float4(uvPosClipSpace, 0, 1);
+            //streams.DepthVS
+        }
+
+        stage override void PSMain()
+        {
+            base.PSMain();
+
+            float previousBrushTexValue = PreviousStrokeMapTexture.Sample(LinearSampler, streams.TexCoord).x;
+            float finalBrushTexValue = previousBrushTexValue;
+            for (int i = 0; i < TextureBrushCount; i++)
+            {
+                float brushValue = 0;
+                switch (BrushModeType)
+                {
+                    case BrushModeType_CircularBrush:
+                        {
+                            float3 brushWorldPosition = TextureBrushArray[i].WorldPosition;
+                            float brushDist = length(brushWorldPosition - streams.PositionWS.xyz);
+                            brushValue = GetCircularBrushValue(brushDist, TextureBrushArray[i]);
+                            break;
+                        }
+                    case BrushModeType_TextureBrush:
+                        {
+                            float4 currentWorldPosition = streams.PositionWS;
+                            brushValue = GetTextureBrushValue(currentWorldPosition, TextureBrushArray[i]);
+                            break;
+                        }
+                }
+                finalBrushTexValue = max(brushValue, finalBrushTexValue);
+            }
+            streams.ColorTarget = float4(finalBrushTexValue, 0, 0, 1);
+            //streams.Depth // TODO how to handle overlapping triangles?
+        }
+
+        float GetCircularBrushValue(float brushDistance, TextureBrushData brushData)
+        {
+            float falloffDistThreshold = BrushRadius * FalloffStartPercentage / 100;
+            if (brushDistance <= falloffDistThreshold)
+            {
+                return brushData.Strength;
+            }
+            else if (brushDistance > BrushRadius)
+            {
+                return 0;
+            }
+
+            float falloffFractionalValue = MyUtils.InverseLerp(falloffDistThreshold, BrushRadius, brushDistance);
+            falloffFractionalValue = saturate(falloffFractionalValue);
+            float strengthMultiplier = 0;
+            switch (BrushFalloffType)
+            {
+                case BrushFalloffType_Step:
+                    strengthMultiplier = BrushRadius <= brushDistance ? 1 : 0;
+                    break;
+                case BrushFalloffType_Linear:
+                    strengthMultiplier = 1 - falloffFractionalValue;
+                    break;
+                case BrushFalloffType_SmoothStep:
+                    strengthMultiplier = MyUtils.SmoothStep(1 - falloffFractionalValue);
+                    break;
+                case BrushFalloffType_SmootherStep:
+                    strengthMultiplier = MyUtils.SmootherStep(1 - falloffFractionalValue);
+                    break;
+            }
+
+            float finalBrushValue = brushData.Strength * strengthMultiplier;
+            return finalBrushValue;
+        }
+
+        float GetTextureBrushValue(float4 currentWorldPosition, TextureBrushData brushData)
+        {
+            float4 pointPositionBrushSpace = mul(currentWorldPosition, brushData.BrushWorldInverse);
+
+            float brushDiameter = 2 * BrushRadius;
+            float2 pointBrushTextureUv = pointPositionBrushSpace.xz / brushDiameter;
+            pointBrushTextureUv += 0.5;
+            if (0 > pointBrushTextureUv.x || pointBrushTextureUv.x > 1
+                || 0 > pointBrushTextureUv.y || pointBrushTextureUv.y > 1)
+            {
+                // Out of bounds
+                return 0;
+            }
+
+            float brushTexValue = BrushTexture.Sample(LinearSampler, pointBrushTextureUv).x;
+            float finalBrushValue = brushData.Strength * brushTexValue;
+            return finalBrushValue;
+        }
+    };
+}

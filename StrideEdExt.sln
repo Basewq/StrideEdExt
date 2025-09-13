@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34601.278
@@ -12,6 +12,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrideEdExt.StrideAssetExt", "StrideEdExt.StrideAssetExt\StrideEdExt.StrideAssetExt.csproj", "{FDDA74C5-59AE-43C1-9E19-BB4680295BF0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrideEdExt.GameStudioExt", "StrideEdExt.GameStudioExt\StrideEdExt.GameStudioExt.csproj", "{5935CD38-393F-41FA-9625-193269B3E44C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrideEdExt.Tests", "StrideEdExt.Tests\StrideEdExt.Tests.csproj", "{68BDB7B3-9745-48E7-B5F3-93CE0503B7E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +52,12 @@ Global
 		{5935CD38-393F-41FA-9625-193269B3E44C}.DebugExGameEditor|Any CPU.Build.0 = DebugExGameEditor|Any CPU
 		{5935CD38-393F-41FA-9625-193269B3E44C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5935CD38-393F-41FA-9625-193269B3E44C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68BDB7B3-9745-48E7-B5F3-93CE0503B7E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68BDB7B3-9745-48E7-B5F3-93CE0503B7E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68BDB7B3-9745-48E7-B5F3-93CE0503B7E9}.DebugExGameEditor|Any CPU.ActiveCfg = Debug|Any CPU
+		{68BDB7B3-9745-48E7-B5F3-93CE0503B7E9}.DebugExGameEditor|Any CPU.Build.0 = Debug|Any CPU
+		{68BDB7B3-9745-48E7-B5F3-93CE0503B7E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68BDB7B3-9745-48E7-B5F3-93CE0503B7E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

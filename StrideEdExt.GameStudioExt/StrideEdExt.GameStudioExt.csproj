@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <Configurations>Debug;Release;DebugExGameEditor</Configurations>
   </PropertyGroup>
   <ItemGroup>
@@ -9,18 +11,19 @@
     <PackageReference Include="Stride.Editor" Version="4.2.0.2374" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SceneEditorExtensionExample.StrideAssetExt\SceneEditorExtensionExample.StrideAssetExt.csproj" />
+    <ProjectReference Include="..\StrideEdExt.StrideAssetExt\StrideEdExt.StrideAssetExt.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Resources\SceneEditorExtensionExampleAssetsXaml.Designer.cs">
-      <DependentUpon>SceneEditorExtensionExampleAssetsXaml.resx</DependentUpon>
+    <Compile Update="Resources\StrideEdExtAssetsThumbnails.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
+      <DependentUpon>StrideEdExtAssetsThumbnails.resx</DependentUpon>
     </Compile>
-    <Compile Update="Resources\SceneEditorExtensionExampleAssetsThumbnails.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>SceneEditorExtensionExampleAssetsThumbnails.resx</DependentUpon>
-    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\StrideEdExtAssetsThumbnails.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>StrideEdExtAssetsThumbnails.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

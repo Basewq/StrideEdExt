@@ -1,4 +1,4 @@
-﻿namespace SceneEditorExtensionExample;
+﻿namespace StrideEdExt;
 
 public static class ListExtensions
 {

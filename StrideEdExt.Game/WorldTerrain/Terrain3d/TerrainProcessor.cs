@@ -9,7 +9,7 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Game;
 #endif
 
-namespace SceneEditorExtensionExample.WorldTerrain.Terrain3d;
+namespace StrideEdExt.WorldTerrain.Terrain3d;
 
 class TerrainProcessor : EntityProcessor<TerrainComponent, TerrainProcessor.AssociatedData>
 {
@@ -60,6 +60,18 @@ class TerrainProcessor : EntityProcessor<TerrainComponent, TerrainProcessor.Asso
     protected override void OnEntityComponentRemoved(Entity entity, [NotNull] TerrainComponent component, [NotNull] AssociatedData data)
     {
         component.Deinitialize();
+    }
+
+    public override void Update(GameTime time)
+    {
+        foreach (var (comp, _) in ComponentDatas)
+        {
+            if (!comp.IsEnabled)
+            {
+                continue;
+            }
+            comp.Update(time);
+        }
     }
 
     public override void Draw(RenderContext context)

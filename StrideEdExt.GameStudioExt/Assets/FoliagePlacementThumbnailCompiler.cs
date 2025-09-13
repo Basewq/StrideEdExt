@@ -1,15 +1,15 @@
-using SceneEditorExtensionExample.GameStudioExt.Resources;
-using SceneEditorExtensionExample.StrideAssetExt.Assets;
+using StrideEdExt.GameStudioExt.Resources;
+using StrideEdExt.StrideAssetExt.Assets;
 using Stride.Core.Assets.Compiler;
 using Stride.Editor.Thumbnails;
 
-namespace SceneEditorExtensionExample.GameStudioExt.Assets
+namespace StrideEdExt.GameStudioExt.Assets
 {
     [AssetCompiler(typeof(FoliagePlacementAsset), typeof(ThumbnailCompilationContext))]
     public class FoliagePlacementThumbnailCompiler : StaticThumbnailCompiler<FoliagePlacementAsset>
     {
         public FoliagePlacementThumbnailCompiler()
-            : base(SceneEditorExtensionExampleAssetsThumbnails.FoliageThumbnail)
+            : base(StrideEdExtAssetsThumbnails.FoliageThumbnail)
         {
         }
     }

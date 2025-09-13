@@ -8,7 +8,7 @@ using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Game;
 #endif
 
-namespace SceneEditorExtensionExample.WorldTerrain.Foliage;
+namespace StrideEdExt.WorldTerrain.Foliage;
 
 class FoliageInstancingManagerProcessor : EntityProcessor<FoliageInstancingManagerComponent, FoliageInstancingManagerProcessor.AssociatedData>
 {

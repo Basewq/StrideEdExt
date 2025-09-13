@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace SceneEditorExtensionExample.UI;
+namespace StrideEdExt.UI;
 
 public readonly struct UIElementKey<TUIElement> : IEquatable<UIElementKey<TUIElement>>
     where TUIElement : UIElement

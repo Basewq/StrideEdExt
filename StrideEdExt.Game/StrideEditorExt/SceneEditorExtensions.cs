@@ -3,17 +3,16 @@ using Stride.Core.Annotations;
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Engine.Processors;
-using System;
 
-namespace SceneEditorExtensionExample.StrideEditorExt;
+namespace StrideEdExt.StrideEditorExt;
 
 static class SceneEditorExtensions
 {
     // Code from Stride.Assets.Presentation.AssetEditors.GameEditor.Game.EditorGameHelper
-    public static Ray CalculateRayFromMousePosition([NotNull] CameraComponent camera, Vector2 normalisedMousePosition, Matrix worldView)
+    public static Ray CalculateRayFromMousePosition([NotNull] CameraComponent camera, Vector2 normalizedMousePosition, Matrix worldView)
     {
         // determine the mouse position normalized, centered and correctly oriented
-        var screenPosition = new Vector2(2f * (normalisedMousePosition.X - 0.5f), -2f * (normalisedMousePosition.Y - 0.5f));
+        var screenPosition = new Vector2(2f * (normalizedMousePosition.X - 0.5f), -2f * (normalizedMousePosition.Y - 0.5f));
 
         if (camera.Projection == CameraProjectionMode.Perspective)
         {
@@ -40,13 +39,13 @@ static class SceneEditorExtensions
         }
     }
 
-    public static Vector3 GetPositionInScene(CameraComponent cameraComponent, in Vector2 normalisedMousePosition, float planePositionY = 0)
+    public static Vector3 GetPositionInScene(CameraComponent cameraComponent, in Vector2 normalizedMousePosition, float planePositionY = 0)
     {
         const float limitAngle = 7.5f * MathUtil.Pi / 180f;
         const float randomDistance = 20f;
 
         Matrix.Invert(ref cameraComponent.ViewMatrix, out var worldMatrix);
-        var ray = CalculateRayFromMousePosition(cameraComponent, normalisedMousePosition, worldMatrix);
+        var ray = CalculateRayFromMousePosition(cameraComponent, normalizedMousePosition, worldMatrix);
         var plane = new Plane(Vector3.UnitY, d: -planePositionY);
 
         // Ensures a ray angle with projection plane of at least 'limitAngle' to avoid the object to go to infinity.

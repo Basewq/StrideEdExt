@@ -1,0 +1,30 @@
+﻿namespace StrideEdExt.Rendering
+{
+    // The shader used to display the texture brush cursor
+    shader PaintingTextureBrushShader : ComputeColor, PositionStream4, Texturing
+    {
+        rgroup PerMaterial
+        {
+            stage Texture2D BrushTexture;
+        }
+
+        override float4 Compute()
+        {
+            const float ActivePaintAlpha = 0.035;
+            const float OutlineTextureAlphaThreshold = 0.2;
+            const float OutlineThickness = 0.01;
+
+            float brushTexAlpha = BrushTexture.Sample(LinearSampler, streams.TexCoord).x;
+            float brushOutlineAlpha = GetBrushOutlineOpacity(brushTexAlpha, OutlineTextureAlphaThreshold, OutlineThickness);
+            
+            float displayAlpha = max(clamp(brushTexAlpha, 0, ActivePaintAlpha), brushOutlineAlpha);
+            return float4(1.0, 1.0, 1.0, 1.0) * displayAlpha;
+        }
+
+        float GetBrushOutlineOpacity(float brushTexAlpha, float outlineAlphaThreshold, float outlineThickness)
+        {
+            float outlineAlpha = 1 - smoothstep(0, 1, abs(brushTexAlpha - outlineAlphaThreshold - outlineThickness) / outlineAlphaThreshold);
+            return saturate(outlineAlpha);
+        }
+    };
+}
