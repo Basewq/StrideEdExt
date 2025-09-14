@@ -61,6 +61,8 @@ The `* Heightmap Layer Component`s and `* Material Weight Map Layer Component`s 
 
 > Layers are prioritized like general paint software - higher level layers take priority over lower levels.
 
+For `Texture * Layer Component` and painter brushes, you must disable 'Generate mipmaps', 'Compress', and 'Stream' on the texture to ensure data can be read properly.
+
 
 ---
 

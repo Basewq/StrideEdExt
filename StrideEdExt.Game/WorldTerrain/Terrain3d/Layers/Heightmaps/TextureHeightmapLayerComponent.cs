@@ -1,10 +1,13 @@
-﻿using Stride.Core.Mathematics;
+﻿using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Rendering;
 using StrideEdExt.Rendering.RenderTextures;
 using StrideEdExt.SharedData;
+using StrideEdExt.SharedData.Rendering;
 using StrideEdExt.SharedData.Terrain3d.Layers;
 using StrideEdExt.SharedData.Terrain3d.RuntimeToEditorRequests;
 using StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.Heightmaps;
@@ -88,29 +91,52 @@ public class TextureHeightmapLayerComponent : TerrainLayerComponentBase, ITerrai
         }
         if (_isHeightmapDataUpdateRequired)
         {
-            ////if (HeightmapTexture is not null)
-            ////{
-            ////    var heightmapTextureAttachedRef = AttachedReferenceManager.GetAttachedReference(HeightmapTexture);
-            ////    if (heightmapTextureAttachedRef?.IsProxy == false && _layerData is not null)
-            ////    {
-            ////        SetHeightmapData(null);     // No longer valid
-            ////        RaiseLayerChangedEvent(LayerChangedType.Heightmap);
-            ////        _isHeightmapDataUpdateRequired = false;
-            ////    }
-            ////    else
-            ////    {
-            ////        // Editor is still loading the texture, check again on the next update
-            ////    }
-            ////}
-            ////else
-            ////{
-            ////    if (_layerData?.HeightmapData is not null)
-            ////    {
-            ////        SetHeightmapData(null);     // No longer valid
-            ////        RaiseLayerChangedEvent(LayerChangedType.Heightmap);
-            ////    }
-            ////    _isHeightmapDataUpdateRequired = false;
-            ////}
+            if (HeightmapTexture is not null)
+            {
+                var heightmapTextureAttachedRef = AttachedReferenceManager.GetAttachedReference(HeightmapTexture);
+                if (heightmapTextureAttachedRef?.IsProxy == false)
+                {
+                    if (EditorComponent is not null)
+                    {
+                        var game = Services.GetSafeServiceAs<IGame>();
+                        var commandList = game.GraphicsContext.CommandList;
+                        using var heightmapImage = HeightmapTexture.GetDataAsImage(commandList);
+                        var heightmapData = HeightmapTextureHelper.ConvertToArray2dDataFloat(heightmapImage);
+
+                        EditorComponent.SendOrEnqueueEditorRequest(terrainMapAssetId =>
+                        {
+                            var request = new UpdateTextureHeightmapRequest
+                            {
+                                TerrainMapAssetId = terrainMapAssetId,
+                                LayerId = LayerId,
+                                HeightmapTexturePixelStartPosition = _heightmapTexturePixelStartPosition,
+                                HeightmapData = heightmapData,
+                            };
+                            return request;
+                        });
+                    }
+                    _isHeightmapDataUpdateRequired = false;
+                }
+                else
+                {
+                    // Editor is still loading the texture, check again on the next update
+                }
+            }
+            else
+            {
+                EditorComponent?.SendOrEnqueueEditorRequest(terrainMapAssetId =>
+                {
+                    var request = new UpdateTextureHeightmapRequest
+                    {
+                        TerrainMapAssetId = terrainMapAssetId,
+                        LayerId = LayerId,
+                        HeightmapTexturePixelStartPosition = _heightmapTexturePixelStartPosition,
+                        HeightmapData = null,
+                    };
+                    return request;
+                });
+                _isHeightmapDataUpdateRequired = false;
+            }
         }
     }
 

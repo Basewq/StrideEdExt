@@ -377,6 +377,16 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                 UpdateHeightmapFromLayers(sendHeightmapUpdateMessage: true);
             }
         });
+        RegisterRequestHandler<UpdateTextureHeightmapRequest>(req =>
+        {
+            if (Asset.TryGetHeightmapLayerData<TextureHeightmapLayerData>(req.LayerId, out var layerData))
+            {
+                layerData.HeightmapData = req.HeightmapData;
+                layerData.HeightmapTexturePixelStartPosition = req.HeightmapTexturePixelStartPosition;
+                //layerData.IsSerializeIntermediateFileRequired = true;
+                UpdateHeightmapFromLayers(sendHeightmapUpdateMessage: true);
+            }
+        });
         RegisterRequestHandler<UpdateModelHeightmapRequest>(req =>
         {
             if (Asset.TryGetHeightmapLayerData<ModelHeightmapLayerData>(req.LayerId, out var layerData))
@@ -426,6 +436,16 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
         {
             if (Asset.TryGetMaterialMapLayerData<TerrainMaterialMapLayerDataBase>(req.LayerId, out var layerData))
             {
+                layerData.MaterialWeightMapTexturePixelStartPosition = req.MaterialWeightMapTexturePixelStartPosition;
+                //layerData.IsSerializeIntermediateFileRequired = true;
+                UpdateMaterialIndexMapFromLayers(sendMaterialMapUpdateMessage: true);
+            }
+        });
+        RegisterRequestHandler<UpdateTextureMaterialWeightMapRequest>(req =>
+        {
+            if (Asset.TryGetMaterialMapLayerData<TextureMaterialWeightMapLayerData>(req.LayerId, out var layerData))
+            {
+                layerData.MaterialWeightMapData = req.MaterialWeightMapData;
                 layerData.MaterialWeightMapTexturePixelStartPosition = req.MaterialWeightMapTexturePixelStartPosition;
                 //layerData.IsSerializeIntermediateFileRequired = true;
                 UpdateMaterialIndexMapFromLayers(sendMaterialMapUpdateMessage: true);

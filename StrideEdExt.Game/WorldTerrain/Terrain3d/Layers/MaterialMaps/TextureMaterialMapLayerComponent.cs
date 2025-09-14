@@ -1,4 +1,5 @@
-﻿using Stride.Core.Mathematics;
+﻿using Stride.Core;
+using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
 using Stride.Engine;
 using Stride.Games;
@@ -6,6 +7,7 @@ using Stride.Graphics;
 using Stride.Rendering;
 using StrideEdExt.Rendering.RenderTextures;
 using StrideEdExt.SharedData;
+using StrideEdExt.SharedData.Rendering;
 using StrideEdExt.SharedData.Terrain3d.Layers;
 using StrideEdExt.SharedData.Terrain3d.RuntimeToEditorRequests;
 using StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.MaterialMaps;
@@ -16,7 +18,7 @@ namespace StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps;
 public class TextureMaterialWeightMapLayerComponent : TerrainLayerComponentBase, ITerrainMapMaterialWeightMapLayer
 {
     private TransformTRS _prevTransformData;
-    private Array2d<Half>? _layerMaterialWeightMapData { get; set; }
+    private Array2d<Half>? _layerMaterialWeightMapData;
     private Int2 _layerMaterialWeightMapTexturePixelStartPosition;
 
     private bool _ignoreTextureChange;
@@ -89,29 +91,52 @@ public class TextureMaterialWeightMapLayerComponent : TerrainLayerComponentBase,
         }
         if (_isMaterialWeightMapDataUpdateRequired)
         {
-            //if (MaterialWeightMapTexture is not null)
-            //{
-            //    var heightmapTextureAttachedRef = AttachedReferenceManager.GetAttachedReference(MaterialWeightMapTexture);
-            //    if (heightmapTextureAttachedRef?.IsProxy == false && _layerData is not null)
-            //    {
-            //        SetMaterialWeightMapData(null);     // No longer valid
-            //        RaiseLayerChangedEvent(LayerChangedType.MaterialWeightMap);
-            //        _isMaterialWeightMapDataUpdateRequired = false;
-            //    }
-            //    else
-            //    {
-            //        // Editor is still loading the texture, check again on the next update
-            //    }
-            //}
-            //else
-            //{
-            //    if (_layerData?.MaterialWeightMapData is not null)
-            //    {
-            //        SetMaterialWeightMapData(null);     // No longer valid
-            //        RaiseLayerChangedEvent(LayerChangedType.MaterialWeightMap);
-            //    }
-            //    _isMaterialWeightMapDataUpdateRequired = false;
-            //}
+            if (MaterialWeightMapTexture is not null)
+            {
+                var weightMapTextureAttachedRef = AttachedReferenceManager.GetAttachedReference(MaterialWeightMapTexture);
+                if (weightMapTextureAttachedRef?.IsProxy == false)
+                {
+                    if (EditorComponent is not null)
+                    {
+                        var game = Services.GetSafeServiceAs<IGame>();
+                        var commandList = game.GraphicsContext.CommandList;
+                        using var weightMapImage = MaterialWeightMapTexture.GetDataAsImage(commandList);
+                        var materialWeightMapData = HeightmapTextureHelper.ConvertToArray2dDataHalf(weightMapImage);
+
+                        EditorComponent.SendOrEnqueueEditorRequest(terrainMapAssetId =>
+                        {
+                            var request = new UpdateTextureMaterialWeightMapRequest
+                            {
+                                TerrainMapAssetId = terrainMapAssetId,
+                                LayerId = LayerId,
+                                MaterialWeightMapTexturePixelStartPosition = _layerMaterialWeightMapTexturePixelStartPosition,
+                                MaterialWeightMapData = materialWeightMapData,
+                            };
+                            return request;
+                        });
+                    }
+                    _isMaterialWeightMapDataUpdateRequired = false;
+                }
+                else
+                {
+                    // Editor is still loading the texture, check again on the next update
+                }
+            }
+            else
+            {
+                EditorComponent?.SendOrEnqueueEditorRequest(terrainMapAssetId =>
+                {
+                    var request = new UpdateTextureMaterialWeightMapRequest
+                    {
+                        TerrainMapAssetId = terrainMapAssetId,
+                        LayerId = LayerId,
+                        MaterialWeightMapTexturePixelStartPosition = _layerMaterialWeightMapTexturePixelStartPosition,
+                        MaterialWeightMapData = null,
+                    };
+                    return request;
+                });
+                _isMaterialWeightMapDataUpdateRequired = false;
+            }
         }
     }
 
