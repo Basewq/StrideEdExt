@@ -28,27 +28,17 @@ Each terrain vertex can only be exactly one material so weight maps are based on
 
 Heightmaps:
 
-<video controls>
-  <source src="./images/model_heightmap_layer_edit.mp4" type="video/mp4">
-</video controls>
+https://github.com/user-attachments/assets/f50c2c01-9e05-4eaa-a170-956af37ee40d
 
-<video controls>
-  <source src="./images/painter_heightmap_layer_edit.mp4" type="video/mp4">
-</video controls>
+https://github.com/user-attachments/assets/e7481669-7cf4-49f6-982e-847e975a77f7
 
-<video controls>
-  <source src="./images/texture_heightmap_layer_edit.mp4" type="video/mp4">
-</video controls>
+https://github.com/user-attachments/assets/1d429358-a9c0-40fc-9212-64704ae302e4
 
 Material maps:
 
-<video controls>
-  <source src="./images/painter_material_layer_edit.mp4" type="video/mp4">
-</video controls>
+https://github.com/user-attachments/assets/26b737dc-cf3d-4541-84cf-23c4c44e23ab
 
-<video controls>
-  <source src="./images/texture_material_layer_edit.mp4" type="video/mp4">
-</video controls>
+https://github.com/user-attachments/assets/e11c40d2-4ec1-4d8a-9f25-52d498deb2c4
 
 ---
 
