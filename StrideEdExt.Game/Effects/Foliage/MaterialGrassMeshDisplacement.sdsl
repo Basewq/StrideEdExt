@@ -98,14 +98,14 @@
             // Calculate Ambient Wind Displacement
             if (windInfluence > 0 && WindAmbient_WindSpeed > 0)
             {
-                float4 meshPosWorldSpace = mul(float4(0, 0, 0, 1), worldMatrix); 
+                float4 meshPosWorldSpace = mul(float4(0, 0, 0, 1), worldMatrix);
                 float2 windDirXZ = float2(1.0, 1.0);
                 float uvPanSpeed = WindAmbient_WindSpeed / AmbientWindNoiseMapWorldLength;
                 float2 uv = MyUtils.GetPanningTextureMapUv(meshPosWorldSpace.xyz, AmbientWindNoiseMapWorldLength, windDirXZ, uvPanSpeed);
                 float ambWindNoiseValue = WindNoiseMap.SampleLevel(WindNoiseMapSampler, uv, 0).r;   // Must use SampleLevel instead of Sample in vertex shader
                 float ambientWindDisplacementStrength = 2 * (ambWindNoiseValue - 0.5);              // Get value in [-1, 1] range
                 // Only squash up/down
-                float heightOffset = streams.TexCoord.y * ambientWindDisplacementStrength * windInfluence * AmbientWindMaxDisplacementY; 
+                float heightOffset = streams.TexCoord.y * ambientWindDisplacementStrength * windInfluence * AmbientWindMaxDisplacementY;
                 float3 displaceWindModelSpace = float3(0, heightOffset, 0);
                 displacementModelSpace += displaceWindModelSpace;
             }

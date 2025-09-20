@@ -11,7 +11,7 @@
             stage float WindDirectional_WindMaxSpeed;
             stage float WindDirectional_WindCurrentStrength;    // [0...1] value to be multiplied with WindMaxSpeed to get the current speed
         }
-    
+
         //rgroup PerView.EnvironmentWindSources
         //{
         //}

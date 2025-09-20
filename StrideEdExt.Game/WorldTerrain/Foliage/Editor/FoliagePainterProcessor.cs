@@ -95,7 +95,7 @@ class FoliagePainterProcessor : EntityProcessor<FoliagePainterComponent, Foliage
         {
             selectionService.SelectionUpdated -= EntitySelectionService_OnSelectionUpdated;
         }
-        
+
         var _ = _foliageMeshManager.DisposeAsync();
     }
 

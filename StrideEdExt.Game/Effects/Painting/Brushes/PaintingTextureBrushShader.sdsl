@@ -16,7 +16,7 @@
 
             float brushTexAlpha = BrushTexture.Sample(LinearSampler, streams.TexCoord).x;
             float brushOutlineAlpha = GetBrushOutlineOpacity(brushTexAlpha, OutlineTextureAlphaThreshold, OutlineThickness);
-            
+
             float displayAlpha = max(clamp(brushTexAlpha, 0, ActivePaintAlpha), brushOutlineAlpha);
             return float4(1.0, 1.0, 1.0, 1.0) * displayAlpha;
         }

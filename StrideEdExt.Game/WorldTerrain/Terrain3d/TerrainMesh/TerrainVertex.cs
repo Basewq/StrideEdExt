@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 
-namespace StrideEdExt.WorldTerrain.TerrainMesh;
+namespace StrideEdExt.WorldTerrain.Terrain3d.TerrainMesh;
 
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
 public struct TerrainVertex : IVertex

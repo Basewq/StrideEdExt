@@ -52,7 +52,7 @@ public class RenderHeightmapTextureRequest : IRenderTextureRequest<RenderTexture
 
         // Determine the required render texture
         var modelBoundingBoxExt = CalculateBoundBoxExt(modelEntity);
-        var texRegion = texWorldMeasurement.GetTextureCoordsRegionXZ(modelBoundingBoxExt.Minimum, modelBoundingBoxExt.Maximum); 
+        var texRegion = texWorldMeasurement.GetTextureCoordsRegionXZ(modelBoundingBoxExt.Minimum, modelBoundingBoxExt.Maximum);
 
         // Note this texture uses the G channel as the mask channel
         _renderTargetTexture = Texture.New2D(

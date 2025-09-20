@@ -38,7 +38,7 @@ public class TerrainMapAsset : Asset
     private readonly object _serializationLock = new();
 
     public static string HeightmapLayerDataListName => nameof(HeightmapLayerDataList);    // HACK: we need the editor to detect changes to list in the editor, but we don't want to expose this list directly.
-    public static string MaterialWeightMapLayerDataListName => nameof(MaterialWeightMapLayerDataList);    
+    public static string MaterialWeightMapLayerDataListName => nameof(MaterialWeightMapLayerDataList);
 
     /// <summary>
     /// Normalized heightmap data.

@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace StrideEdExt.WorldTerrain.TerrainMesh;
+namespace StrideEdExt.WorldTerrain.Terrain3d.TerrainMesh;
 
 record struct TerrainMeshData
 {

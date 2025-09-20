@@ -72,7 +72,7 @@
             // |--------
             // v
             // V
-            
+
             float4 values = MaterialIndexMap.GatherRed(MaterialIndexMapSampler, uv);
             // Need to denormalize value to get back the material index
             return values * MaxMaterialIndexPerTerrain;
@@ -85,7 +85,7 @@
             float4 sampledMatIndices = GatherMaterialIndices(terrainTexCoord + matIndexTexOffset);
 
             float2 materialTexCoord = terrainTexCoord * MaterialIndexMapSize;
-            
+
             // Sampling requires additional offset as per link:
             // https://www.reedbeta.com/blog/texture-gathers-and-coordinate-precision/
             // Weird quirk but we need this offset to snap the 'tex coord' to be consistent with the coords that MaterialIndexMap.Gather actually samples
@@ -124,7 +124,7 @@
                         sampledMatIndices.z == materialIndex ? NaN : sampledMatIndices.z,
                         sampledMatIndices.w == materialIndex ? NaN : sampledMatIndices.w
                     );
-                    
+
                     // Breaks early if all are NaN
                     if (!any(sampledMatIndices + 1))
                     {
@@ -149,11 +149,11 @@
                 //float matIndex = MaterialIndexMap.Sample(MaterialIndexMapSampler, terrainTexCoord).r * MaxMaterialIndexPerTerrain;
                 //materialData.Diffuse = DiffuseMap.Sample(LinearRepeatSampler, float3(materialTexCoord, matIndex));
                 //materialData.Normal = NormalMap.Sample(LinearRepeatSampler, float3(materialTexCoord, matIndex));
-          
+
                 //float matIndex = sortedMatIndices[0];
                 //float matIdxColor = (matIndex / 32) + 0.025;
                 //materialData.Diffuse = float4(matIdxColor, matIdxColor, matIdxColor, 1.0);
-       
+
                 //int idx = 0;
                 //materialData.Diffuse = float4(sortedTransitionAlphas[idx], 0, 0, 1);
                 //materialData.Normal = float4(0,0,1,0);
@@ -162,7 +162,7 @@
                 //materialData.Diffuse = float4(0.5, 0.5, 0.5, 1.0);
             }
 
-            // Output as per MaterialSurfaceDiffuse 
+            // Output as per MaterialSurfaceDiffuse
             streams.matDiffuse = materialData.Diffuse;
             // Because matDiffuse can be modified when using a metalness, we are storing the colorBase into matColorBase
             // so that we are able to query the original diffuse color without any modifications.

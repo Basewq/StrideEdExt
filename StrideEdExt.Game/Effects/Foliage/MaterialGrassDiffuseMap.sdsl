@@ -25,7 +25,7 @@
         {
             float3 grassColor = lerp(GrassBottomColor, GrassTopColor, streams.TexCoord.y);
             float4 color = float4(grassColor, 1.0) * GlobalBrightness;
-        
+
             if (IsBrightnessMapEnabled && HasBrightnessMap)
             {
                 float2 uv = streams.PositionWS.xz / BrightnessMapWorldLength;
@@ -51,7 +51,7 @@
 
             color *= GlobalBrightness;
 
-            // Output as per MaterialSurfaceDiffuse 
+            // Output as per MaterialSurfaceDiffuse
             streams.matDiffuse = color;
             // Because matDiffuse can be modified when using a metalness, we are storing the colorBase into matColorBase
             // so that we are able to query the original diffuse color without any modifications.

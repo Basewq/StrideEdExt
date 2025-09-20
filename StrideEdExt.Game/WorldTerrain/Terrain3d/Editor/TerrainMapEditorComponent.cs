@@ -39,9 +39,6 @@ public class TerrainMapEditorComponent : SceneEditorExtBase, ITerrainMapEditor
     [DataMember(order: 10)]
     public TerrainMap? TerrainMap { get; set; }
 
-    [DataMember(order: 20)]
-    public Prefab? PaintPlacementPreviewPrefab;
-
 #if GAME_EDITOR
     protected internal override void Initialize()
     {

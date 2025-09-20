@@ -244,17 +244,4 @@ public static class TerrainMapLayerExtensions
             _ => FloatBlendFuncAverage,
         };
     }
-
-    private static readonly Func<Half, Half, Half> HalfBlendFuncAverage = (val1, val2) => (Half)Math.Clamp(((float)val1 + (float)val2) * 0.5f, 0, 1);
-    private static readonly Func<Half, Half, Half> HalfFuncMinimum = (val1, val2) => (val1 <= val2) ? val1 : val2;
-    private static readonly Func<Half, Half, Half> HalfFuncMaximum = (val1, val2) => (val1 >= val2) ? val1 : val2;
-    private static Func<Half, Half, Half> GetHalfBlendFunction(TerrainHeightmapLayerBlendType layerBlendType)
-    {
-        return layerBlendType switch
-        {
-            TerrainHeightmapLayerBlendType.Minimum => HalfFuncMinimum,
-            TerrainHeightmapLayerBlendType.Maximum => HalfFuncMaximum,
-            _ => HalfBlendFuncAverage,
-        };
-    }
 }

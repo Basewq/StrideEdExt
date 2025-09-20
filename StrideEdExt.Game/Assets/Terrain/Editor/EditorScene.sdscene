@@ -45,7 +45,6 @@ Hierarchy:
                     e718e0369b9c634135104bc605ef88ae: !StrideEdExt.WorldTerrain.Terrain3d.Editor.TerrainMapEditorComponent,StrideEdExt.Game
                         Id: 91c2e888-0a36-40f0-9285-9a5b6f572ae2
                         TerrainMap: b0132d19-e9ff-448d-bc58-906f301c3f1f:Terrain/ExampleTerrain
-                        PaintPlacementPreviewPrefab: 3a492f6e-f082-447b-ac0f-0d2d935f76f1:Terrain/Editor/PainterPreviewPrefab
         -   Folder: Material Layers
             Entity:
                 Id: 43e3624a-2b7b-46eb-b18d-91f74f3df68d

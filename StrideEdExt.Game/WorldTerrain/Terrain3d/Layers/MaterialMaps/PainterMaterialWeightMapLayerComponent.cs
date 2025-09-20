@@ -2,7 +2,6 @@
 using Stride.Core.Mathematics;
 using Stride.Engine;
 using Stride.Games;
-using Stride.Graphics;
 using Stride.Rendering;
 using StrideEdExt.Painting;
 using StrideEdExt.Rendering;

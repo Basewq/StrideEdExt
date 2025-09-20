@@ -79,7 +79,7 @@ public class FoliageInstancingManagerComponent : EntityComponent
 
     private static readonly Vector3[] FrustumPointsClipSpace = [
         // Far plane
-        new Vector3(-1, +1, 1),      
+        new Vector3(-1, +1, 1),
         new Vector3(+1, +1, 1),
         new Vector3(-1, -1, 1),
         new Vector3(+1, -1, 1),
@@ -107,7 +107,7 @@ public class FoliageInstancingManagerComponent : EntityComponent
         float fovRadians = MathUtil.DegreesToRadians(camComp.VerticalFieldOfView);
         float aspectRatio = camComp.AspectRatio;
         float zNear = camComp.NearClipPlane;
-        float zFar = MaxInstancingRenderDistance;   // We use our own instead of camComp.FarClipPlane (which should be smaller) 
+        float zFar = MaxInstancingRenderDistance;   // We use our own instead of camComp.FarClipPlane (which should be smaller)
 
         Matrix.PerspectiveFovRH(fovRadians, aspectRatio, zNear, zFar, out var projMatrix);
 
@@ -146,7 +146,7 @@ public class FoliageInstancingManagerComponent : EntityComponent
             }
         }
 
-        // From the visible chunk index list, we go through _chunkIdToFoliageInstancingDataList and find which chunks we need to render.        
+        // From the visible chunk index list, we go through _chunkIdToFoliageInstancingDataList and find which chunks we need to render.
         // For performance reasons, we use try to reuse existing 'active' chunks where possible.
 
         // Swap the "actual" instancing dictionary with the "processing" dictionary, so that the "actual" instancing dictionary is

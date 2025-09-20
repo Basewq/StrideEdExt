@@ -6,7 +6,7 @@ namespace StrideEdExt.Painting;
 class PaintSessionKey : IDisposable, IEquatable<PaintSessionKey>
 {
     private readonly IPainterService _paintBrushService;
-    
+
     public readonly PaintSessionId PaintSessionId;
 
     public PaintSessionKey(IPainterService paintBrushService, PaintSessionId paintSessionId)

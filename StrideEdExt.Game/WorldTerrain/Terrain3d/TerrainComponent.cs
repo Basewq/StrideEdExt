@@ -1,6 +1,5 @@
 ﻿using Stride.Core;
 using Stride.Core.Mathematics;
-using Stride.Core.Serialization.Contents;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Games;
@@ -17,7 +16,7 @@ using StrideEdExt.SharedData.Terrain3d;
 using StrideEdExt.WorldTerrain.Terrain3d.Editor;
 using StrideEdExt.WorldTerrain.Terrain3d.Layers.Heightmaps;
 using StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialWeightMaps;
-using StrideEdExt.WorldTerrain.TerrainMesh;
+using StrideEdExt.WorldTerrain.Terrain3d.TerrainMesh;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Buffer = Stride.Graphics.Buffer;
@@ -32,9 +31,6 @@ namespace StrideEdExt.WorldTerrain.Terrain3d;
 [ComponentCategory("Terrain")]
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(TerrainProcessor), ExecutionMode = ExecutionMode.Runtime | ExecutionMode.Editor)]
-#if GAME_EDITOR
-//[DefaultEntityComponentProcessor(typeof(TerrainMapDataBuilderProcessor), ExecutionMode = ExecutionMode.Editor)]
-#endif
 public class TerrainComponent : EntityComponent
 {
     public static readonly CollisionFilterGroups TerrainColliderGroup = CollisionFilterGroups.StaticFilter;
@@ -42,7 +38,6 @@ public class TerrainComponent : EntityComponent
 
     private GraphicsContext _graphicsContext = default!;
     private GraphicsDevice _graphicsDevice = default!;
-    private ContentManager _contentManager = default!;
 
     private readonly List<Model> _pendingDisposeModels = [];
     private readonly List<IDisposable> _pendingDisposables = [];
@@ -96,7 +91,6 @@ public class TerrainComponent : EntityComponent
         var game = serviceRegistry.GetSafeServiceAs<IGame>();
         _graphicsContext = game.GraphicsContext;
         _graphicsDevice = game.GraphicsDevice;
-        _contentManager = game.Content;
 
         if (Entity.EntityManager.ExecutionMode == ExecutionMode.Runtime && TerrainMap is not null)
         {
@@ -110,7 +104,6 @@ public class TerrainComponent : EntityComponent
     {
         _graphicsContext = null!;
         _graphicsDevice = null!;
-        _contentManager = null!;
 
         foreach (var (_, modelComp) in _chunkModelIdToActiveModelComponent)
         {

@@ -450,7 +450,7 @@ public class AssetTransactionBuilder
                         oldToNewObjectListIndexShiftMap[j] += newItemsCount;
                         int oldStateIndex = j;
                         int newStateIndex = j + oldToNewObjectListIndexShiftMap[j];
-                        
+
                         var newStateMemberPath = CurrentPath.Clone();
                         newStateMemberPath.Push(collDescriptor, index: newStateIndex);
                         var oldStateMemberPath = CurrentPath.Clone();
@@ -499,7 +499,7 @@ public class AssetTransactionBuilder
                         oldToNewObjectListIndexShiftMap[j] -= 1;
                         int oldStateIndex = j;
                         int newStateIndex = j + oldToNewObjectListIndexShiftMap[j];
-                  
+
                         var newStateMemberPath = CurrentPath.Clone();
                         newStateMemberPath.Push(collDescriptor, index: newStateIndex);
                         var oldStateMemberPath = CurrentPath.Clone();

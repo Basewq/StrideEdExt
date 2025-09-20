@@ -126,9 +126,6 @@ public class TerrainMapAssetCompiler : AssetCompilerBase
                 }
             }
 
-            //commandContext.Logger.Info($"TerrainMapAsset.Chunks: {terrainMapAsset.Chunks.Count} - Terrain.LoadedChunkCount: {terrain.LoadedChunkCount}");
-            //commandContext.Logger.Info($"TerrainMapAsset.TileSets: {terrainMapAsset.TileSets.Count} - Terrain.TileSetNameToTileSetPrefabMap: {terrain.TileSetNameToTileSetPrefabMap.Count}");
-
             assetManager.Save(Url, terrainMap);
 
             return Task.FromResult(ResultStatus.Successful);
