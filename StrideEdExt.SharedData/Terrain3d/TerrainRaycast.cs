@@ -29,7 +29,7 @@ public static class TerrainRaycast
             return false;
         }
 
-        var mapWorldSize = meshQuadSize * heightmapData.Length2d.ToVector2();
+        var mapWorldSize = meshQuadSize * heightmapData.Length2d.Subtract(Int2.One).ToVector2();
 
         if (mapStartPosition.X > worldPositionXZ.X || worldPositionXZ.X >= mapStartPosition.X + mapWorldSize.X
             || mapStartPosition.Z > worldPositionXZ.Y || worldPositionXZ.Y >= mapStartPosition.Z + mapWorldSize.Y)
@@ -47,13 +47,15 @@ public static class TerrainRaycast
         if (quad.Triangle0.TryRaycast(ray, out var rayTriPoint))
         {
             heightValue = (rayTriPoint + mapStartPosition).Y;
-            quad.Triangle0.GetNormalAndTangent(out normal, out _);
+            quad.Triangle0.GetUnnormalizedNormalAndTangent(out normal, out _);
+            normal.Normalize();
             return true;
         }
         if (quad.Triangle1.TryRaycast(ray, out rayTriPoint))
         {
             heightValue = (rayTriPoint + mapStartPosition).Y;
-            quad.Triangle1.GetNormalAndTangent(out normal, out _);
+            quad.Triangle1.GetUnnormalizedNormalAndTangent(out normal, out _);
+            normal.Normalize();
             return true;
         }
 

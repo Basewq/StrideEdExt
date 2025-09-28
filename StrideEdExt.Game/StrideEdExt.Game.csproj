@@ -218,6 +218,12 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
     </Compile>
+    <Compile Update="Effects\Terrain3d\MaterialTerrainUtils.sdsl.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MaterialTerrainUtils.sdsl</DependentUpon>
+    </Compile>
     <Compile Update="Effects\Terrain3d\MaterialTerrainEditPreviewInputShared.sdsl.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>%(Filename)</DependentUpon>
@@ -368,6 +374,9 @@
     </None>
     <None Update="Effects\RenderTexture\HeightmapRenderEffect.sdfx">
       <LastGenOutput>HeightmapRenderEffect.sdfx.cs</LastGenOutput>
+    </None>
+    <None Update="Effects\Terrain3d\MaterialTerrainUtils.sdsl">
+      <LastGenOutput>MaterialTerrainUtils.sdsl.cs</LastGenOutput>
     </None>
     <None Update="Effects\Terrain3d\MaterialTerrainEditPreviewInputShared.sdsl">
       <LastGenOutput>MaterialTerrainEditPreviewInputShared.sdsl.cs</LastGenOutput>

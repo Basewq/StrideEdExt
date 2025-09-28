@@ -17,6 +17,7 @@ using System.Diagnostics;
 
 namespace StrideEdExt.WorldTerrain.Terrain3d.Layers.Heightmaps;
 
+[ComponentCategory("Terrain Heightmaps")]
 public class PainterHeightmapLayerComponent : TerrainLayerComponentBase, ITerrainMapHeightmapLayer
 {
     private IGraphicsDeviceService _graphicsDeviceService = default!;

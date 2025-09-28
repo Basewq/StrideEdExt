@@ -13,6 +13,7 @@ namespace StrideEdExt.SharedData
     [DataContract]
     [ContentSerializer(typeof(DataContentSerializer<FoliagePlacement>))]
     [ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<FoliagePlacement>), Profile = "Content")]
+    [Obsolete]
     public class FoliagePlacement
     {
         public List<ModelPlacement> ModelPlacements { get; set; } = new();

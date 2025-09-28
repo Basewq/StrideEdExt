@@ -14,6 +14,7 @@ using StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.Heightmaps;
 
 namespace StrideEdExt.WorldTerrain.Terrain3d.Layers.Heightmaps;
 
+[ComponentCategory("Terrain Heightmaps")]
 public class TextureHeightmapLayerComponent : TerrainLayerComponentBase, ITerrainMapHeightmapLayer
 {
     private TransformTRS _prevTransformData;

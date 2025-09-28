@@ -19,7 +19,7 @@ class SceneEditorExtProcessor : EntityProcessor<SceneEditorExtBase>
     {
         if (component.IsInitialized)
         {
-            component.Deinitialize();
+            component.Deinitialize(entity.Id, entity.Scene?.Id);
         }
     }
 

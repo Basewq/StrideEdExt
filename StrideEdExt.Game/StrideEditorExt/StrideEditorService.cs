@@ -17,13 +17,9 @@ using Stride.Editor.EditorGame.ContentLoader;
 using Stride.Engine;
 using Stride.GameStudio.View;
 using Stride.GameStudio.ViewModels;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace StrideEdExt.StrideEditorExt;
 

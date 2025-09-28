@@ -269,7 +269,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                     EnsureLayerIntermediateFileDeserialized(layerData);
                 }
             }
-            // Provide the material layer ordering to the run-time editor tool(s)
+            // Provide the heightmap data and material layer ordering to the run-time editor tool(s)
             if (_editorToRuntimeMessagingService is not null)
             {
                 if (Asset.HeightmapData is not null)
@@ -606,7 +606,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                     bool isMaterialWeightMapLayer = terrainMapLayer is ITerrainMapMaterialWeightMapLayer;
                     if (!isHeightmapLayer && !isMaterialWeightMapLayer)
                     {
-                        throw new NotSupportedException($"Unhandled layer type: {terrainMapLayer.GetType().Name}");
+                        throw new NotImplementedException($"Unhandled layer type: {terrainMapLayer.GetType().Name}");
                     }
                     if (isItemRemoved)
                     {

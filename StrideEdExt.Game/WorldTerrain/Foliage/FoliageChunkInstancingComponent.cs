@@ -1,15 +1,14 @@
-﻿using StrideEdExt.Rendering;
-using Stride.Core;
+﻿using Stride.Core;
 using Stride.Engine;
 using Stride.Engine.Design;
 using Stride.Graphics;
-using System;
+using StrideEdExt.Rendering;
 
 namespace StrideEdExt.WorldTerrain.Foliage;
 
 /// <summary>
-/// Additional instancing data specifically for the foliage instancing.
-/// This is generated at run-time by <see cref="FoliageInstancingManagerComponent"/>.
+/// Instancing data specifically for the foliage instancing.
+/// This is generated at run-time by <see cref="ProceduralPlacement.ProceduralObjectPlacementComponent"/>.
 /// </summary>
 [DefaultEntityComponentRenderer(typeof(FoliageChunkInstancingProcessor))]
 [Display(Browsable = false)]
@@ -17,7 +16,7 @@ internal class FoliageChunkInstancingComponent : EntityComponent, IDisposable
 {
     public bool IsDisposed { get; private set; }
 
-    public FoliageChunkId ChunkId;
+    public FoliageChunkModelId ChunkModelId;
     public required ModelComponent ModelComponent;
     public required InstancingUserArray InstancingArray;    // Same object as InstancingComponent.Type
     public Buffer<FoliageInstanceData>? InstanceDataBuffer;

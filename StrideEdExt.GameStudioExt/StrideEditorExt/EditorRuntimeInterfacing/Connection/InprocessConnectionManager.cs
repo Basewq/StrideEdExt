@@ -4,7 +4,7 @@ public class InprocessConnectionManager
 {
     // Only one editor endpoint exists
     private readonly InprocessMessagingEndpoint _editorEndpoint;
-    private readonly List<InprocessMessagingEndpoint> _runtimeEndpoints = [];
+    private readonly List<InprocessMessagingEndpoint> _listenerEndpoints = [];
 
     public InprocessConnectionManager()
     {
@@ -16,12 +16,12 @@ public class InprocessConnectionManager
         return _editorEndpoint;
     }
 
-    public InprocessMessagingEndpoint CreateRuntimeEndpoint()
+    public InprocessMessagingEndpoint CreateEditorListenerEndpoint()
     {
         var endpoint = new InprocessMessagingEndpoint(this);
-        lock (_runtimeEndpoints)
+        lock (_listenerEndpoints)
         {
-            _runtimeEndpoints.Add(endpoint);
+            _listenerEndpoints.Add(endpoint);
         }
         return endpoint;
     }
@@ -30,7 +30,7 @@ public class InprocessConnectionManager
     {
         if (endpoint == _editorEndpoint)
         {
-            foreach (var runtimeEndpoint in _runtimeEndpoints)
+            foreach (var runtimeEndpoint in _listenerEndpoints)
             {
                 runtimeEndpoint.ReceiveData(data);
             }
@@ -49,9 +49,9 @@ public class InprocessConnectionManager
         }
         else
         {
-            lock (_runtimeEndpoints)
+            lock (_listenerEndpoints)
             {
-                bool wasRemoved = _runtimeEndpoints.Remove(endpoint);
+                bool wasRemoved = _listenerEndpoints.Remove(endpoint);
                 if (!wasRemoved)
                 {
                     throw new ArgumentException("Endpoint was not registered.");

@@ -48,6 +48,7 @@ internal class GameAssetsEditorPlugin : StrideAssetsPlugin, IRuntimeToEditorRequ
         session.ServiceProvider.RegisterService(inprocessConnectionManager);
         var editorEndpoint = inprocessConnectionManager.GetEditorEndpoint();
         var dispatcher = session.ServiceProvider.Get<IDispatcherService>();
+        // Editor -> Runtime messaging
         _editorToRuntimeMessagingService = new EditorToRuntimeMessagingService(editorEndpoint, dispatcher);
         session.ServiceProvider.RegisterService(_editorToRuntimeMessagingService);
         _editorToRuntimeMessagingService.RegisterHandler(this);

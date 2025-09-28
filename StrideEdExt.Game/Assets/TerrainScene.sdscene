@@ -9,13 +9,31 @@ Hierarchy:
     RootParts:
         - ref!! f2a55734-3448-4624-b4fb-4fbcaf368abd
         - ref!! 939f19f3-d4b0-47ca-b109-0e696d7cb5a1
+        - ref!! 1eedd6ab-b865-44c6-b17f-710882b81648
         - ref!! 1fcb9377-d6dd-47ae-8a1d-7626f970fff7
         - ref!! de74d2a4-08e2-4e56-a0ec-7077bc6f8b45
         - ref!! 7c2e005b-a5d8-464b-bf14-0c06cac8a60a
         - ref!! 78d1d7f1-9ec9-4485-a88e-c4cb1e1f588f
         - ref!! 2aa8ef90-8872-4d18-a4d1-eca5784ff034
         - ref!! a0839d2f-1a43-43bb-9a9d-9279b016aefd
+        - ref!! 25de09ad-c5e6-4bbf-90f3-fd2f637a904f
     Parts:
+        -   Entity:
+                Id: 1eedd6ab-b865-44c6-b17f-710882b81648
+                Name: Ambient light
+                Components:
+                    e9083f003c0bee011a7fa79ee3064e33: !TransformComponent
+                        Id: 9a5e52de-e2a5-469a-8d74-86a08c7287a0
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    2d77f399a7c041fd5c5d7b99b51bf2f2: !LightComponent
+                        Id: 39fef5b1-546e-4462-b359-67ecfdb68053
+                        Type: !LightAmbient
+                            Color: !ColorRgbProvider
+                                Value: {R: 1.0, G: 1.0, B: 1.0}
+                        Intensity: 0.5
         -   Entity:
                 Id: 1fcb9377-d6dd-47ae-8a1d-7626f970fff7
                 Name: Camera
@@ -52,6 +70,30 @@ Hierarchy:
                         SortingMode: ByTime
                         FilteringMode: Fps
                         ResultPage: 1
+        -   Folder: Environment
+            Entity:
+                Id: 25de09ad-c5e6-4bbf-90f3-fd2f637a904f
+                Name: WindSource
+                Components:
+                    f9f0c71241d1e81cb75d12f5bf301fbf: !TransformComponent
+                        Id: c4d1b4ec-faa4-4bfd-8d1c-0c9996faf8b4
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    901d6f4299874eea17c7ce1b6791015b: !StrideEdExt.WorldTerrain.EnvironmentInteractions.EnvironmentWindSourceComponent,StrideEdExt.Game
+                        Id: 102dc61d-501d-4178-b96c-8f2b2aceb162
+                        IsEnabled: true
+                        WindType: !StrideEdExt.WorldTerrain.EnvironmentInteractions.WindSources.EnvironmentWindAmbient,StrideEdExt.Game
+                            WindMaxSpeed: 0.3
+                    6333921435daca133dc682b163184b78: !StrideEdExt.WorldTerrain.EnvironmentInteractions.EnvironmentWindSourceComponent,StrideEdExt.Game
+                        Id: 12b77624-6fa8-43a9-a4cc-3094fd52d7b2
+                        IsEnabled: true
+                        WindType: !StrideEdExt.WorldTerrain.EnvironmentInteractions.WindSources.EnvironmentWindDirectional,StrideEdExt.Game
+                            WindDirectionXZ: {X: 1.0, Y: 1.0}
+                            WindMaxSpeed: 10.0
+                            WindDowntimeDurationSeconds: 5.0
+                            WindUptimeDurationSeconds: 7.0
         -   Folder: null
             Entity:
                 Id: 2aa8ef90-8872-4d18-a4d1-eca5784ff034
@@ -191,6 +233,13 @@ Hierarchy:
                         TerrainMap: b0132d19-e9ff-448d-bc58-906f301c3f1f:Terrain/ExampleTerrain
                         CameraComponent: ref!! 0a7e9171-69cf-4dcd-a368-f98d69ec6413
                         MaxChunkRenderDistance: 100.0
+                        ChunkStreamers: {}
+                        ChunkStreamListeners:
+                            ef18a921c348ce8a8c530d853c7fd131: !StrideEdExt.WorldTerrain.ProceduralPlacement.ProceduralObjectPlacementComponent,StrideEdExt.Game ref!! a12ced31-0226-413e-b862-91aebd17bc27
+                    fa388d96b2f8d67a9cc186b26fee92b8: !StrideEdExt.WorldTerrain.ProceduralPlacement.ProceduralObjectPlacementComponent,StrideEdExt.Game
+                        Id: a12ced31-0226-413e-b862-91aebd17bc27
+                        IsEnabled: true
+                        ObjectPlacementMap: 3084f72a-b71d-49bd-b55b-d80ac493d656:Terrain/ExampleObjectPlacementMap
         -   Entity:
                 Id: f2a55734-3448-4624-b4fb-4fbcaf368abd
                 Name: Skybox

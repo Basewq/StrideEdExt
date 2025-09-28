@@ -53,15 +53,15 @@ public class TerrainMapEditorComponent : SceneEditorExtBase, ITerrainMapEditor
         });
     }
 
-    protected internal override void Deinitialize()
+    protected internal override void Deinitialize(Guid entityId, Guid? entitySceneId)
     {
         SendOrEnqueueEditorRequest(terrainMapAssetId =>
         {
             var request = new TerrainMapEditorDestroyedRequest
             {
                 TerrainMapAssetId = terrainMapAssetId,
-                SceneId = Entity.Scene.Id,
-                EditorEntityId = Entity.Id
+                EditorEntityId = entityId,
+                SceneId = entitySceneId,
             };
             return request;
         });
@@ -185,6 +185,20 @@ public class TerrainMapEditorComponent : SceneEditorExtBase, ITerrainMapEditor
         if (TryGetTerrainComponent(out var terrainComponent))
         {
             terrainComponent.GetOrCreateVisiblePaintableTerrainMeshMapForMaterialEdit(_paintableTerrainMeshMapProcessing, overrideMaterialIndex);
+            foreach (var (targetEntityMesh, meshData) in _paintableTerrainMeshMapProcessing)
+            {
+                targetEntityMeshAndRenderTargetMapOutput[targetEntityMesh] = meshData.StrokeMapRenderTarget;
+            }
+            _paintableTerrainMeshMapProcessing.Clear();
+        }
+    }
+
+    internal void PrepareVisiblePaintableObjectPlacementMeshTargetAndRenderTargetMap(
+        Dictionary<PaintTargetEntityMesh, PaintRenderTargetTexture> targetEntityMeshAndRenderTargetMapOutput)
+    {
+        if (TryGetTerrainComponent(out var terrainComponent))
+        {
+            terrainComponent.GetOrCreateVisiblePaintableTerrainMeshMapForObjectPlacementEdit(_paintableTerrainMeshMapProcessing);
             foreach (var (targetEntityMesh, meshData) in _paintableTerrainMeshMapProcessing)
             {
                 targetEntityMeshAndRenderTargetMapOutput[targetEntityMesh] = meshData.StrokeMapRenderTarget;

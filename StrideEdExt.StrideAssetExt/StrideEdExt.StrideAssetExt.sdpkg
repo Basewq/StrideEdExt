@@ -16,6 +16,7 @@ TemplateFolders:
         Group: !dir Assets
         Files:
             - !file Templates/Assets/FoliagePlacement.sdtpl
+            - !file Templates/Assets/ObjectPlacementMap.sdtpl
             - !file Templates/Assets/TerrainMap.sdtpl
             - !file Templates/Assets/TerrainMaterial.sdtpl
 RootAssets: []

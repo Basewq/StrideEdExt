@@ -39,4 +39,15 @@ public class TerrainMaterial
             texData);
         return texture;
     }
+
+    public static Texture CreateObjectDensityMapTexture(Array2d<Half> densityMapData, GraphicsDevice graphicsDevice)
+    {
+        Half[] texData = densityMapData.ToArray();
+        var texture = Texture.New2D(
+            graphicsDevice,
+            width: densityMapData.LengthX, height: densityMapData.LengthY,
+            PixelFormat.R16_Float,
+            texData);
+        return texture;
+    }
 }

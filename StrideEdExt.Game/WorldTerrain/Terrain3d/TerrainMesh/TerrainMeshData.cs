@@ -310,7 +310,7 @@ record struct TerrainMeshData
             ref var vertPosition1 = ref vertices[vertIndex1].Position;
             ref var vertPosition2 = ref vertices[vertIndex2].Position;
 
-            MeshQuadTriangleData.GetNormalAndTangent(vertPosition0, vertPosition1, vertPosition2, out var normalVec, out var tangentVec);
+            MeshQuadTriangleData.GetUnnormalizedNormalAndTangent(vertPosition0, vertPosition1, vertPosition2, out var normalVec, out var tangentVec);
             vertices[vertIndex0].Normal += normalVec;
             vertices[vertIndex1].Normal += normalVec;
             vertices[vertIndex2].Normal += normalVec;
@@ -609,7 +609,7 @@ record struct TerrainMeshData
                 && 0 <= localIndex.Y && localIndex.Y < regionSize.Height)
             {
                 int vertIndex = localIndex.ToIndex1d(regionSize.Width);
-                triangle.GetNormalAndTangent(out var normalVec, out var tangentVec);
+                triangle.GetUnnormalizedNormalAndTangent(out var normalVec, out var tangentVec);
                 vertices[vertIndex].Normal += normalVec;
                 vertices[vertIndex].Tangent += tangentVec;
                 return true;

@@ -1,0 +1,11 @@
+!TemplateAssetFactory
+Id: 1383FFC9-86C0-4877-86BD-CE165F124DEC
+AssetTypeName: ObjectPlacementMapAsset
+Name: Object Placement Map
+Scope: Asset
+Description: Object Placement Map
+Group: Procedural Placement
+Icon: ..\.sdtpl\ObjectPlacementMap.png
+Order: 1000
+DefaultOutputName: ObjectPlacementMap
+FactoryTypeName: ObjectPlacementMapAssetFactory

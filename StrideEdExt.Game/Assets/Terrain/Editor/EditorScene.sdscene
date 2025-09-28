@@ -8,6 +8,7 @@ Offset: {X: 0.0, Y: 0.0, Z: 0.0}
 Hierarchy:
     RootParts:
         - ref!! 415628b1-13e0-4971-bdda-fb097eaecb7c
+        - ref!! b8aee347-106c-46ec-ae72-c6b5a15bdcf1
     Parts:
         -   Folder: Material Layers
             Entity:
@@ -24,6 +25,30 @@ Hierarchy:
                         Id: 487f2a25-29f3-42b2-aef1-bf5280ac03b1
                         MaterialName: MatLayer2
                         MaterialWeightMapTexture: d721370b-ed4c-45c6-afea-35565ee8def3:Terrain/ExampleMaterialWeightMap2
+        -   Entity:
+                Id: 39d7f770-9f4c-4b7e-a685-c4226fe452b2
+                Name: PaintDensityMapLayer
+                Components:
+                    2d0d216724dd4c5fbc8e31781228ec8a: !TransformComponent
+                        Id: 519621a6-4064-439f-8ff7-5361c9e02b19
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            e8aae21b4c7147a09c68b8fdaa53d83f: ref!! 02fd2477-48f0-4c44-9953-da0c1e0ea9a4
+                    b9db9efb0ab527406e8a077025940aaf: !StrideEdExt.WorldTerrain.ProceduralPlacement.Layers.DensityMaps.TerrainPainterObjectDensityMapLayerComponent,StrideEdExt.Game
+                        Id: 1445a826-6472-471c-87b5-add4c77b078c
+                        BlendType: Multiply
+                        IsInverted: false
+                        BrushSettings:
+                            PaintModeType: Paint
+                            BrushDiameter: 5.0
+                            BrushStrength: 1.0
+                            Opacity: 1.0
+                            StampSpacingPercentage: 10.0
+                            BrushShape: !StrideEdExt.Painting.Brushes.PaintCircularBrushShape,StrideEdExt.Game
+                                FalloffType: SmoothStep
+                                FalloffStartPercentage: 75.0
         -   Entity:
                 Id: 415628b1-13e0-4971-bdda-fb097eaecb7c
                 Name: TerrainMapEditor
@@ -60,6 +85,35 @@ Hierarchy:
                         Id: a9824b40-71b9-4f06-bb9c-cff16c1a1150
                         MaterialName: BaseMaterial
                         MaterialWeightMapTexture: 9ce2c580-8b4b-42b6-95ad-4ec6c1ba04ed:Terrain/ExampleMaterialWeightMap1
+        -   Entity:
+                Id: 75ba2167-9ba9-46a8-9ad1-449983202230
+                Name: CapsuleSpawner
+                Components:
+                    0733c077e50a09e4b56978a1e79ebfa1: !TransformComponent
+                        Id: 02fd2477-48f0-4c44-9953-da0c1e0ea9a4
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    21766a819f9cdfe7025d353a6056bcb4: !StrideEdExt.WorldTerrain.ProceduralPlacement.Layers.Spawners.ModelInstancingSpawnerComponent,StrideEdExt.Game
+                        Id: feacac39-9480-413d-9ca5-c6e2590319d1
+                        ObjectSpacing: 2.5
+                        MinimumDensityValueThreshold: 0.0
+                        SurfaceNormalMinimumAngleDegrees: 0.0
+                        SurfaceNormalMaximumAngleDegrees: 180.0
+                        AlignWithSurfaceNormal: false
+                        PositionOffsetMinimumRadius: 0.0
+                        PositionOffsetMaximumRadius: 1.0
+                        RotationYOffsetMinimumAngleDegrees: 0.0
+                        RotationYOffsetMaximumAngleDegrees: 360.0
+                        ScaleMinimum: 1.0
+                        ScaleMaximum: 1.0
+                        ModelType: Static
+                        Models:
+                            b668b3480b712ea4db0fdf19e94a424c:
+                                Model: df9bffa4-0323-4c4e-934a-b55e0120dc36:Foliage/Capsule
+                                SpawnWeightValue: 1.0
+                                CollisionRadius: 0.5
         -   Folder: Heightmap Layers
             Entity:
                 Id: 8ccfb513-d857-48bb-baf8-00def1cfff43
@@ -80,6 +134,50 @@ Hierarchy:
                         Enabled: false
                         Model: 5d063c0f-daa6-447f-a716-48a73b7bf743:Terrain/Sphere
                         Materials: {}
+        -   Entity:
+                Id: ae366679-9416-425b-a04c-1e0b75545f37
+                Name: GrassSpawner
+                Components:
+                    f3aaed8007654cbbd168bccd0a384422: !TransformComponent
+                        Id: 3fbf9836-e12f-4aa8-9f70-3c745f39116d
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    b4bf7a410189145713f5a764870a86ef: !StrideEdExt.WorldTerrain.ProceduralPlacement.Layers.Spawners.ModelInstancingSpawnerComponent,StrideEdExt.Game
+                        Id: 4396cec8-a435-4eaf-a1a7-4f47b6a3efb1
+                        ObjectSpacing: 0.4
+                        MinimumDensityValueThreshold: 0.0
+                        SurfaceNormalMinimumAngleDegrees: 0.0
+                        SurfaceNormalMaximumAngleDegrees: 25.0
+                        AlignWithSurfaceNormal: false
+                        PositionOffsetMinimumRadius: 0.0
+                        PositionOffsetMaximumRadius: 0.3
+                        RotationYOffsetMinimumAngleDegrees: 0.0
+                        RotationYOffsetMaximumAngleDegrees: 360.0
+                        ScaleMinimum: 1.0
+                        ScaleMaximum: 1.0
+                        ModelType: Foliage
+                        Models:
+                            75118f5d58387d4b2c7e69c9e16d54c6:
+                                Model: 0e3b083d-7030-483f-b968-5799d7ee619a:Foliage/GrassMesh
+                                SpawnWeightValue: 1.0
+                                CollisionRadius: 0.1
+        -   Entity:
+                Id: b8aee347-106c-46ec-ae72-c6b5a15bdcf1
+                Name: ObjectPlacementMapEditor
+                Components:
+                    2569c6bae0e3c5eab38d23c54b1cdae8: !TransformComponent
+                        Id: afc7458f-8055-401c-84f6-45fafc07d5ac
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            fa4bfd266f94026bdd09892e425bddce: ref!! 519621a6-4064-439f-8ff7-5361c9e02b19
+                            254a4e6b7ca18bb487f3dbce75ad00ab: ref!! a4dcf1ac-e68e-4325-9ea0-17e8846c6244
+                    e551510de525ebcc673e3dc518f61cee: !StrideEdExt.WorldTerrain.ProceduralPlacement.Editor.ObjectPlacementMapEditorComponent,StrideEdExt.Game
+                        Id: 76c2b09d-8c78-4d86-b58c-fd31f419d9ad
+                        ObjectPlacementMap: 3084f72a-b71d-49bd-b55b-d80ac493d656:Terrain/ExampleObjectPlacementMap
         -   Folder: Material Layers
             Entity:
                 Id: c7c98edd-76ea-47ea-b49c-0e12a698b8d0
@@ -175,3 +273,19 @@ Hierarchy:
                             StampSpacingPercentage: 10.0
                             BrushShape: !StrideEdExt.Painting.Brushes.PaintTextureBrushShape,StrideEdExt.Game
                                 Texture: 37e59f8f-3197-428a-bb52-af7d9afd54cc:Terrain/Brushes/ExampleBrush
+        -   Entity:
+                Id: facc42e0-a4de-4bd7-8040-ed44f89a3cec
+                Name: TextureDensityMapLayer
+                Components:
+                    6db15d55cdd1434d6224f580996cc62b: !TransformComponent
+                        Id: a4dcf1ac-e68e-4325-9ea0-17e8846c6244
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            615bc7e65ac0d8fdf74f692f886f38e5: ref!! 3fbf9836-e12f-4aa8-9f70-3c745f39116d
+                    2ba3eda236163da6c997daf5d1b56bae: !StrideEdExt.WorldTerrain.ProceduralPlacement.Layers.DensityMaps.TextureObjectDensityMapLayerComponent,StrideEdExt.Game
+                        Id: a91dfe4b-86cd-4432-b7c9-5eb05d80e0d3
+                        BlendType: Multiply
+                        IsInverted: false
+                        DensityMapTexture: 0f389583-b792-4c38-af89-76b1a513b72c:Terrain/ExampleMaterialWeightMap3

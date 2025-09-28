@@ -87,6 +87,20 @@ public static class EntityExtensions
         return false;
     }
 
+    public static bool TryFindComponentOnSelfOrAncestor<TComponent>(this Entity entity, [NotNullWhen(true)] out TComponent? component)
+    {
+        if (TryGetComponent(entity, out component))
+        {
+            return true;
+        }
+        if (TryFindComponentOnAncestor(entity, out component))
+        {
+            return true;
+        }
+        component = default;
+        return false;
+    }
+
     /// <summary>
     /// Try get the first <see cref="EntityComponent"/> matching <typeparamref name="TComponent"/> from a descendant of <paramref name="entity"/>.
     /// </summary>
@@ -126,6 +140,40 @@ public static class EntityExtensions
             {
                 return true;
             }
+        }
+        component = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Try get the first <see cref="EntityComponent"/> matching <typeparamref name="TComponent"/> from a descendant of <paramref name="entity"/>.
+    /// </summary>
+    public static bool TryFindComponentOnSelfOrDescendant<TComponent>(this Entity entity, [NotNullWhen(true)] out TComponent? component)
+    {
+        if (TryGetComponent(entity, out component))
+        {
+            return true;
+        }
+        if (TryFindComponentOnDescendant(entity, out component))
+        {
+            return true;
+        }
+        component = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Try get the first <see cref="EntityComponent"/> matching <typeparamref name="TComponent"/> from a descendant of <paramref name="entity"/>.
+    /// </summary>
+    public static bool TryFindComponentOnSelfOrDescendant<TComponent>(this Entity entity, Func<TComponent, bool> isMatchPredicate, [NotNullWhen(true)] out TComponent? component)
+    {
+        if (TryFindFirstComponent(entity, isMatchPredicate, out component))
+        {
+            return true;
+        }
+        if (TryFindComponentOnDescendant(entity, isMatchPredicate, out component))
+        {
+            return true;
         }
         component = default;
         return false;

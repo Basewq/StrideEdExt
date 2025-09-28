@@ -59,13 +59,13 @@ internal class AppModule
                 throw new Exception("ViewModelServiceProvider was not set.");
             }
             var inprocessConnectionManager = viewModelServiceProvider.Get<InprocessConnectionManager>();
-            var runtimeEndpoint = inprocessConnectionManager.CreateRuntimeEndpoint();
-            var runtimeToEditorMessagingService = new RuntimeToEditorMessagingService(game.Services, runtimeEndpoint);
+            var editorListenerEndpoint = inprocessConnectionManager.CreateEditorListenerEndpoint();
+            var runtimeToEditorMessagingService = new RuntimeToEditorMessagingService(game.Services, editorListenerEndpoint);
             game.GameSystems.Add(runtimeToEditorMessagingService);
 
             var disposables = new List<IDisposable>();
             _gameToDisposables[game] = disposables;
-            disposables.Add(runtimeEndpoint);
+            disposables.Add(editorListenerEndpoint);
 
             // HACK: forced to do a late service registration
             sceneEditorGame.Script.AddTask(async () =>

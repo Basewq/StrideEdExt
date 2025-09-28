@@ -1,4 +1,5 @@
 ﻿using Stride.Core.Annotations;
+using Stride.Core.Assets;
 using Stride.Engine;
 using Stride.Games;
 using StrideEdExt.SharedData.StrideEditorExt.EditorRuntimeInterfacing;
@@ -233,6 +234,36 @@ class TerrainMapEditorProcessor : EntityProcessor<TerrainMapEditorComponent, Ter
         {
             terrainComponent = data.TerrainComponent;
             return terrainComponent is not null;
+        }
+
+        terrainComponent = null;
+        return false;
+    }
+
+    internal bool TryGetTerrainComponentByTerrainMap(TerrainMap terrainMap, [NotNullWhen(true)] out TerrainComponent? terrainComponent)
+    {
+        foreach (var (comp, data) in ComponentDatas)
+        {
+            if (comp.TerrainMap == terrainMap)
+            {
+                terrainComponent = data.TerrainComponent;
+                return terrainComponent is not null;
+            }
+        }
+
+        terrainComponent = null;
+        return false;
+    }
+
+    internal bool TryGetTerrainComponentByTerrainMapAssetId(AssetId terrainMapAssetId, [NotNullWhen(true)] out TerrainComponent? terrainComponent)
+    {
+        foreach (var (comp, data) in ComponentDatas)
+        {
+            if (comp.TerrainMap?.TerrainMapAssetId == terrainMapAssetId)
+            {
+                terrainComponent = data.TerrainComponent;
+                return terrainComponent is not null;
+            }
         }
 
         terrainComponent = null;

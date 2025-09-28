@@ -31,7 +31,8 @@ class RuntimeToEditorMessagingService : GameSystem, IRuntimeToEditorMessagingSer
     {
         if (data is not IEditorToRuntimeMessage message)
         {
-            throw new ArgumentException($"Invalid data type received: {data.GetType().Name} - expected type: {typeof(IRuntimeToEditorRequest).Name}");
+            return;
+            //throw new ArgumentException($"Invalid data type received: {data.GetType().Name} - expected type: {typeof(IRuntimeToEditorRequest).Name}");
         }
         Debug.WriteLineIf(condition: false, $"OnEndpointDataReceived: Message received: {message.GetType().Name}");
 

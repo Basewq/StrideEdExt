@@ -77,7 +77,7 @@ public class FoliagePainterComponent : SceneEditorExtBase
     {
     }
 
-    protected internal override void Deinitialize()
+    protected internal override void Deinitialize(Guid entityId, Guid? entitySceneId)
     {
     }
 #endif

@@ -17,6 +17,7 @@ using Half = System.Half;
 
 namespace StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps;
 
+[ComponentCategory("Terrain Weight Maps")]
 public class PainterMaterialWeightMapLayerComponent : TerrainLayerComponentBase, ITerrainMapMaterialWeightMapLayer
 {
     private IPainterService _painterService = default!;

@@ -20,6 +20,7 @@ namespace StrideEdExt.WorldTerrain.Foliage;
 /// Foliage Manager for a given <see cref="SharedData.FoliagePlacement"/> asset, which manages
 /// the rendering instancing dividing it into chunks.
 /// </summary>
+[Obsolete($"Use {nameof(ProceduralPlacement.ProceduralObjectPlacementComponent)}")]
 [ComponentCategory("Environment")]
 [DataContract]
 [DefaultEntityComponentProcessor(typeof(FoliageInstancingManagerProcessor), ExecutionMode = ExecutionMode.Runtime | ExecutionMode.Editor)]
@@ -32,11 +33,10 @@ public class FoliageInstancingManagerComponent : EntityComponent
     // The entire data from FoliagePlacement sorted into chunks
     private readonly Dictionary<Int3, List<FoliageChunkInstancingData>> _chunkIndexToFoliageInstancingDataList = new();
     // The visible chunks
-    private Dictionary<FoliageChunkId, FoliageChunkInstancingComponent> _chunkIdToActiveChunkInstancingComponent = new();
-    private Dictionary<FoliageChunkId, FoliageChunkInstancingComponent> _chunkIdToActiveChunkInstancingComponentProcessing = new();
+    private Dictionary<FoliageChunkModelId, FoliageChunkInstancingComponent> _chunkIdToActiveChunkInstancingComponent = new();
+    private Dictionary<FoliageChunkModelId, FoliageChunkInstancingComponent> _chunkIdToActiveChunkInstancingComponentProcessing = new();
 
     public UrlReference<FoliagePlacement>? FoliagePlacement { get; set; }
-
     public Vector3 ChunkSize { get; set; } = new Vector3(32);
 
     /// <summary>
@@ -75,7 +75,7 @@ public class FoliageInstancingManagerComponent : EntityComponent
     }
 
     private readonly List<Int3> _visibleChunkIndexList = new();
-    private readonly List<FoliageChunkId> _reusedChunkIds = new();
+    private readonly List<FoliageChunkModelId> _reusedChunkIds = new();
     internal void UpdateForDraw(GameTime time, CameraComponent? overrideCameraComponent)
     {
         // Find the visible chunks
@@ -219,7 +219,7 @@ public class FoliageInstancingManagerComponent : EntityComponent
         _pendingRemoveInstancingDataList.Clear();
     }
 
-    private bool TryCreateActiveChunkInstancingComponent(FoliageChunkId chunkId, [NotNullWhen(true)] out FoliageChunkInstancingComponent? chunkInstancingComponent)
+    private bool TryCreateActiveChunkInstancingComponent(FoliageChunkModelId chunkId, [NotNullWhen(true)] out FoliageChunkInstancingComponent? chunkInstancingComponent)
     {
         var instancingEntity = new Entity();
         var modelUrl = chunkId.ModelUrl;
@@ -256,7 +256,7 @@ public class FoliageInstancingManagerComponent : EntityComponent
 
         chunkInstancingComponent = new FoliageChunkInstancingComponent
         {
-            ChunkId = chunkId,
+            ChunkModelId = chunkId,
             ModelComponent = modelComp,
             InstancingArray = instancingArray,
             InstanceDataBuffer = null
@@ -310,7 +310,7 @@ public class FoliageInstancingManagerComponent : EntityComponent
             return;     // Unknown issue...just skip, otherwise it'll crash the app.
 #endif
         }
-        var chunkId = new FoliageChunkId(chunkIndex, modelUrl);
+        var chunkId = new FoliageChunkModelId(chunkIndex, modelUrl);
         var instancingDataList = _chunkIndexToFoliageInstancingDataList.GetOrCreateValue(chunkIndex, _ => new());
         var instancingData = instancingDataList.FirstOrDefault(x => x.ChunkId == chunkId);
         if (instancingData is null)
@@ -390,12 +390,12 @@ public class FoliageInstancingManagerComponent : EntityComponent
 
     private class FoliageChunkInstancingData
     {
-        public readonly FoliageChunkId ChunkId;
+        public readonly FoliageChunkModelId ChunkId;
         public readonly List<Matrix> InstanceWorldTransformList;
         public readonly List<FoliageInstanceData> InstanceDataList;
         public bool IsDataUpdateRequired = true;
 
-        public FoliageChunkInstancingData(FoliageChunkId chunkId)
+        public FoliageChunkInstancingData(FoliageChunkModelId chunkId)
         {
             ChunkId = chunkId;
             InstanceWorldTransformList = new(capacity: 32);

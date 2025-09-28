@@ -44,7 +44,7 @@ public abstract class SceneEditorExtBase : EntityComponent, INotifyPropertyChang
     }
 
     protected internal abstract void Initialize();
-    protected internal abstract void Deinitialize();
+    protected internal abstract void Deinitialize(Guid entityId, Guid? entitySceneId);
     protected internal virtual void Update(GameTime gameTime) { }
 
     internal void Initialize(IServiceRegistry services, UIComponent? uiComponent)

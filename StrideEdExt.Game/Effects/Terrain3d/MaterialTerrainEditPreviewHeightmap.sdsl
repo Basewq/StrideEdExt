@@ -1,6 +1,7 @@
 ﻿namespace StrideEdExt.Rendering
 {
-    shader MaterialTerrainEditPreviewHeightmap : MaterialTerrainEditPreviewInputShared, StrokeMapPaintingInputShared, MyUtils,
+    shader MaterialTerrainEditPreviewHeightmap : MaterialTerrainEditPreviewInputShared, StrokeMapPaintingInputShared,
+        //MyUtils,
         IMaterialSurface,
         PositionStream4, Transformation, Texturing
     {
@@ -52,7 +53,7 @@
                 return;
             }
 
-            float2 strokeMapUv = GetPixelCenteredUv(StrokeMapTextureSize, streams.TexCoord);
+            float2 strokeMapUv = MaterialTerrainUtils.GetPixelCenteredUv(StrokeMapTextureSize, streams.TexCoord);
             float strokeMapValue = StrokeMapTexture.SampleLevel(StrokeMapTextureSampler, strokeMapUv, 0).x;
             float heightOffset;
             switch (HeightmapPaintModeType)

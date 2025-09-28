@@ -13,6 +13,7 @@ using StrideEdExt.Rendering;
 using StrideEdExt.Rendering.Materials;
 using StrideEdExt.SharedData;
 using StrideEdExt.SharedData.Terrain3d;
+using StrideEdExt.WorldTerrain.ProceduralPlacement.Layers.DensityMaps;
 using StrideEdExt.WorldTerrain.Terrain3d.Editor;
 using StrideEdExt.WorldTerrain.Terrain3d.Layers.Heightmaps;
 using StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps;
@@ -448,14 +449,15 @@ public class TerrainComponent : EntityComponent
 
     public void UpdateHeightmap(Size2 heightmapTextureSize, Array2d<float> heightmapData)
     {
-        if (TerrainMap is null)
-        {
-            return;
-        }
         // HACK: We can't overwrite TerrainMap.HeightmapData because Stride Editor
         // resets this to the asset's version during undo/redo, so we need the ability
         // to hold the 'in-progress' edited state.
         OverrideHeightmapData = heightmapData;
+
+        if (TerrainMap is null)
+        {
+            return;
+        }
         bool hasChangedSize = TerrainMap.HeightmapTextureSize != heightmapTextureSize;
         TerrainMap.HeightmapTextureSize = heightmapTextureSize;
         if (hasChangedSize)
@@ -512,6 +514,13 @@ public class TerrainComponent : EntityComponent
     {
         GetOrCreateVisiblePaintableTerrainMeshMap(
             paintableTerrainMeshMapOutput, PaintableTerrainEditType.MaterialIndexMap, overrideMaterialIndex);
+    }
+
+    internal void GetOrCreateVisiblePaintableTerrainMeshMapForObjectPlacementEdit(
+        Dictionary<PaintTargetEntityMesh, PaintableTerrainMeshData> paintableTerrainMeshMapOutput)
+    {
+        GetOrCreateVisiblePaintableTerrainMeshMap(
+            paintableTerrainMeshMapOutput, PaintableTerrainEditType.ObjectDensityMap);
     }
 
     private void GetOrCreateVisiblePaintableTerrainMeshMap(
@@ -601,6 +610,12 @@ public class TerrainComponent : EntityComponent
                                 activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.MaterialMapPaintModeType, (uint)(_cachedEditPreviewDiffuseMapSettings?.MaterialMapPaintModeType ?? default));
                                 activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.EditLayerMaterialWeightMap, _cachedEditPreviewDiffuseMapSettings?.EditLayerMaterialWeightMapTexture);
                                 break;
+                            case PaintableTerrainEditType.ObjectDensityMap:
+                                activeMatParams.Set(MaterialTerrainEditPreviewInputSharedKeys.EditPreviewType, (uint)TerrainMapEditPreviewType.ObjectPlacementDensityMap);
+
+                                activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.ObjectPlacementDensityMapPaintModeType, (uint)(_cachedEditPreviewDiffuseMapSettings?.ObjectPlacementDensityMapPaintModeType ?? default));
+                                activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.EditLayerObjectPlacementDensityMap, _cachedEditPreviewDiffuseMapSettings?.EditLayerObjectPlacementDensityMapTexture);
+                                break;
                         }
                     }
                     var meshData = new PaintableTerrainMeshData
@@ -673,6 +688,10 @@ public class TerrainComponent : EntityComponent
                         activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.TerrainMaterialWeightMap, null);
                         activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.OverrideMaterialIndex, 0u);
                         activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.EditLayerMaterialWeightMap, null);
+
+                        //PaintableTerrainEditType.ObjectDensityMap:
+                        activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.ObjectPlacementDensityMapPaintModeType, 0u);
+                        activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.EditLayerObjectPlacementDensityMap, null);
                     }
                 }
 
@@ -797,6 +816,7 @@ public class TerrainComponent : EntityComponent
     private Texture? _nextMaterialIndexMapTexture;
     private Texture? _nextTerrainMaterialWeightMapTexture;
     private Texture? _nextEditLayerMaterialWeightMapTexture;
+    private Texture? _nextEditLayerObjectDensityMapTexture;
     private TerrainMapEditPreviewType? _nextEditPreviewType;
     private Vector3 _initialBrushWorldPosition;
     private Vector3? _nextInitialBrushWorldPosition;
@@ -902,6 +922,19 @@ public class TerrainComponent : EntityComponent
         _nextEditLayerMaterialWeightMapTexture = TerrainMaterial.CreateMaterialWeightMapTexture(layerMaterialWeightMapData, _graphicsDevice);
     }
 
+    internal void SetObjectDensityMapPaintModeType(ObjectDensityMapPaintModeType densityMapPaintModeType)
+    {
+        if (_cachedEditPreviewDiffuseMapSettings is not null)
+        {
+            _cachedEditPreviewDiffuseMapSettings.ObjectPlacementDensityMapPaintModeType = densityMapPaintModeType;
+        }
+    }
+
+    internal void SetEditLayerObjectDensityMap(Array2d<Half> layerDensityMapData)
+    {
+        _nextEditLayerObjectDensityMapTexture = TerrainMaterial.CreateObjectDensityMapTexture(layerDensityMapData, _graphicsDevice);
+    }
+
     [Conditional("GAME_EDITOR")]
     private void UpdateMaterialTexturesChanges()
     {
@@ -965,6 +998,19 @@ public class TerrainComponent : EntityComponent
                     cachedMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.EditLayerMaterialWeightMap, _cachedEditPreviewDiffuseMapSettings.EditLayerMaterialWeightMapTexture);
                     hasChanged = true;
                 }
+                if (_nextEditLayerObjectDensityMapTexture is not null)
+                {
+                    //
+                    if (_cachedEditPreviewDiffuseMapSettings.EditLayerObjectPlacementDensityMapTexture is not null)
+                    {
+                        _pendingDisposables.Add(_cachedEditPreviewDiffuseMapSettings.EditLayerObjectPlacementDensityMapTexture);
+                    }
+                    _cachedEditPreviewDiffuseMapSettings.EditLayerObjectPlacementDensityMapTexture = _nextEditLayerObjectDensityMapTexture;
+                    _nextEditLayerObjectDensityMapTexture = null;
+
+                    cachedMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.EditLayerObjectPlacementDensityMap, _cachedEditPreviewDiffuseMapSettings.EditLayerObjectPlacementDensityMapTexture);
+                    hasChanged = true;
+                }
             }
             var materialIndexMapTexture = _cachedEditPreviewDiffuseMapSettings?.OverrideMaterialIndexMapTexture ?? TerrainMap.MaterialIndexMapTexture;
             if (_cachedDiffuseMapFeature.MaterialIndexMap != materialIndexMapTexture)
@@ -1016,6 +1062,8 @@ public class TerrainComponent : EntityComponent
                             activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.TerrainMaterialWeightMap, _cachedEditPreviewDiffuseMapSettings?.TerrainMaterialWeightMapTexture);
                             activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.TerrainMaterialWeightMapSize, _cachedEditPreviewDiffuseMapSettings?.TerrainMaterialWeightMapSize ?? TerrainMap.HeightmapTextureSize.ToVector2());
                             activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.EditLayerMaterialWeightMap, _cachedEditPreviewDiffuseMapSettings?.EditLayerMaterialWeightMapTexture);
+
+                            activeMatParams.Set(MaterialTerrainEditPreviewDiffuseMapKeys.EditLayerObjectPlacementDensityMap, _cachedEditPreviewDiffuseMapSettings?.EditLayerObjectPlacementDensityMapTexture);
                         }
                     }
                 }
@@ -1088,6 +1136,39 @@ public class TerrainComponent : EntityComponent
 #endif
     }
 
+    public void RegisterChunkStreamListener(TerrainMapChunkStreamListenerBase chunkStreamListener)
+    {
+        ChunkStreamListeners.Add(chunkStreamListener);
+
+        // Raise chunk visibility changed event to listener
+        if (TerrainMap is null || !TerrainMap.IsInitialized || !IsEnabled)
+        {
+            return;
+        }
+        else
+        {
+            lock (_chunkIndexToActiveModelComponent)
+            {
+                foreach (var (chunkIndex, chunkVisibility) in _chunkIndexToVisibility)
+                {
+                    if (!chunkVisibility.IsVisible)
+                    {
+                        continue;
+                    }
+                    if (TerrainMap.TryGetChunk(chunkIndex, out var chunk))
+                    {
+                        chunkStreamListener.OnChunkVisible(TerrainMap, chunkIndex, chunk);
+                    }
+                }
+            }
+        }
+    }
+
+    public void UnregisterChunkStreamListener(TerrainMapChunkStreamListenerBase chunkStreamListener)
+    {
+        ChunkStreamListeners.Remove(chunkStreamListener);
+    }
+
     record MaterialTerrainEditPreviewDiffuseMapSettings
     {
         // Material Map fields
@@ -1099,6 +1180,11 @@ public class TerrainComponent : EntityComponent
         public Vector2 TerrainMaterialWeightMapSize;
 
         public Texture? EditLayerMaterialWeightMapTexture;
+
+        // Object Placement Density Map fields
+        public ObjectDensityMapPaintModeType ObjectPlacementDensityMapPaintModeType;
+
+        public Texture? EditLayerObjectPlacementDensityMapTexture;
     }
 
     record struct ChunkVisibility
@@ -1146,5 +1232,6 @@ enum PaintableTerrainEditType
 {
     GetOnly = 0,
     Heightmap,
-    MaterialIndexMap
+    MaterialIndexMap,
+    ObjectDensityMap
 }

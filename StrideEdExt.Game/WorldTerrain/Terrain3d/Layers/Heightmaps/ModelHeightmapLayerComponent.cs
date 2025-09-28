@@ -19,6 +19,7 @@ using Half = System.Half;
 
 namespace StrideEdExt.WorldTerrain.Terrain3d.Layers.Heightmaps;
 
+[ComponentCategory("Terrain Heightmaps")]
 public class ModelHeightmapLayerComponent : TerrainLayerComponentBase, ITerrainMapHeightmapLayer
 {
     private RenderTextureJobSystem _renderTextureJobSystem = default!;

@@ -104,12 +104,18 @@ public record struct MeshQuadTriangleData
 
     public readonly Vector3 MidPoint => (Position0 + Position1 + Position2) / 3f;
 
-    public readonly void GetNormalAndTangent(out Vector3 normalVec, out Vector3 tangentVec)
+    /// <summary>
+    /// Returns the un-normalized normal & tangent vectors.
+    /// </summary>
+    public readonly void GetUnnormalizedNormalAndTangent(out Vector3 normalVec, out Vector3 tangentVec)
     {
-        GetNormalAndTangent(in Position0, in Position1, in Position2, out normalVec, out tangentVec);
+        GetUnnormalizedNormalAndTangent(in Position0, in Position1, in Position2, out normalVec, out tangentVec);
     }
 
-    public static void GetNormalAndTangent(
+    /// <summary>
+    /// Returns the un-normalized normal & tangent vectors.
+    /// </summary>
+    public static void GetUnnormalizedNormalAndTangent(
         in Vector3 vertPosition0, in Vector3 vertPosition1, in Vector3 vertPosition2,
         out Vector3 normalVec, out Vector3 tangentVec)
     {
@@ -132,7 +138,7 @@ public record struct MeshQuadTriangleData
     {
         if (CollisionHelper.RayIntersectsTriangle(in ray, in Position0, in Position1, in Position2, out float rayTriPointDistance))
         {
-            rayTriPoint = ray.Position + (ray.Direction * rayTriPointDistance);
+            rayTriPoint = ray.Position + ray.Direction * rayTriPointDistance;
             return true;
         }
 

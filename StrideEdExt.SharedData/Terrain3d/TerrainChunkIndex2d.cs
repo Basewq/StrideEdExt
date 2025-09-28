@@ -7,6 +7,7 @@ using System.Globalization;
 namespace StrideEdExt.SharedData.Terrain3d;
 
 [DataContract]
+[DataStyle(DataStyle.Compact)]
 [DebuggerDisplay("{DebugDisplayString,nq}")]
 public struct TerrainChunkIndex2d : IEquatable<TerrainChunkIndex2d>
 {
@@ -72,5 +73,11 @@ public struct TerrainChunkIndex2d : IEquatable<TerrainChunkIndex2d>
     public static explicit operator Int2(TerrainChunkIndex2d value)
     {
         return new Int2(value.X, value.Z);
+    }
+
+    public static TerrainChunkIndex2d ToChunkIndex(Vector3 position, Vector2 posToChunkIndex)
+    {
+        var chunkIndex = MathExt.ToInt2Floor(posToChunkIndex * position.XZ());
+        return new TerrainChunkIndex2d(chunkIndex.X, chunkIndex.Y);
     }
 }

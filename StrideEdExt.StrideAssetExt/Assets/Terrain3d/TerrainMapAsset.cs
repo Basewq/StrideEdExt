@@ -205,7 +205,7 @@ public class TerrainMapAsset : Asset
         }
         else
         {
-            throw new NotSupportedException($"Unhandled layer type: {typeof(TLayerData).Name}");
+            throw new NotImplementedException($"Unhandled layer type: {typeof(TLayerData).Name}");
         }
     }
 
@@ -223,7 +223,7 @@ public class TerrainMapAsset : Asset
         }
         else
         {
-            throw new NotSupportedException($"Unhandled layer type: {layerDataType.Name}");
+            throw new NotImplementedException($"Unhandled layer type: {layerDataType.Name}");
         }
     }
 

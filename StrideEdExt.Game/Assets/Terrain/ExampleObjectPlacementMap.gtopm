@@ -1,0 +1,51 @@
+!StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.ObjectPlacementMapAsset,StrideEdExt.StrideAssetExt
+Id: 3084f72a-b71d-49bd-b55b-d80ac493d656
+SerializedVersion: {StrideEdExt: 0.0.0.1}
+Tags: []
+TerrainMap: b0132d19-e9ff-448d-bc58-906f301c3f1f:Terrain/ExampleTerrain
+TotalObjectPlacementCount: 0
+DensityMapLayerDataList:
+    ece5ceafbb0d6814cdd839511a1a6fdd: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.DensityMaps.PainterObjectDensityMapLayerData,StrideEdExt.StrideAssetExt
+        LayerId: 1445a826-6472-471c-87b5-add4c77b078c
+        LastModifiedIntermediateFile: 2026-03-31T08:42:51.4356873Z
+        ObjectDensityMapTexturePixelStartPosition: {X: 0, Y: 0}
+        ObjectDensityMapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_density_1445a8266472471c87b5add4c77b078c.txt
+        LastModifiedSourceFile: null
+    a82388e015549433e240a44716c3cc70: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.DensityMaps.TextureObjectDensityMapLayerData,StrideEdExt.StrideAssetExt
+        LayerId: a91dfe4b-86cd-4432-b7c9-5eb05d80e0d3
+        LastModifiedIntermediateFile: 2026-03-31T08:42:51.4363991Z
+        ObjectDensityMapTexturePixelStartPosition: {X: 0, Y: 0}
+        ObjectDensityMapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_density_a91dfe4b86cd4432b7c95eb05d80e0d3.txt
+        LastModifiedSourceFile: null
+        ObjectDensityMapTextureScale: {X: 1.0, Y: 1.0}
+SpawnerDataList:
+    46e886dcfb31b9dc327c1f26d96de887: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners.ModelInstancingSpawnerData,StrideEdExt.StrideAssetExt
+        LayerId: feacac39-9480-413d-9ca5-c6e2590319d1
+        LastModifiedIntermediateFile: 2026-03-31T12:45:40.8626006
+        ObjectSpawnerFilePath: !file ../../Resources/Terrain/ExampleTerrainData/object_placement_spawner_feacac399480413d9ca5c6e2590319d1.txt
+        MinimumDensityValueThreshold: 0.0
+        SpawnAssetDefinitionList:
+            631e93b3cd7a0432fea47ea39b918571:
+                AssetUrl: Foliage/Capsule
+                SpawnWeightValue: 1.0
+                CollisionRadius: 0.5
+        LastModifiedSourceFile: null
+        ModelType: Static
+    ff9b0136c7b15afff5ebdef7db6dcdc6: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners.ModelInstancingSpawnerData,StrideEdExt.StrideAssetExt
+        LayerId: 4396cec8-a435-4eaf-a1a7-4f47b6a3efb1
+        LastModifiedIntermediateFile: 2026-03-31T12:45:44.1272676
+        ObjectSpawnerFilePath: !file ../../Resources/Terrain/ExampleTerrainData/object_placement_spawner_4396cec8a4354eafa1a74f47b6a3efb1.txt
+        MinimumDensityValueThreshold: 0.0
+        SpawnAssetDefinitionList:
+            cfe24c38c61972372075e6129147b3d3:
+                AssetUrl: Foliage/GrassMesh
+                SpawnWeightValue: 1.0
+                CollisionRadius: 0.1
+        LastModifiedSourceFile: null
+        ModelType: Foliage
+LastUserModifiedDateTimeUtc: 2026-03-31T08:42:47.0693088Z
+ResourceFolderPath: !dir ../../Resources/Terrain/ExampleTerrainData
+ModelAssetUrlList:
+    62218efe38734c87bd5bd14b2d233d39: Foliage/Capsule
+    de83e4374c60408a0961166c96078fd0: Foliage/GrassMesh
+PrefabAssetUrlList: {}

@@ -97,4 +97,23 @@ public static class MathExt
             maxValue = value1;
         }
     }
+
+    public static float EnsurePositiveZero(float value)
+    {
+        if (value == 0)
+        {
+            return 0;
+        }
+        return value;
+    }
+
+    public static Vector2 EnsurePositiveZero(Vector2 vec2)
+    {
+        return new Vector2(EnsurePositiveZero(vec2.X), EnsurePositiveZero(vec2.Y));
+    }
+
+    public static Vector3 EnsurePositiveZero(Vector3 vec3)
+    {
+        return new Vector3(EnsurePositiveZero(vec3.X), EnsurePositiveZero(vec3.Y), EnsurePositiveZero(vec3.Z));
+    }
 }

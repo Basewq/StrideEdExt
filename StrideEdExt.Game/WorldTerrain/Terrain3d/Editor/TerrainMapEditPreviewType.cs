@@ -5,4 +5,5 @@ enum TerrainMapEditPreviewType : uint
     NotSet,
     Heightmap,
     Material,
+    ObjectPlacementDensityMap
 }

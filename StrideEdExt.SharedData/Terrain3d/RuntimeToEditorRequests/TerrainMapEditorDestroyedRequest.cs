@@ -2,6 +2,6 @@
 
 public class TerrainMapEditorDestroyedRequest : TerrainMapRequestBase
 {
-    public required Guid SceneId { get; init; }
     public required Guid EditorEntityId { get; init; }
+    public required Guid? SceneId { get; init; }
 }

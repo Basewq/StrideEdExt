@@ -24,12 +24,19 @@ public class AssetTextWriter : StreamWriter
         Write('\t');
     }
 
+    public void WriteTabDelimited(Vector2 vec2)
+    {
+        Write(MathExt.EnsurePositiveZero(vec2.X));
+        Write('\t');
+        Write(MathExt.EnsurePositiveZero(vec2.Y));
+    }
+
     public void WriteTabDelimited(Vector3 vec3)
     {
-        Write(vec3.X);
+        Write(MathExt.EnsurePositiveZero(vec3.X));
         Write('\t');
-        Write(vec3.Y);
+        Write(MathExt.EnsurePositiveZero(vec3.Y));
         Write('\t');
-        Write(vec3.Z);
+        Write(MathExt.EnsurePositiveZero(vec3.Z));
     }
 }

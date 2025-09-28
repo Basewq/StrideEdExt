@@ -15,6 +15,7 @@ using Half = System.Half;
 
 namespace StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps;
 
+[ComponentCategory("Terrain Weight Maps")]
 public class TextureMaterialWeightMapLayerComponent : TerrainLayerComponentBase, ITerrainMapMaterialWeightMapLayer
 {
     private TransformTRS _prevTransformData;

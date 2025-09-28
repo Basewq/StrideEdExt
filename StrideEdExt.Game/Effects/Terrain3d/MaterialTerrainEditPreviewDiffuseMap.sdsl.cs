@@ -20,8 +20,10 @@ namespace StrideEdExt.Rendering
     {
         public static readonly ObjectParameterKey<Texture> TerrainMaterialWeightMap = ParameterKeys.NewObject<Texture>();
         public static readonly ObjectParameterKey<Texture> EditLayerMaterialWeightMap = ParameterKeys.NewObject<Texture>();
+        public static readonly ObjectParameterKey<Texture> EditLayerObjectPlacementDensityMap = ParameterKeys.NewObject<Texture>();
         public static readonly ValueParameterKey<Vector2> TerrainMaterialWeightMapSize = ParameterKeys.NewValue<Vector2>();
         public static readonly ValueParameterKey<uint> OverrideMaterialIndex = ParameterKeys.NewValue<uint>();
         public static readonly ValueParameterKey<uint> MaterialMapPaintModeType = ParameterKeys.NewValue<uint>();
+        public static readonly ValueParameterKey<uint> ObjectPlacementDensityMapPaintModeType = ParameterKeys.NewValue<uint>();
     }
 }

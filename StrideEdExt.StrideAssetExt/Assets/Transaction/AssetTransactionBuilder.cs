@@ -96,9 +96,31 @@ public class AssetTransactionBuilder
                             commands.Add(setMemberValueCmd);
                             if (autoRefreshAssetNodes)
                             {
-                                var graphNodePath = GraphNodePath.From(assetObjectNode, memberPath, out _);
-                                var nodeAccessor = graphNodePath.GetAccessor();
-                                nodeAccessor.UpdateValue(newValue);
+                                bool isCollectionAccessorPath = false;
+                                if (memberChange.ChangeType == ContentChangeType.ValueChange)
+                                {
+                                    var memberPathItems = memberPath.Decompose();
+                                    foreach (var memberPathItem in memberPathItems)
+                                    {
+                                        var idxObj = memberPathItem.GetIndex();
+                                        if (idxObj is not null)
+                                        {
+                                            isCollectionAccessorPath = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (isCollectionAccessorPath)
+                                {
+                                    var rootObj = assetObjectNode.Retrieve();
+                                    memberPath.Apply(rootObj, MemberPathAction.ValueSet, newValue);
+                                }
+                                else
+                                {
+                                    var graphNodePath = GraphNodePath.From(assetObjectNode, memberPath, out _);
+                                    var nodeAccessor = graphNodePath.GetAccessor();
+                                    nodeAccessor.UpdateValue(newValue);
+                                }
                             }
                         }
                         break;

@@ -50,8 +50,9 @@ public class PainterMaterialMapBrushSettings
 
     private void SetValue<T>(ref T backingField, T newValue)
     {
+        bool hasChanged = !EqualityComparer<T>.Default.Equals(backingField, newValue);
         backingField = newValue;
-        HasChanged = true;
+        HasChanged = HasChanged || hasChanged;
     }
 
     public void CopyTo(PaintBrushSettings brushSetings)
