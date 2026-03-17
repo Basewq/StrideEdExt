@@ -2,7 +2,7 @@
 
 namespace StrideEdExt.SharedData.Terrain3d.RuntimeToEditorRequests;
 
-public class UpdateLayerOrderingRequest : TerrainMapRequestBase
+public class UpdateTerrainMapLayerOrderingRequest : TerrainMapRequestBase
 {
     public List<Guid> LayerId { get; } = [];
 }

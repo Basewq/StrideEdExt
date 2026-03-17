@@ -259,8 +259,24 @@ public class PainterHeightmapLayerComponent : TerrainLayerComponentBase, ITerrai
             if (heightmapAdjustmentRegions.Count > 0)
             {
                 var layerId = _parent.LayerId;
-                terrainMapEditor.CommitPaintableHeightmapMeshTargetAndRenderTargetChanges(layerId, heightmapAdjustmentRegions);
+                CommitPaintableHeightmapMeshTargetAndRenderTargetChanges(terrainMapEditor, layerId, heightmapAdjustmentRegions);
             }
+        }
+
+        private void CommitPaintableHeightmapMeshTargetAndRenderTargetChanges(
+            TerrainMapEditorComponent terrainMapEditor,
+            Guid layerId, List<HeightmapAdjustmentRegionRequest> heightmapAdjustmentRegions)
+        {
+            terrainMapEditor.SendOrEnqueueEditorRequest(terrainMapAssetId =>
+            {
+                var request = new AdjustPainterHeightmapRequest
+                {
+                    TerrainMapAssetId = terrainMapAssetId,
+                    LayerId = layerId,
+                    HeightmapAdjustmentRegions = heightmapAdjustmentRegions,
+                };
+                return request;
+            });
         }
 
         private Array2d<float> CalculateRaiseHeightAdjustment(

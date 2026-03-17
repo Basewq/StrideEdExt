@@ -164,6 +164,15 @@ public class TerrainMap
         return new Vector3(x, height, z);
     }
 
+    public Vector3 ToChunkMaximumWorldPosition(TerrainChunkIndex2d chunkIndex, float height = 0)
+    {
+        var chunkWorldSize = ChunkWorldSizeVec2;
+        float x = (chunkIndex.X + 1) * chunkWorldSize.X;
+        float z = (chunkIndex.Z + 1) * chunkWorldSize.Y;
+
+        return new Vector3(x, height, z);
+    }
+
     public Vector3 ToChunkSubCellMinimumWorldPosition(TerrainChunkIndex2d chunkIndex, TerrainChunkSubCellIndex2d chunkSubCellIndex, float height = 0)
     {
         var chunkMinPos = ToChunkMinimumWorldPosition(chunkIndex, height);

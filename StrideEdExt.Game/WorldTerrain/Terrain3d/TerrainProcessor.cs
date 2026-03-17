@@ -70,26 +70,26 @@ class TerrainProcessor : EntityProcessor<TerrainComponent, TerrainProcessor.Asso
             {
                 continue;
             }
-            comp.Update(time);
-        }
-    }
-
-    public override void Draw(RenderContext context)
-    {
-        foreach (var (comp, data) in ComponentDatas)
-        {
-            if (!comp.IsEnabled)
-            {
-                continue;
-            }
             CameraComponent? overrideCameraComponent = null;
 #if GAME_EDITOR
             // Chunk culling should be done on the editor's camera when in the editor
             var cameraService = _sceneEditorGame.EditorServices.Get<IEditorGameCameraService>();
             overrideCameraComponent = cameraService?.Component;
 #endif
-            comp.UpdateForDraw(context.Time, overrideCameraComponent);
+            comp.Update(time, overrideCameraComponent);
         }
+    }
+
+    public override void Draw(RenderContext context)
+    {
+        //foreach (var (comp, data) in ComponentDatas)
+        //{
+        //    if (!comp.IsEnabled)
+        //    {
+        //        continue;
+        //    }
+        //    comp.UpdateForDraw(context.Time);
+        //}
     }
 
     public class AssociatedData

@@ -9,7 +9,6 @@ using StrideEdExt.StrideEditorExt;
 using StrideEdExt.WorldTerrain.Terrain3d.Layers;
 using StrideEdExt.WorldTerrain.Terrain3d.Layers.Heightmaps;
 using StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps;
-using StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialWeightMaps;
 using System.Diagnostics.CodeAnalysis;
 using NotNull = Stride.Core.Annotations.NotNullAttribute;
 

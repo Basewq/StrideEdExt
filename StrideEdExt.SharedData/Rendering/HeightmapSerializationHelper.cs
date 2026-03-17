@@ -1,3 +1,4 @@
+using StrideEdExt.SharedData.AssetSerialization;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Half = System.Half;
@@ -13,10 +14,10 @@ public static class HeightmapSerializationHelper
     /// </summary>
     public static void SerializeFloatArray2dToHexFile(Array2d<float> heightmapData, string outputHeightmapFilePath)
     {
-        using var writer = new StreamWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
+        using var writer = new AssetTextWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
         // Write the array dimensions
         writer.Write(heightmapData.LengthX);
-        writer.Write(' ');
+        writer.WriteSpace();
         writer.Write(heightmapData.LengthY);
         writer.WriteLine();
 
@@ -26,7 +27,7 @@ public static class HeightmapSerializationHelper
             {
                 if (x > 0)
                 {
-                    writer.Write('\t');
+                    writer.WriteTab();
                 }
                 float normalizedValue = heightmapData[x, y];
                 ushort int16Value = HeightmapTextureHelper.NormalizedFloatToInt16(normalizedValue);
@@ -125,10 +126,10 @@ public static class HeightmapSerializationHelper
     /// </summary>
     public static void SerializeHalfArray2dToHexFile(Array2d<Half> heightmapData, string outputHeightmapFilePath)
     {
-        using var writer = new StreamWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
+        using var writer = new AssetTextWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
         // Write the array dimensions
         writer.Write(heightmapData.LengthX);
-        writer.Write(' ');
+        writer.WriteSpace();
         writer.Write(heightmapData.LengthY);
         writer.WriteLine();
 
@@ -138,7 +139,7 @@ public static class HeightmapSerializationHelper
             {
                 if (x > 0)
                 {
-                    writer.Write('\t');
+                    writer.WriteTab();
                 }
                 var normalizedValue = heightmapData[x, y];
                 byte byteValue = HeightmapTextureHelper.NormalizedHalfToByte(normalizedValue);
@@ -237,10 +238,10 @@ public static class HeightmapSerializationHelper
     /// </summary>
     public static void SerializeByteArray2dToHexFile(Array2d<byte> heightmapData, string outputHeightmapFilePath)
     {
-        using var writer = new StreamWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
+        using var writer = new AssetTextWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
         // Write the array dimensions
         writer.Write(heightmapData.LengthX);
-        writer.Write(' ');
+        writer.WriteSpace();
         writer.Write(heightmapData.LengthY);
         writer.WriteLine();
 
@@ -250,7 +251,7 @@ public static class HeightmapSerializationHelper
             {
                 if (x > 0)
                 {
-                    writer.Write('\t');
+                    writer.WriteTab();
                 }
                 byte byteValue = heightmapData[x, y];
                 string valueHex = byteValue.ToString("X2", provider: NumberFormatInfo.InvariantInfo);
@@ -344,10 +345,10 @@ public static class HeightmapSerializationHelper
 
     public static void SerializeMaskableHalfArray2dToFile(Array2d<Half?> heightmapData, string outputHeightmapFilePath)
     {
-        using var writer = new StreamWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
+        using var writer = new AssetTextWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
         // Write the array dimensions
         writer.Write(heightmapData.LengthX);
-        writer.Write(' ');
+        writer.WriteSpace();
         writer.Write(heightmapData.LengthY);
         writer.WriteLine();
 
@@ -357,7 +358,7 @@ public static class HeightmapSerializationHelper
             {
                 if (x > 0)
                 {
-                    writer.Write('\t');
+                    writer.WriteTab();
                 }
                 var value = heightmapData[x, y];
                 if (value is Half halfValue)

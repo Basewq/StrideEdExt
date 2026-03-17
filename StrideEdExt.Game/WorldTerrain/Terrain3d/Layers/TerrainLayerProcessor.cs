@@ -102,7 +102,7 @@ class TerrainLayerProcessor : EntityProcessor<TerrainLayerComponentBase, Terrain
 
             editorComp.SendOrEnqueueEditorRequest(terrainMapAssetId =>
             {
-                var request = new GetOrCreateLayerDataRequest
+                var request = new GetOrCreateTerrainMapLayerDataRequest
                 {
                     TerrainMapAssetId = terrainMapAssetId,
                     LayerId = component.Id,

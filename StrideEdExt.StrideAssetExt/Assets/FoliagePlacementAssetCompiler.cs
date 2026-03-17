@@ -30,6 +30,7 @@ public class FoliagePlacementAssetCompiler : AssetCompilerBase
         result.BuildSteps.Add(new FoliagePlacementAssetCommand(targetUrlInStorage, asset, assetItem.Package));
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Serialization", "STRDIAG010:Invalid Constructor", Justification = "Not required")]
     private class FoliagePlacementAssetCommand : AssetCommand<FoliagePlacementAsset>
     {
         public FoliagePlacementAssetCommand(string url, FoliagePlacementAsset parameters, IAssetFinder assetFinder)

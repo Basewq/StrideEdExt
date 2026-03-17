@@ -64,7 +64,7 @@ MaterialWeightMapLayerDataList:
         LastModifiedSourceFile: 2025-05-24T13:56:39.5857894
 LastUserModifiedDateTimeUtc: 2025-09-07T06:24:18.6707830Z
 ResourceFolderPath: !dir ../../Resources/Terrain/ExampleTerrainData
-HeightmapTextureSize: {Width: 64, Height: 64}
+HeightmapTextureSize: {X: 64, Y: 64}
 QuadsPerMesh: {X: 16, Y: 16}
 MeshQuadSize: {X: 1.0, Y: 1.0}
 MeshPerChunk: Count2x2

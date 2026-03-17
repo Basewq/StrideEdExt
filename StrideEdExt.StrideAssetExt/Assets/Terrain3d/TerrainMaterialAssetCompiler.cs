@@ -42,6 +42,7 @@ public class TerrainMaterialAssetCompiler : AssetCompilerBase
         result.BuildSteps.Add(new TerrainMaterialAssetCommand(targetUrlInStorage, asset, assetItem.Package, texImportParams));
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Serialization", "STRDIAG010:Invalid Constructor", Justification = "Not required")]
     private class TerrainMaterialAssetCommand : AssetCommand<TerrainMaterialAsset>
     {
         private TerrainTextureImportParameters _textureImportParams;

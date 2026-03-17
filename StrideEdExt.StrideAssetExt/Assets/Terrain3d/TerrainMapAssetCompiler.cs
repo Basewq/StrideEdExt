@@ -54,6 +54,7 @@ public class TerrainMapAssetCompiler : AssetCompilerBase
         result.BuildSteps.Add(new TerrainMapAssetCommand(targetUrlInStorage, asset, assetItem.Package, packageFolderPath, texImportParams));
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Serialization", "STRDIAG010:Invalid Constructor", Justification = "Not required")]
     private class TerrainMapAssetCommand : AssetCommand<TerrainMapAsset>
     {
         private UDirectory _packageFolderPath;

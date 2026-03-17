@@ -1,7 +1,6 @@
 ﻿using Stride.Core;
 using Stride.Core.Assets;
 using Stride.Engine;
-using Stride.Graphics;
 using StrideEdExt.Painting;
 using StrideEdExt.SharedData.Terrain3d;
 using StrideEdExt.SharedData.Terrain3d.RuntimeToEditorRequests;
@@ -201,33 +200,5 @@ public class TerrainMapEditorComponent : SceneEditorExtBase, ITerrainMapEditor
         {
             terrainComponent.EndPaintableMeshTargets(targetEntityMeshAndRenderTargetMapOutput);
         }
-    }
-
-    internal void CommitPaintableHeightmapMeshTargetAndRenderTargetChanges(Guid layerId, List<HeightmapAdjustmentRegionRequest> heightmapAdjustmentRegions)
-    {
-        SendOrEnqueueEditorRequest(terrainMapAssetId =>
-        {
-            var request = new AdjustPainterHeightmapRequest
-            {
-                TerrainMapAssetId = terrainMapAssetId,
-                LayerId = layerId,
-                HeightmapAdjustmentRegions = heightmapAdjustmentRegions,
-            };
-            return request;
-        });
-    }
-
-    internal void CommitPaintableMaterialMeshTargetAndRenderTargetChanges(Guid layerId, List<MaterialWeightMapAdjustmentRegionRequest> weightMapAdjustmentRegions)
-    {
-        SendOrEnqueueEditorRequest(terrainMapAssetId =>
-        {
-            var request = new AdjustPainterMaterialWeightMapRequest
-            {
-                TerrainMapAssetId = terrainMapAssetId,
-                LayerId = layerId,
-                WeightMapAdjustmentRegions = weightMapAdjustmentRegions,
-            };
-            return request;
-        });
     }
 }

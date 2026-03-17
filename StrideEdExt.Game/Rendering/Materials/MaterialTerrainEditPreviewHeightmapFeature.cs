@@ -14,7 +14,7 @@ public class MaterialTerrainEditPreviewHeightmapFeature : MaterialFeature, IMate
     public Texture? TerrainHeightmap { get; internal set; }
     public Vector2 TerrainHeightRange { get; internal set; }
     public float MaxAdjustmentHeightValue { get; set; }
-    public HeightmapPaintModeType PaintModeType { get; set; }
+    public HeightmapPaintModeType HeightmapPaintModeType { get; set; }
 
     public override void GenerateShader(MaterialGeneratorContext context)
     {
@@ -27,7 +27,7 @@ public class MaterialTerrainEditPreviewHeightmapFeature : MaterialFeature, IMate
         context.Parameters.Set(MaterialTerrainEditPreviewHeightmapKeys.TerrainHeightmapSize, heightmapSize);
         context.Parameters.Set(MaterialTerrainEditPreviewHeightmapKeys.TerrainHeightRange, TerrainHeightRange);
         context.Parameters.Set(MaterialTerrainEditPreviewHeightmapKeys.MaxAdjustmentHeightValue, MaxAdjustmentHeightValue);
-        context.Parameters.Set(MaterialTerrainEditPreviewHeightmapKeys.HeightmapPaintModeType, (uint)PaintModeType);
+        context.Parameters.Set(MaterialTerrainEditPreviewHeightmapKeys.HeightmapPaintModeType, (uint)HeightmapPaintModeType);
 
         var mixin = new ShaderMixinSource();
         mixin.Mixins.Add(new ShaderClassSource("MaterialTerrainEditPreviewHeightmap"));

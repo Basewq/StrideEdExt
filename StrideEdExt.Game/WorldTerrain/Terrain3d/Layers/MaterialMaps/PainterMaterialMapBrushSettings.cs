@@ -3,7 +3,7 @@ using Stride.Core.Annotations;
 using StrideEdExt.Painting;
 using StrideEdExt.Painting.Brushes;
 
-namespace StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialWeightMaps;
+namespace StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps;
 
 [DataContract]
 public enum MaterialMapPaintModeType

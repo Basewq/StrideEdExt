@@ -1,6 +1,6 @@
 ﻿using Stride.Core.Mathematics;
-using StrideEdExt.Rendering.Meshes;
 using StrideEdExt.SharedData;
+using StrideEdExt.SharedData.Rendering.Meshes;
 using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;

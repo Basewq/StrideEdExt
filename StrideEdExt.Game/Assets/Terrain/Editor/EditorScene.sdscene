@@ -91,7 +91,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children: {}
-                    c55d9fa5552b25d78b103d3ca8062e0d: !StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialWeightMaps.PainterMaterialWeightMapLayerComponent,StrideEdExt.Game
+                    c55d9fa5552b25d78b103d3ca8062e0d: !StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps.PainterMaterialWeightMapLayerComponent,StrideEdExt.Game
                         Id: 3c5bf180-e44e-4c8e-8963-1a4e4256c34a
                         MaterialName: MatLayer3
                         BrushSettings:

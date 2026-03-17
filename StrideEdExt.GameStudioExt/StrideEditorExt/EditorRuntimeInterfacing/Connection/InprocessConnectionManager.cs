@@ -2,7 +2,7 @@
 
 public class InprocessConnectionManager
 {
-    // Only one exists
+    // Only one editor endpoint exists
     private readonly InprocessMessagingEndpoint _editorEndpoint;
     private readonly List<InprocessMessagingEndpoint> _runtimeEndpoints = [];
 

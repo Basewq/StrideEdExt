@@ -1,6 +1,6 @@
 ﻿using Stride.Core.Mathematics;
 
-namespace StrideEdExt.Rasterization;
+namespace StrideEdExt.SharedData.Rasterization;
 
 public static class Grid2dCircleArea
 {

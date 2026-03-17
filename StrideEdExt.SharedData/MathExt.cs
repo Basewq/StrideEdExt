@@ -46,6 +46,8 @@ public static class MathExt
         return intValue;
     }
 
+    public static Vector2 ToVec2(Int2 int2) => new Vector2(int2.X, int2.Y);
+
     public static Vector3 ToVec3(Int3 int3) => new Vector3(int3.X, int3.Y, int3.Z);
 
     public static int ToIndex1d(int x, int y, int rowWidth)

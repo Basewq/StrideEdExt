@@ -15,7 +15,7 @@ using StrideEdExt.WorldTerrain.Terrain3d.Editor;
 using System.Diagnostics;
 using Half = System.Half;
 
-namespace StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialWeightMaps;
+namespace StrideEdExt.WorldTerrain.Terrain3d.Layers.MaterialMaps;
 
 public class PainterMaterialWeightMapLayerComponent : TerrainLayerComponentBase, ITerrainMapMaterialWeightMapLayer
 {
@@ -248,8 +248,24 @@ public class PainterMaterialWeightMapLayerComponent : TerrainLayerComponentBase,
             if (weightMapAdjustmentRegions.Count > 0)
             {
                 var layerId = _parent.LayerId;
-                terrainMapEditor.CommitPaintableMaterialMeshTargetAndRenderTargetChanges(layerId, weightMapAdjustmentRegions);
+                CommitPaintableMaterialMeshTargetAndRenderTargetChanges(terrainMapEditor, layerId, weightMapAdjustmentRegions);
             }
+        }
+
+        private void CommitPaintableMaterialMeshTargetAndRenderTargetChanges(
+            TerrainMapEditorComponent terrainMapEditor,
+            Guid layerId, List<MaterialWeightMapAdjustmentRegionRequest> weightMapAdjustmentRegions)
+        {
+            terrainMapEditor.SendOrEnqueueEditorRequest(terrainMapAssetId =>
+            {
+                var request = new AdjustPainterMaterialWeightMapRequest
+                {
+                    TerrainMapAssetId = terrainMapAssetId,
+                    LayerId = layerId,
+                    WeightMapAdjustmentRegions = weightMapAdjustmentRegions,
+                };
+                return request;
+            });
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace StrideEdExt.Rasterization;
+﻿namespace StrideEdExt.SharedData.Rasterization;
 
 public interface IGrid2dCellVisitor
 {

@@ -1,13 +1,65 @@
 ﻿using Stride.Core.Mathematics;
-using StrideEdExt.Rasterization;
-using StrideEdExt.Rendering.Meshes;
-using StrideEdExt.SharedData;
-using StrideEdExt.SharedData.Terrain3d;
+using StrideEdExt.SharedData.Rasterization;
+using StrideEdExt.SharedData.Rendering.Meshes;
 
-namespace StrideEdExt.WorldTerrain.Terrain3d;
+namespace StrideEdExt.SharedData.Terrain3d;
 
 public static class TerrainRaycast
 {
+    public static bool TryGetHeight(
+        Vector2 worldPositionXZ,
+        Array2d<float>? heightmapData, Vector2 heightRange, Vector2 meshQuadSize, Vector3 mapStartPosition,
+        out float heightValue)
+    {
+        return TryGetHeight(
+            worldPositionXZ,
+            heightmapData, heightRange, meshQuadSize, mapStartPosition,
+            out heightValue, out _);
+    }
+
+    public static bool TryGetHeight(
+        Vector2 worldPositionXZ,
+        Array2d<float>? heightmapData, Vector2 heightRange, Vector2 meshQuadSize, Vector3 mapStartPosition,
+        out float heightValue, out Vector3 normal)
+    {
+        heightValue = 0;
+        normal = Vector3.UnitY;
+        if (heightmapData is null)
+        {
+            return false;
+        }
+
+        var mapWorldSize = meshQuadSize * heightmapData.Length2d.ToVector2();
+
+        if (mapStartPosition.X > worldPositionXZ.X || worldPositionXZ.X >= mapStartPosition.X + mapWorldSize.X
+            || mapStartPosition.Z > worldPositionXZ.Y || worldPositionXZ.Y >= mapStartPosition.Z + mapWorldSize.Y)
+        {
+            return false;
+        }
+
+        var heightmapRelativeWorldPosXZ = worldPositionXZ - mapStartPosition.XZ();
+        var heightmapStartIndexVec2 = heightmapRelativeWorldPosXZ / meshQuadSize;
+        var heightmapStartIndex = new Int2((int)MathF.Floor(heightmapStartIndexVec2.X), (int)MathF.Floor(heightmapStartIndexVec2.Y));
+
+        var quad = CreateQuadAtLocation(heightmapStartIndex, heightmapData, heightRange);
+        var rayStartPos = new Vector3(heightmapRelativeWorldPosXZ.X, heightRange.X - 0.001f, heightmapRelativeWorldPosXZ.Y);
+        var ray = new Ray(rayStartPos, Vector3.UnitY);     // Straight up
+        if (quad.Triangle0.TryRaycast(ray, out var rayTriPoint))
+        {
+            heightValue = (rayTriPoint + mapStartPosition).Y;
+            quad.Triangle0.GetNormalAndTangent(out normal, out _);
+            return true;
+        }
+        if (quad.Triangle1.TryRaycast(ray, out rayTriPoint))
+        {
+            heightValue = (rayTriPoint + mapStartPosition).Y;
+            quad.Triangle1.GetNormalAndTangent(out normal, out _);
+            return true;
+        }
+
+        return false;
+    }
+
     public static bool TryRaycast(TerrainMap terrainMap, Ray ray, Vector3 mapStartPosition, out RaycastHitResult hitResult)
     {
         var heightmapData = terrainMap.HeightmapData;
@@ -96,6 +148,38 @@ public static class TerrainRaycast
         return tMin <= tMax;    // Includes just touching the box
     }
 
+    private static MeshQuadData CreateQuadAtLocation(Int2 heightmapStartIndex, Array2d<float> normalizedHeightmapData, Vector2 heightRange)
+    {
+        var IndexOffsetRight = new Int2(1, 0);
+        var IndexOffsetDown = new Int2(0, 1);
+
+        var indexTL = heightmapStartIndex;
+        var indexTR = heightmapStartIndex + IndexOffsetRight;
+        var indexBL = heightmapStartIndex + IndexOffsetDown;
+        var indexBR = heightmapStartIndex + IndexOffsetDown + IndexOffsetRight;
+
+        var vertPosTL = CreatePoint(indexTL, normalizedHeightmapData, heightRange);
+        var vertPosTR = CreatePoint(indexTR, normalizedHeightmapData, heightRange);
+        var vertPosBL = CreatePoint(indexBL, normalizedHeightmapData, heightRange);
+        var vertPosBR = CreatePoint(indexBR, normalizedHeightmapData, heightRange);
+
+        var localIndexTL = indexTL;
+        var localIndexTR = indexTR;
+        var localIndexBL = indexBL;
+        var localIndexBR = indexBR;
+        var quad = MeshQuadData.CreateQuad(vertPosTL, vertPosTR, vertPosBL, vertPosBR, localIndexTL, localIndexTR, localIndexBL, localIndexBR);
+        return quad;
+
+        static Vector3 CreatePoint(Int2 heightmapIndex, Array2d<float> normalizedHeightmapData, Vector2 heightRange)
+        {
+            var (minHeightPosition, maxHeightPosition) = heightRange;
+            float normalizedHeightValue = normalizedHeightmapData[heightmapIndex];
+            float height = MathUtil.Lerp(minHeightPosition, maxHeightPosition, normalizedHeightValue);
+            var pos = new Vector3(heightmapIndex.X, height, heightmapIndex.Y);
+            return pos;
+        }
+    }
+
     public struct RaycastHitResult
     {
         public Int2 HeightmapCellIndex;
@@ -154,38 +238,6 @@ public static class TerrainRaycast
 
             // No hit, continue scanning
             return true;
-        }
-
-        private static MeshQuadData CreateQuadAtLocation(Int2 heightmapStartIndex, Array2d<float> normalizedHeightmapData, Vector2 heightRange)
-        {
-            var IndexOffsetRight = new Int2(1, 0);
-            var IndexOffsetDown = new Int2(0, 1);
-
-            var indexTL = heightmapStartIndex;
-            var indexTR = heightmapStartIndex + IndexOffsetRight;
-            var indexBL = heightmapStartIndex + IndexOffsetDown;
-            var indexBR = heightmapStartIndex + IndexOffsetDown + IndexOffsetRight;
-
-            var vertPosTL = CreatePoint(indexTL, normalizedHeightmapData, heightRange);
-            var vertPosTR = CreatePoint(indexTR, normalizedHeightmapData, heightRange);
-            var vertPosBL = CreatePoint(indexBL, normalizedHeightmapData, heightRange);
-            var vertPosBR = CreatePoint(indexBR, normalizedHeightmapData, heightRange);
-
-            var localIndexTL = indexTL;
-            var localIndexTR = indexTR;
-            var localIndexBL = indexBL;
-            var localIndexBR = indexBR;
-            var quad = MeshQuadData.CreateQuad(vertPosTL, vertPosTR, vertPosBL, vertPosBR, localIndexTL, localIndexTR, localIndexBL, localIndexBR);
-            return quad;
-
-            static Vector3 CreatePoint(Int2 heightmapIndex, Array2d<float> normalizedHeightmapData, Vector2 heightRange)
-            {
-                var (minHeightPosition, maxHeightPosition) = heightRange;
-                float normalizedHeightValue = normalizedHeightmapData[heightmapIndex];
-                float height = MathUtil.Lerp(minHeightPosition, maxHeightPosition, normalizedHeightValue);
-                var pos = new Vector3(heightmapIndex.X, height, heightmapIndex.Y);
-                return pos;
-            }
         }
     }
 }

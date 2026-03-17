@@ -33,9 +33,6 @@ namespace StrideEdExt.GameStudioExt.AssetViewModels;
 [AssetViewModel<TerrainMapAsset>]
 public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
 {
-    delegate void AssetMemberChangedEventHandler(Guid editorEntityId, SceneRootViewModel sceneRootVm, AssetMemberNodeChangeEventArgs e);
-    delegate void AssetNodeItemChangedEventHandler(Guid editorEntityId, SceneRootViewModel sceneRootVm, AssetItemNodeChangeEventArgs e);
-
     private readonly Logger _logger;
 
     private IEditorToRuntimeMessagingService? _editorToRuntimeMessagingService;
@@ -59,7 +56,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
         {
             await gameAssetsEditorPlugin.ServicesRegistrationCompleted;
             _editorToRuntimeMessagingService = ServiceProvider.Get<IEditorToRuntimeMessagingService>();
-            SubscribeMessagingRequests();
+            SubscribeRuntimeMessagingRequests();
         });
 
         if (Asset.ResourceFolderPath is not null)
@@ -204,7 +201,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
         }
     }
 
-    private void SubscribeMessagingRequests()
+    private void SubscribeRuntimeMessagingRequests()
     {
         if (_editorToRuntimeMessagingService is null)
         {
@@ -288,7 +285,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                 UpdateMaterialIndexMapFromLayers(sendMaterialMapUpdateMessage: true, sendMaterialLayerIndexListMessage: true);
             }
         });
-        RegisterRequestHandler<GetOrCreateLayerDataRequest>(req =>
+        RegisterRequestHandler<GetOrCreateTerrainMapLayerDataRequest>(req =>
         {
             if (req.LayerDataType == typeof(ModelHeightmapLayerData))
             {
@@ -870,57 +867,16 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
         }
     }
 
-    private bool TryGetMaterialAsset(TerrainMaterial? terrainMaterial, [NotNullWhen(true)] out TerrainMaterialAsset? terrainMaterialAsset)
+    private bool TryGetMaterialAsset(TerrainMaterial? terrainMaterialProxyObject, [NotNullWhen(true)] out TerrainMaterialAsset? terrainMaterialAsset)
     {
-        if (terrainMaterial is null)
+        if (terrainMaterialProxyObject is null)
         {
             terrainMaterialAsset = null;
             return false;
         }
 
-        var terrainMaterialAssetItem = (Session as IAssetFinder)?.FindAssetFromProxyObject(terrainMaterial);
+        var terrainMaterialAssetItem = (Session as IAssetFinder)?.FindAssetFromProxyObject(terrainMaterialProxyObject);
         terrainMaterialAsset = terrainMaterialAssetItem?.Asset as TerrainMaterialAsset;
         return terrainMaterialAsset is not null;
-    }
-
-    private class SceneAssetPropertyGraphSubscription : IDisposable
-    {
-        private AssetPropertyGraph _assetPropertyGraph;
-        private Guid _editorEntityId;
-        private SceneRootViewModel _sceneRootVm;
-        private AssetMemberChangedEventHandler _memberChangedEventHandler;
-        private AssetNodeItemChangedEventHandler _nodeChangedEventHandler;
-
-        public SceneAssetPropertyGraphSubscription(
-            AssetPropertyGraph assetPropertyGraph,
-            Guid editorEntityId,
-            SceneRootViewModel sceneRootVm,
-            AssetMemberChangedEventHandler memberChangedEventHandler,
-            AssetNodeItemChangedEventHandler nodeChangedEventHandler)
-        {
-            _assetPropertyGraph = assetPropertyGraph;
-            _editorEntityId = editorEntityId;
-            _sceneRootVm = sceneRootVm;
-            _memberChangedEventHandler = memberChangedEventHandler;
-            _assetPropertyGraph.Changed += OnAssetPropertyGraphChanged;
-            _nodeChangedEventHandler = nodeChangedEventHandler;
-            _assetPropertyGraph.ItemChanged += OnAssetPropertyGraphItemChanged;
-        }
-
-        public void Dispose()
-        {
-            _assetPropertyGraph.Changed -= OnAssetPropertyGraphChanged;
-            _assetPropertyGraph.ItemChanged -= OnAssetPropertyGraphItemChanged;
-        }
-
-        private void OnAssetPropertyGraphChanged(object? sender, AssetMemberNodeChangeEventArgs e)
-        {
-            _memberChangedEventHandler(_editorEntityId, _sceneRootVm, e);
-        }
-
-        private void OnAssetPropertyGraphItemChanged(object? sender, AssetItemNodeChangeEventArgs e)
-        {
-            _nodeChangedEventHandler(_editorEntityId, _sceneRootVm, e);
-        }
     }
 }

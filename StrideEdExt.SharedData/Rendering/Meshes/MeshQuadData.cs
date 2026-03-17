@@ -1,7 +1,6 @@
 ﻿using Stride.Core.Mathematics;
-using System;
 
-namespace StrideEdExt.Rendering.Meshes;
+namespace StrideEdExt.SharedData.Rendering.Meshes;
 
 public record struct MeshQuadData
 {

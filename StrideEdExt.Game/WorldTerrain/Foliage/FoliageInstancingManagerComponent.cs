@@ -1,6 +1,4 @@
-﻿using StrideEdExt.Rendering;
-using StrideEdExt.SharedData;
-using Stride.Core;
+﻿using Stride.Core;
 using Stride.Core.Extensions;
 using Stride.Core.Mathematics;
 using Stride.Core.Serialization;
@@ -10,11 +8,10 @@ using Stride.Engine.Design;
 using Stride.Games;
 using Stride.Graphics;
 using Stride.Rendering;
-using System;
-using System.Collections.Generic;
+using StrideEdExt.Rendering;
+using StrideEdExt.SharedData;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace StrideEdExt.WorldTerrain.Foliage;
@@ -77,20 +74,7 @@ public class FoliageInstancingManagerComponent : EntityComponent
         _chunkIdToActiveChunkInstancingComponentProcessing.Clear();
     }
 
-    private static readonly Vector3[] FrustumPointsClipSpace = [
-        // Far plane
-        new Vector3(-1, +1, 1),
-        new Vector3(+1, +1, 1),
-        new Vector3(-1, -1, 1),
-        new Vector3(+1, -1, 1),
-        // Near plane
-        new Vector3(-1, +1, 0),
-        new Vector3(+1, +1, 0),
-        new Vector3(-1, -1, 0),
-        new Vector3(+1, -1, 0),
-    ];
     private readonly List<Int3> _visibleChunkIndexList = new();
-    private readonly Vector3[] _frustumPointsWorldSpace = new Vector3[8];
     private readonly List<FoliageChunkId> _reusedChunkIds = new();
     internal void UpdateForDraw(GameTime time, CameraComponent? overrideCameraComponent)
     {
@@ -103,25 +87,8 @@ public class FoliageInstancingManagerComponent : EntityComponent
         }
         // TODO Find a way to get all visible chunk indices based off frustum
 
-        // Assume we're always using Perspective camera
-        float fovRadians = MathUtil.DegreesToRadians(camComp.VerticalFieldOfView);
-        float aspectRatio = camComp.AspectRatio;
-        float zNear = camComp.NearClipPlane;
-        float zFar = MaxInstancingRenderDistance;   // We use our own instead of camComp.FarClipPlane (which should be smaller)
-
-        Matrix.PerspectiveFovRH(fovRadians, aspectRatio, zNear, zFar, out var projMatrix);
-
-        Matrix.Multiply(in camComp.ViewMatrix, in projMatrix, out var viewProjMatrix);
-        var frustum = new BoundingFrustum(in viewProjMatrix);
-
-        // Determine the AABB bounds of the frustum based off the corners of the frustum
-        Matrix.Invert(in viewProjMatrix, out var viewProjInverseMatrix);
-        for (int i = 0; i < FrustumPointsClipSpace.Length; i++)
-        {
-            var vec4 = Vector3.Transform(FrustumPointsClipSpace[i], viewProjInverseMatrix);
-            _frustumPointsWorldSpace[i] = vec4.XYZ() / vec4.W;
-        }
-        BoundingBox.FromPoints(_frustumPointsWorldSpace, out var frustumBoundingBox);
+        // We use our own MaxInstancingRenderDistance instead of camComp.FarClipPlane (which should be smaller)
+        CameraExtensions.CreateBoundingShapesFromCamera(camComp, MaxInstancingRenderDistance, out var frustum, out var frustumBoundingBox);
 
         // Determine the chunks visible to the frustum
         var chunkIndexToPos = ChunkSize;

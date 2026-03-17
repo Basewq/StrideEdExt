@@ -37,9 +37,6 @@ public class TerrainMapAsset : Asset
 
     private readonly object _serializationLock = new();
 
-    public static string HeightmapLayerDataListName => nameof(HeightmapLayerDataList);    // HACK: we need the editor to detect changes to list in the editor, but we don't want to expose this list directly.
-    public static string MaterialWeightMapLayerDataListName => nameof(MaterialWeightMapLayerDataList);
-
     /// <summary>
     /// Normalized heightmap data.
     /// This data is loaded from its intermediate file and serialized to its run-time version <see cref="TerrainMap.HeightmapData"/>.
@@ -135,9 +132,7 @@ public class TerrainMapAsset : Asset
     [DataMemberRange(minimum: 1, maximum: 4095, smallStep: 2, largeStep: 8, decimalPlaces: 0)]
     public Int2 QuadsPerMesh { get; set; } = new Int2(16, 16);
 
-    /// <summary>
-    /// The size of a single terrain mesh quad.
-    /// </summary>
+    /// <inheritdoc cref="TerrainMap.MeshQuadSize"/>
     [Display(category: CategoryName_MapSettings)]
     public Vector2 MeshQuadSize { get; set; } = Vector2.One;
 

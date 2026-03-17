@@ -113,20 +113,10 @@ public abstract class TerrainLayerComponentBase : EntityComponent
 
     protected bool TryGetTerrainMapEditor([NotNullWhen(true)] out TerrainMapEditorComponent? terrainMapEditor)
     {
-        terrainMapEditor = null;
-#if GAME_EDITOR
-        if (_getTerrainMapNextRetryTime > DateTime.Now)
+        terrainMapEditor = EditorComponent;
+        if (!EnsureLoadedTerrainMap(terrainMapEditor?.TerrainMap))
         {
-            return false;
-        }
-#endif
-
-        if (Entity.TryFindComponentOnAncestor<TerrainMapEditorComponent>(out var painterComp))
-        {
-            if (EnsureLoadedTerrainMap(painterComp?.TerrainMap))
-            {
-                terrainMapEditor = painterComp;
-            }
+            terrainMapEditor = null;
         }
 
         return terrainMapEditor is not null;
