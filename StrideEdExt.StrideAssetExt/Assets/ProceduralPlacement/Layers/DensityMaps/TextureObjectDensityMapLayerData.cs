@@ -54,17 +54,4 @@ public class TextureObjectDensityMapLayerData : ObjectDensityMapLayerDataBase
             logger.Error(errorMessage);
         }
     }
-
-    ////public override void ApplyLayerMaterialMapModifications(Array2d<Half> densityMapData, Array2d<byte> materialIndexMapData)
-    ////{
-    ////    if (ObjectDensityMapData is not Array2d<Half> layerObjectDensityMapData
-    ////        || ObjectDensityMapTexturePixelStartPosition is not Int2 startingIndex)
-    ////    {
-    ////        return;
-    ////    }
-
-    ////    ObjectPlacementLayerExtensions.UpdateDensityMapRegion(
-    ////        layerObjectDensityMapData, startingIndex,
-    ////        densityMapData, materialIndexMapData);
-    ////}
 }

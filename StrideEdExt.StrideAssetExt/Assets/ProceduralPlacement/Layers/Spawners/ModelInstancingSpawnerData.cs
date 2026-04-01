@@ -18,17 +18,6 @@ public class ModelInstancingSpawnerData : ObjectSpawnerDataBase
 
     protected override void OnSerializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger logger)
     {
-        //if (AssetReferenceList is null)
-        //{
-        //    logger.Warning($"Could not serialize intermediate file because layer {LayerId} did not generate AssetReference list.");
-        //    return;
-        //}
-        //if (ObjectPlacementDataList is null)
-        //{
-        //    logger.Warning($"Could not serialize intermediate file because layer {LayerId} did not generate ObjectPlacementData list.");
-        //    return;
-        //}
-
         var spawnerFullFilePath = this.GetFilePathOrDefaultPath(ObjectSpawnerFilePath, packageFolderPath, IntermediateObjectSpawnerFileNameFormat);
         SpawnerDataSerializationHelper.SerializeObjectPlacementsToFile(OnSerializeMetadata, SpawnPlacementDataList, spawnerFullFilePath);
 
@@ -37,8 +26,6 @@ public class ModelInstancingSpawnerData : ObjectSpawnerDataBase
 
         void OnSerializeMetadata(AssetTextWriter writer)
         {
-            //writer.Write(AssetReferenceList.Count);
-            //writer.WriteTab();
             writer.Write(SpawnPlacementDataList.Count);
             writer.WriteTab();
             writer.Write(ModelType.ToString());
@@ -88,12 +75,6 @@ public class ModelInstancingSpawnerData : ObjectSpawnerDataBase
                 return false;
             }
             int nextTokenIndex = 0;
-            //if (!SpawnerDataSerializationHelper.TryReadNextInt(metadataLineSpan, tokenRanges, ref nextTokenIndex, out assetRefListCount, out errorMessage)
-            //    || !SpawnerDataSerializationHelper.TryReadNextInt(metadataLineSpan, tokenRanges, ref nextTokenIndex, out objectPlacementDataListCount, out errorMessage)
-            //    || !SpawnerDataSerializationHelper.TryReadNextString(metadataLineSpan, tokenRanges, ref nextTokenIndex, out var modelTypeString, out errorMessage))
-            //{
-            //    return false;
-            //}
             if (!SpawnerDataSerializationHelper.TryReadNextInt(metadataLineSpan, tokenRanges, ref nextTokenIndex, out objectPlacementDataListCount, out errorMessage)
                 || !SpawnerDataSerializationHelper.TryReadNextString(metadataLineSpan, tokenRanges, ref nextTokenIndex, out var modelTypeString, out errorMessage))
             {
@@ -112,76 +93,4 @@ public class ModelInstancingSpawnerData : ObjectSpawnerDataBase
             }
         }
     }
-
-    ////protected override void OnTerrainMapResized(Size2 heightmapTextureSize, AssetTransactionBuilder assetTransactionBuilder)
-    ////{
-    ////    if (ObjectPlacementDataList is List<ObjectPlacementData> curObjectDensityMapData)
-    ////    {
-    ////        int maxNonZeroX = 0;
-    ////        int maxNonZeroY = 0;
-    ////        foreach (var (index, heightValue) in curObjectDensityMapData)
-    ////        {
-    ////            if (heightValue != Half.Zero)
-    ////            {
-    ////                maxNonZeroX = Math.Max(index.X, maxNonZeroX);
-    ////                maxNonZeroY = Math.Max(index.Y, maxNonZeroY);
-    ////            }
-    ////        }
-    ////        int resizeX = Math.Max(maxNonZeroX, heightmapTextureSize.Width);
-    ////        int resizeY = Math.Max(maxNonZeroY, heightmapTextureSize.Height);
-    ////        if (curObjectDensityMapData.LengthX < resizeX || curObjectDensityMapData.LengthY < resizeY)
-    ////        {
-    ////            var oldObjectDensityMapData = ObjectPlacementDataList;
-    ////            var newObjectDensityMapData = new Array2d<Half>(resizeX, resizeY);
-    ////            curObjectDensityMapData.CopyToUnaligned(newObjectDensityMapData);
-    ////            ObjectPlacementDataList = newObjectDensityMapData;
-
-    ////            var cmd = this.CreateSetValueCommand((rootObj, val) => rootObj.ObjectDensityMapData = val, oldValue: oldObjectDensityMapData, newValue: newObjectDensityMapData);
-    ////            assetTransactionBuilder.AddCommand(cmd);
-    ////        }
-    ////    }
-    ////}
-
-    ////public void ApplyWeightMapAdjustments(Array2d<float> adjustmentWeightMapData, Int2 startPosition, AssetTransactionBuilder assetTransactionBuilder)
-    ////{
-    ////    if (ObjectDensityMapData is null)
-    ////    {
-    ////        Debug.WriteLine($"ObjectDensityMapData not assigned.");
-    ////        return;
-    ////    }
-
-    ////    var cmd = new ModifyArray2dCommand<Half>(ObjectDensityMapData);
-
-    ////    int maxXExcl = Math.Min(ObjectDensityMapData.LengthX - startPosition.X + 1, adjustmentWeightMapData.LengthX);
-    ////    int maxYExcl = Math.Min(ObjectDensityMapData.LengthY - startPosition.Y + 1, adjustmentWeightMapData.LengthY);
-    ////    Debug.WriteLineIf(adjustmentWeightMapData.LengthX < maxXExcl, $"{nameof(ApplyWeightMapAdjustments)}: adjustmentWeightMapData will be truncated on x-axis - expected length: {adjustmentWeightMapData.LengthX}, actual length: {maxXExcl}");
-    ////    Debug.WriteLineIf(adjustmentWeightMapData.LengthY < maxYExcl, $"{nameof(ApplyWeightMapAdjustments)}: adjustmentWeightMapData will be truncated on y-axis - expected length: {adjustmentWeightMapData.LengthY}, actual length: {maxYExcl}");
-
-    ////    for (int y = 0; y < maxYExcl; y++)
-    ////    {
-    ////        for (int x = 0; x < maxXExcl; x++)
-    ////        {
-    ////            var adjustmentMapIndex = new Int2(x, y);
-    ////            var weightMapIndex = adjustmentMapIndex + startPosition;
-
-    ////            float adjustmentValue = adjustmentWeightMapData[adjustmentMapIndex];
-    ////            if (adjustmentValue == 0)
-    ////            {
-    ////                continue;
-    ////            }
-    ////            float curValue = (float)ObjectDensityMapData[weightMapIndex];
-    ////            curValue += adjustmentValue;
-    ////            curValue = Math.Clamp(curValue, 0, 1);
-    ////            var prevValue = ObjectDensityMapData[weightMapIndex];
-    ////            var newValue = (Half)curValue;
-    ////            if (prevValue != newValue)
-    ////            {
-    ////                ObjectDensityMapData[weightMapIndex] = newValue;
-    ////                cmd.AddValueChange(weightMapIndex, prevValue, newValue);
-    ////            }
-    ////        }
-    ////    }
-
-    ////    assetTransactionBuilder.AddCommand(cmd);
-    ////}
 }

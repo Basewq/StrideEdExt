@@ -53,14 +53,6 @@ class ObjectPlacementMapEditorProcessor : EntityProcessor<ObjectPlacementMapEdit
             });
 
             // Density Map messages
-            ////RegisterMessageHandler<SetObjectDensityMapDataMessage>(msg =>
-            ////{
-            ////    var (editorComp, data) = ComponentDatas.FirstOrDefault(x => x.Key.ObjectPlacementMap?.ObjectPlacementMapAssetId == msg.ObjectPlacementMapAssetId);
-            ////    if (data?.ObjectPlacementComponent is ProceduralObjectPlacementComponent proceduralObjectPlacementComp)
-            ////    {
-            ////        proceduralObjectPlacementComp.UpdateDensityMap(msg.DensityMapTextureSize, msg.DensityMapData);
-            ////    }
-            ////});
             RegisterMessageHandler<SetPainterObjectDensityMapDataMessage>(msg =>
             {
                 if (TryGetComponentByLayerId<TerrainPainterObjectDensityMapLayerComponent>(msg.LayerId, out var layerComp))
@@ -88,23 +80,6 @@ class ObjectPlacementMapEditorProcessor : EntityProcessor<ObjectPlacementMapEdit
                     }
                 }
             });
-            ////RegisterMessageHandler<SetTerrainMapMaterialLayerIndexListMessage>(msg =>
-            ////{
-            ////    var (editorComp, data) = ComponentDatas.FirstOrDefault(x => x.Key.ObjectPlacementMap?.ObjectPlacementMapAssetId == msg.ObjectPlacementMapAssetId);
-            ////    if (editorComp is not null)
-            ////    {
-            ////        var materialLayers = msg.MaterialLayers.Select(x => new TerrainMapMaterialLayerData(x.MaterialName, x.MaterialIndex));
-            ////        editorComp.UpdateMaterialLayerList(materialLayers);
-            ////    }
-            ////});
-            ////RegisterMessageHandler<SetTerrainMapMaterialIndexMapDataMessage>(msg =>
-            ////{
-            ////    var (editorComp, data) = ComponentDatas.FirstOrDefault(x => x.Key.ObjectPlacementMap?.ObjectPlacementMapAssetId == msg.ObjectPlacementMapAssetId);
-            ////    if (data?.ProceduralObjectPlacementComponent is ProceduralObjectPlacementComponent proceduralObjectPlacementComp)
-            ////    {
-            ////        proceduralObjectPlacementComp.UpdateMaterialIndexMap(msg.MaterialIndexMapData, msg.MaterialWeightMapData);
-            ////    }
-            ////});
 
             void RegisterMessageHandler<TMessage>(Action<TMessage> messageHandler)
                 where TMessage : IEditorToRuntimeMessage

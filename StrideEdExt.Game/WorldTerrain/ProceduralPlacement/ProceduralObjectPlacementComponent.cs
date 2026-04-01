@@ -55,12 +55,6 @@ public class ProceduralObjectPlacementComponent : TerrainMapChunkStreamListenerB
 
     public ObjectPlacementMap? ObjectPlacementMap { get; set; }
 
-    ///// <summary>
-    ///// The camera used to determine which chunks should be visible.
-    ///// </summary>
-    ////public CameraComponent? CameraComponent { get; set; }
-    ////public float MaxChunkRenderDistance { get; set; } = 100;
-
     internal void Initialize(IServiceRegistry serviceRegistry)
     {
         var game = serviceRegistry.GetSafeServiceAs<IGame>();

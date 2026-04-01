@@ -14,17 +14,6 @@ public class PrefabSpawnerData : ObjectSpawnerDataBase
 
     protected override void OnSerializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger logger)
     {
-        //if (AssetReferenceList is null)
-        //{
-        //    logger.Warning($"Could not serialize intermediate file because layer {LayerId} did not generate AssetReference list.");
-        //    return;
-        //}
-        //if (ObjectPlacementDataList is null)
-        //{
-        //    logger.Warning($"Could not serialize intermediate file because layer {LayerId} did not generate ObjectPlacementData list.");
-        //    return;
-        //}
-
         var spawnerFullFilePath = this.GetFilePathOrDefaultPath(ObjectSpawnerFilePath, packageFolderPath, IntermediateObjectSpawnerFileNameFormat);
         SpawnerDataSerializationHelper.SerializeObjectPlacementsToFile(OnSerializeMetadata, SpawnPlacementDataList, spawnerFullFilePath);
 
@@ -33,8 +22,6 @@ public class PrefabSpawnerData : ObjectSpawnerDataBase
 
         void OnSerializeMetadata(AssetTextWriter writer)
         {
-            //writer.Write(AssetReferenceList.Count);
-            //writer.WriteTab();
             writer.Write(SpawnPlacementDataList.Count);
             writer.WriteLine();
         }
@@ -82,11 +69,6 @@ public class PrefabSpawnerData : ObjectSpawnerDataBase
                 return false;
             }
             int nextTokenIndex = 0;
-            //if (!SpawnerDataSerializationHelper.TryReadNextInt(metadataLineSpan, tokenRanges, ref nextTokenIndex, out assetRefListCount, out errorMessage)
-            //    || !SpawnerDataSerializationHelper.TryReadNextInt(metadataLineSpan, tokenRanges, ref nextTokenIndex, out objectPlacementDataListCount, out errorMessage))
-            //{
-            //    return false;
-            //}
             if (!SpawnerDataSerializationHelper.TryReadNextInt(metadataLineSpan, tokenRanges, ref nextTokenIndex, out objectPlacementDataListCount, out errorMessage))
             {
                 return false;
@@ -95,17 +77,4 @@ public class PrefabSpawnerData : ObjectSpawnerDataBase
             return true;
         }
     }
-
-    ////public override void ApplyLayerMaterialMapModifications(Array2d<Half> densityMapData, Array2d<byte> materialIndexMapData)
-    ////{
-    ////    if (ObjectDensityMapData is not Array2d<Half> layerObjectDensityMapData
-    ////        || ObjectDensityMapTexturePixelStartPosition is not Int2 startingIndex)
-    ////    {
-    ////        return;
-    ////    }
-
-    ////    ObjectPlacementLayerExtensions.UpdateDensityMapRegion(
-    ////        layerObjectDensityMapData, startingIndex,
-    ////        densityMapData, materialIndexMapData);
-    ////}
 }

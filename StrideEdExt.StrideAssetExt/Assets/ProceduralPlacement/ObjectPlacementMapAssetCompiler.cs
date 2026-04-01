@@ -130,8 +130,6 @@ public class ObjectPlacementMapAssetCompiler : AssetCompilerBase
                     if (spawnerData is ModelInstancingSpawnerData modelInstancingSpawnerData)
                     {
                         logger.Info($"Generating {spawnerData.GetType().Name} objects: ObjectCount: {spawnerData.SpawnPlacementDataList.Count} - ModelType: {modelInstancingSpawnerData.ModelType}");
-                        //var spawnAssetDefinitionList = modelInstancingSpawnerData.SpawnAssetDefinitionList;
-                        //var spawnListIndexToAssetUrlListIndex = GetOrCreateSpawnListIndexToAssetUrlListIndex(spawnAssetDefinitionList, modelAssetUrlList);
 
                         var objectPlacementDataList = modelInstancingSpawnerData.SpawnPlacementDataList;
                         foreach (var placementData in objectPlacementDataList)
@@ -139,11 +137,6 @@ public class ObjectPlacementMapAssetCompiler : AssetCompilerBase
                             var chunkIndex = TerrainChunkIndex2d.ToChunkIndex(placementData.Position, posToChunkIndex);
                             var chunk = chunkIndexToChunkDataMap.GetOrCreateValue(chunkIndex, x => new ObjectPlacementsChunkData());
 
-                            //if (!spawnListIndexToAssetUrlListIndex.TryGetValue(placementData.AssetUrlListIndex, out int assetUrlListIndex))
-                            //{
-                            //    logger.Warning($"placementData.AssetUrlListIndex out of bounds: Index: {placementData.AssetUrlListIndex} - spawnListIndexToAssetUrlListIndex.Length: {spawnListIndexToAssetUrlListIndex.Length}");
-                            //    continue;
-                            //}
                             int assetUrlListIndex = placementData.AssetUrlListIndex;
                             if (assetUrlListIndex < 0 || assetUrlListIndex >= modelAssetUrlList.Count)
                             {
@@ -288,46 +281,5 @@ public class ObjectPlacementMapAssetCompiler : AssetCompilerBase
                 return spawnAssetDefListIndexToAssetUrlListIndex;
             }
         }
-
-        ////private static bool TryCreateUrlRef<T>(List<ModelObjectAssetDefinition> assetReferenceList, int index, [NotNullWhen(true)] out UrlReference<T>? urlReference)
-        ////    where T : class
-        ////{
-        ////    if (0 <= index && index < assetReferenceList.Count)
-        ////    {
-        ////        var assetRef = assetReferenceList[index];
-        ////        urlReference = new UrlReference<T>(assetRef.Id, assetRef.Location);
-        ////        return true;
-        ////    }
-
-        ////    urlReference = null;
-        ////    return false;
-        ////}
-
-        ////private readonly struct ChunkPlacementAssetKey<TAsset> : IEquatable<ChunkPlacementAssetKey<TAsset>>
-        ////    where TAsset : class
-        ////{
-        ////    public required PlacementChunkIndex2d ChunkIndex { get; init; }
-        ////    public required UrlReference<TAsset> UrlReference { get; init; }
-
-        ////    public override int GetHashCode()
-        ////    {
-        ////        int chunkIndexHashCode = ChunkIndex.GetHashCode();
-        ////        int urlHashCode = UrlReference.Url?.GetHashCode() ?? 0;
-        ////        int totalHashCode = HashCode.Combine(chunkIndexHashCode, urlHashCode);
-        ////        return totalHashCode;
-        ////    }
-
-        ////    public override bool Equals(object? obj) => obj is ChunkPlacementAssetKey<TAsset> chunkPlacementAsset && Equals(chunkPlacementAsset);
-
-        ////    public readonly bool Equals(ChunkPlacementAssetKey<TAsset> other)
-        ////    {
-        ////        if (ChunkIndex != other.ChunkIndex)
-        ////        {
-        ////            return false;
-        ////        }
-        ////        bool isUrlSame = UrlReferenceEqualityComparer.IsSame(UrlReference, other.UrlReference);
-        ////        return isUrlSame;
-        ////    }
-        ////}
     }
 }

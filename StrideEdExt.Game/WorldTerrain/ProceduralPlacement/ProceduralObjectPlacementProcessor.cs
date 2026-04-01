@@ -2,11 +2,11 @@
 using Stride.Engine;
 using Stride.Games;
 using Stride.Rendering;
-using Stride.Core;
 
 #if GAME_EDITOR
 using Stride.Assets.Presentation.AssetEditors.GameEditor.Game;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.Game;
+using Stride.Core;
 #endif
 
 namespace StrideEdExt.WorldTerrain.ProceduralPlacement;

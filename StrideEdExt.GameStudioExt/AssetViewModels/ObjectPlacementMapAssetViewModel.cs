@@ -203,30 +203,8 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
 
     private void OnUndoRedoServiceTransactionFinished(object? sender, Stride.Core.Transactions.TransactionEventArgs e)
     {
-        //if (_onTransactionFinished_IsDensityMapLayersUpdateRequired)
-        //{
-        //    _onTransactionFinished_IsDensityMapLayersUpdateRequired = false;
-        //    UpdateDensityMapFromLayers(sendDensityMapUpdateMessage: true);
-        //}
         if (_onTransactionFinished_IsSpawnersUpdateRequired)
         {
-            ////var assetEditorsManager = ServiceProvider.Get<IAssetEditorsManager>();
-            ////if (assetEditorsManager is null)
-            ////{
-            ////    return;
-            ////}
-            ////var sceneViewModels = Session.AllAssets.Where(x => x is SceneViewModel sceneViewModel).ToList();
-            ////var sceneEditorViewModels = new List<SceneEditorViewModel>();
-            ////foreach (var sceneVm in sceneViewModels)
-            ////{
-            ////    if (assetEditorsManager.TryGetAssetEditor<SceneEditorViewModel>(sceneVm, out var sceneEditorViewModel))
-            ////    {
-            ////        sceneEditorViewModels.Add(sceneEditorViewModel);
-            ////    }
-            ////}
-            ////var sceneRootViewModels = sceneEditorViewModels.Where(x => x.RootPart is SceneRootViewModel)
-            ////    .SelectMany(x => GetAllRootScenes((SceneRootViewModel)x.RootPart))
-            ////    .ToList();
             foreach (var pendingLayerTreeUpdate in _pendingLayerTreeUpdateList)
             {
                 var layerTree = pendingLayerTreeUpdate;
@@ -320,46 +298,9 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                     EnsureLayerIntermediateFileDeserialized(layerData, terrainMapTextureSize);
                 }
             }
-            // Provide the density map data & object placement data to the run-time editor tool(s)
+            // Provide the object placement data to the run-time editor tool(s)
             if (_editorToRuntimeMessagingService is not null)
             {
-                // Density map data
-                ////if (dmLayers is not null)
-                ////{
-                ////    foreach (var layerData in dmLayers)
-                ////    {
-                ////        Array2d<Half>? layerDensityMapData = null;
-                ////        if (layerData is PainterObjectDensityMapLayerData painterLayerData)
-                ////        {
-                ////            layerDensityMapData = GetOrLoadDensityMapData(layerData, ref painterLayerData.ObjectDensityMapData, terrainMapTextureSize);
-                ////            var updateLayerMsg = new SetPainterObjectDensityMapDataMessage
-                ////            {
-                ////                ObjectPlacementMapAssetId = Asset.Id,
-                ////                LayerId = layerData.LayerId,
-                ////                ObjectDensityMapData = layerDensityMapData.Clone(),
-                ////                ObjectDensityMapTexturePixelStartPosition = layerData.ObjectDensityMapTexturePixelStartPosition
-                ////            };
-                ////            _editorToRuntimeMessagingService.Send(updateLayerMsg);
-                ////        }
-                ////        else if (layerData is TextureObjectDensityMapLayerData textureLayerData)
-                ////        {
-                ////            layerDensityMapData = GetOrLoadDensityMapData(layerData, ref textureLayerData.ObjectDensityMapData, terrainMapTextureSize);
-                ////            var updateLayerMsg = new SetTextureObjectDensityMapDataMessage
-                ////            {
-                ////                ObjectPlacementMapAssetId = Asset.Id,
-                ////                LayerId = layerData.LayerId,
-                ////                ObjectDensityMapData = layerDensityMapData.Clone(),
-                ////                ObjectDensityMapTexturePixelStartPosition = layerData.ObjectDensityMapTexturePixelStartPosition
-                ////            };
-                ////            _editorToRuntimeMessagingService.Send(updateLayerMsg);
-                ////        }
-                ////        else
-                ////        {
-                ////            throw new NotImplementedException($"Unhandled LayerDataType: {layerData.GetType().Name}");
-                ////        }
-                ////    }
-                ////}
-
                 // Placement data
                 var modelAssetUrlList = Asset.ModelAssetUrlList;
                 var prefabAssetUrlList = Asset.PrefabAssetUrlList;
@@ -431,7 +372,6 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             {
                 layerData.ObjectDensityMapTexturePixelStartPosition = req.ObjectDensityMapTexturePixelStartPosition;
                 //layerData.IsSerializeIntermediateFileRequired = true;
-                //UpdateDensityMapFromLayers(sendDensityMapUpdateMessage: true);
                 UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
             }
         });
@@ -443,17 +383,11 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                 layerData.ObjectDensityMapTexturePixelStartPosition = req.ObjectDensityMapTexturePixelStartPosition;
                 layerData.ObjectDensityMapTextureScale = req.ObjectDensityMapTextureScale;
                 layerData.IsSerializeIntermediateFileRequired = true;
-                //UpdateDensityMapFromLayers(sendDensityMapUpdateMessage: true);
                 UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
             }
         });
         RegisterRequestHandler<AdjustPainterObjectDensityMapRequest>(req =>
         {
-            //if (Asset.ObjectDensityMapData is null)
-            //{
-            //    Debug.WriteLine($"{nameof(AdjustPainterObjectDensityMapRequest)}: Asset.ObjectDensityMapData was not loaded.");
-            //    return;
-            //}
             if (Asset.TryGetDensityMapLayerData<PainterObjectDensityMapLayerData>(req.LayerId, out var layerData))
             {
                 using (var undoRedoTransaction = UndoRedoService.CreateTransaction())
@@ -466,10 +400,8 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                         layerData.ApplyObjectDensityMapAdjustments(adjustmentRegion.AdjustmentObjectDensityMapData, adjustmentRegion.StartPosition, assetTransactionBuilder);
                     }
                     layerData.IsSerializeIntermediateFileRequired = true;
-                    //UpdateDensityMapFromLayers(sendDensityMapUpdateMessage: true);
                     UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
 
-                    //assetTransactionBuilder.AddPostExecuteAction(() => UpdateDensityMapFromLayers(sendDensityMapUpdateMessage: true));
                     assetTransactionBuilder.AddPostExecuteAction(() => UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true));
                     Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                     var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
@@ -843,45 +775,6 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             layerData.DeserializeIntermediateFile(resourceFolderFullPath, Asset, terrainMapTextureSize, _logger);
         }
     }
-
-    ////private bool UpdateDensityMapFromLayers(bool sendDensityMapUpdateMessage, bool sendMaterialLayerIndexListMessage = false)
-    ////{
-    ////    // New data
-    ////    var densityMapData = new Array2d<float>(Asset.DensityMapTextureSize);
-    ////    var heightRange = Asset.HeightRange;
-    ////    var layers = Asset.DensityMapLayerDataList;
-    ////    if (layers is null)
-    ////    {
-    ////        return false;
-    ////    }
-
-    ////    // Done in reverse like paint software (ie. layers are built from bottom then upwards)
-    ////    for (int i = layers.Count - 1; i >= 0; i--)
-    ////    {
-    ////        var densityMapLayerData = layers[i];
-    ////        EnsureLayerIntermediateFileDeserialized(densityMapLayerData);
-    ////        densityMapLayerData.ApplyDensityMapModifications(densityMapData, heightRange);
-    ////    }
-
-    ////    Asset.ObjectDensityMapData = densityMapData;
-    ////    bool hasChanged = layers.Count > 0;
-    ////    if (hasChanged && sendDensityMapUpdateMessage && _editorToRuntimeMessagingService is not null)
-    ////    {
-    ////        var updateDensityMapMsg = new SetTerrainMapDensityMapDataMessage
-    ////        {
-    ////            ObjectPlacementMapAssetId = Asset.Id,
-    ////            DensityMapTextureSize = Asset.DensityMapTextureSize.ToSize2(),
-    ////            DensityMapData = densityMapData.Clone()
-    ////        };
-    ////        Debug.WriteLineIf(condition: true && densityMapData.LengthX > 0 && densityMapData.LengthY > 0, $"UpdateDensityMapFromLayers - SetTerrainMapDensityMapDataMessage.ObjectDensityMapData: {densityMapData[0, 0]}");
-    ////        _editorToRuntimeMessagingService.Send(updateDensityMapMsg);
-    ////    }
-    ////    if (sendMaterialLayerIndexListMessage && TryGetMaterialAsset(Asset.TerrainMaterial, out var terrainMaterialAsset))
-    ////    {
-    ////        SendMaterialLayerIndexListMessage(terrainMaterialAsset);
-    ////    }
-    ////    return hasChanged;
-    ////}
 
     private bool UpdateObjectPlacementsFromSpawnerLayers(bool sendSetObjectPlacementObjectDataMessage)
     {
@@ -1429,55 +1322,6 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
         }
         return densityValue;
     }
-
-    private static Vector2 GetRandomVec2(Random random, Vector2 valueRange)
-    {
-        float range = valueRange.Y - valueRange.X;
-
-        float rndValueX = random.NextSingle();
-        float finalRndValueX = valueRange.X + range * rndValueX;
-        float rndValueY = random.NextSingle();
-        float finalRndValueY = valueRange.X + range * rndValueY;
-        return new Vector2(finalRndValueX, finalRndValueY);
-    }
-
-    private static float GetRandomFloat(Random random, Vector2 valueRange)
-    {
-        float range = valueRange.Y - valueRange.X;
-
-        float rndValue = random.NextSingle();
-        float finalRndValue = valueRange.X + range * rndValue;
-        return finalRndValue;
-    }
-
-    ////private void SendMaterialLayerIndexListMessage(TerrainMaterialAsset terrainMaterialAsset)
-    ////{
-    ////    if (_editorToRuntimeMessagingService is not null)
-    ////    {
-    ////        var materialLayers = new List<SetTerrainMapMaterialLayerData>();
-    ////        var matLayerDefinitions = terrainMaterialAsset.MaterialLayers;
-    ////        for (int i = 0; i < matLayerDefinitions.Count; i++)
-    ////        {
-    ////            var matLayerDef = matLayerDefinitions[i];
-    ////            if (string.IsNullOrWhiteSpace(matLayerDef.MaterialName))
-    ////            {
-    ////                continue;
-    ////            }
-    ////            var setMatLayerData = new SetTerrainMapMaterialLayerData
-    ////            {
-    ////                MaterialName = matLayerDef.MaterialName,
-    ////                MaterialIndex = (byte)i,
-    ////            };
-    ////            materialLayers.Add(setMatLayerData);
-    ////        }
-    ////        var setMaterialLayerIndexListMsg = new SetTerrainMapMaterialLayerIndexListMessage
-    ////        {
-    ////            ObjectPlacementMapAssetId = Asset.Id,
-    ////            MaterialLayers = materialLayers
-    ////        };
-    ////        _editorToRuntimeMessagingService.Send(setMaterialLayerIndexListMsg);
-    ////    }
-    ////}
 
     private bool TryGetTerrainMapAsset(TerrainMap? terrainMapProxyObject, [NotNullWhen(true)] out TerrainMapAsset? terrainMapAsset)
     {
