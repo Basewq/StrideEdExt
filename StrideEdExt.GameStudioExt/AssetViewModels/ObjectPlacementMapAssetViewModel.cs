@@ -802,7 +802,6 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
         var terrainMapQuadCount = terrainMapHeightmapData.Length2d.Subtract(Int2.One);
         var terrainMapWorldSize = terrainMapMeshQuadSize * terrainMapQuadCount.ToVector2();
 
-        var random = new Random(1234);  // TODO
         bool hasChanged = false;
 
         // Track pending placements and separate into chunks to speed up collision check
@@ -844,6 +843,9 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                 Debug.WriteLine($"{nameof(UpdateObjectPlacementsFromSpawnerLayers)}: Unhandled spawner data type: {spawnerData?.GetType().Name}");
                 continue;
             }
+
+            var rndSeed = spawnerLayer.SpawnerRandomSeed;
+            var random = new Random(rndSeed);
 
             var objCountVec2 = terrainMapWorldSize / spawnerLayer.ObjectSpacing;
             int objCountX = (int)Math.Floor(objCountVec2.X);

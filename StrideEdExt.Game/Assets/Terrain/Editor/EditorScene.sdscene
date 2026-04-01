@@ -97,6 +97,7 @@ Hierarchy:
                         Children: {}
                     21766a819f9cdfe7025d353a6056bcb4: !StrideEdExt.WorldTerrain.ProceduralPlacement.Layers.Spawners.ModelInstancingSpawnerComponent,StrideEdExt.Game
                         Id: feacac39-9480-413d-9ca5-c6e2590319d1
+                        SpawnerRandomSeed: 14936
                         ObjectSpacing: 2.5
                         MinimumDensityValueThreshold: 0.0
                         SurfaceNormalMinimumAngleDegrees: 0.0
@@ -146,6 +147,7 @@ Hierarchy:
                         Children: {}
                     b4bf7a410189145713f5a764870a86ef: !StrideEdExt.WorldTerrain.ProceduralPlacement.Layers.Spawners.ModelInstancingSpawnerComponent,StrideEdExt.Game
                         Id: 4396cec8-a435-4eaf-a1a7-4f47b6a3efb1
+                        SpawnerRandomSeed: 14936
                         ObjectSpacing: 0.4
                         MinimumDensityValueThreshold: 0.0
                         SurfaceNormalMinimumAngleDegrees: 0.0

@@ -2,6 +2,8 @@
 
 public interface IObjectSpawnerLayer : IObjectPlacementLayer
 {
+    int SpawnerRandomSeed { get; }
+
     float ObjectSpacing { get; }
 
     float MinimumDensityValueThreshold { get; }

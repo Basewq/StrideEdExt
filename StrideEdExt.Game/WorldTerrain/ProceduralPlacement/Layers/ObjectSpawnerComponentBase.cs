@@ -35,6 +35,9 @@ public abstract class ObjectSpawnerComponentBase : EntityComponent, IObjectSpawn
     [DataMemberIgnore]
     public abstract Type LayerDataType { get; }
 
+    private int _spawnerRandomSeed = 14936;
+    public int SpawnerRandomSeed { get => _spawnerRandomSeed; set => SetValue(ref _spawnerRandomSeed, value); }
+
     private float _objectSpacing = 1f;
     public float ObjectSpacing { get => _objectSpacing; set => SetValue(ref _objectSpacing, value); }
 
