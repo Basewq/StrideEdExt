@@ -1,4 +1,5 @@
 ﻿using Stride.Core;
+using StrideEdExt.SharedData.AssetSerialization;
 
 namespace StrideEdExt.SharedData.ProceduralPlacement.Layers.Spawners;
 
@@ -7,7 +8,7 @@ namespace StrideEdExt.SharedData.ProceduralPlacement.Layers.Spawners;
 /// along with spawn rules for this particular asset.
 /// </summary>
 [DataContract]
-public class ObjectSpawnAssetDefinition
+public class ObjectSpawnAssetDefinition : IAssetReplaceable<ObjectSpawnAssetDefinition>
 {
     public string? AssetUrl { get; set; }
     /// <summary>
@@ -16,4 +17,11 @@ public class ObjectSpawnAssetDefinition
     /// </summary>
     public float SpawnWeightValue { get; set; } = 1;
     public float CollisionRadius { get; set; } = 0.5f;
+
+    public void CopyContentsTo(ref ObjectSpawnAssetDefinition obj)
+    {
+        obj.AssetUrl = AssetUrl;
+        obj.SpawnWeightValue = SpawnWeightValue;
+        obj.CollisionRadius = CollisionRadius;
+    }
 }

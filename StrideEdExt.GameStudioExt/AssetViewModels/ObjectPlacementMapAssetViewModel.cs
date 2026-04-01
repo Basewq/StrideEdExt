@@ -15,6 +15,7 @@ using Stride.Core.Quantum;
 using Stride.Engine;
 using StrideEdExt.GameStudioExt.Assets.Transaction;
 using StrideEdExt.SharedData;
+using StrideEdExt.SharedData.AssetSerialization;
 using StrideEdExt.SharedData.ProceduralPlacement;
 using StrideEdExt.SharedData.ProceduralPlacement.EditorToRuntimeMessages;
 using StrideEdExt.SharedData.ProceduralPlacement.Layers;
@@ -489,7 +490,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             {
                 //modelInstancingSpawnerData.MinimumDensityValueThreshold = req.MinimumDensityValueThreshold;
                 //modelInstancingSpawnerData.ModelType = req.ModelType;
-                modelInstancingSpawnerData.SpawnAssetDefinitionList = req.ObjectSpawnAssetDefinitionList.ToList();
+                AssetReplaceableExt.ReplaceList(sourceList: req.ObjectSpawnAssetDefinitionList, destinationList: modelInstancingSpawnerData.SpawnAssetDefinitionList);
 
                 modelInstancingSpawnerData.IsSerializeIntermediateFileRequired = true;
                 UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
@@ -504,7 +505,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             if (Asset.TryGetObjectSpawnerData<PrefabSpawnerData>(req.LayerId, out var prefabSpawnerData))
             {
                 //prefabSpawnerData.MinimumDensityValueThreshold = req.MinimumDensityValueThreshold;
-                prefabSpawnerData.SpawnAssetDefinitionList = req.ObjectSpawnAssetDefinitionList.ToList();
+                AssetReplaceableExt.ReplaceList(sourceList: req.ObjectSpawnAssetDefinitionList, destinationList: prefabSpawnerData.SpawnAssetDefinitionList);
 
                 prefabSpawnerData.IsSerializeIntermediateFileRequired = true;
                 UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
@@ -1130,8 +1131,8 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
 
         if (hasChanged && sendSetObjectPlacementObjectDataMessage && _editorToRuntimeMessagingService is not null)
         {
-            Asset.ModelAssetUrlList = modelAssetUrlList;
-            Asset.PrefabAssetUrlList = prefabAssetUrlList;
+            AssetReplaceableExt.ReplaceList(sourceList: modelAssetUrlList, destinationList: Asset.ModelAssetUrlList);
+            AssetReplaceableExt.ReplaceList(sourceList: prefabAssetUrlList, destinationList: Asset.PrefabAssetUrlList);
             SendUpdatedObjectPlacementObjectData(modelAssetUrlList, prefabAssetUrlList, spawnerDataList);
         }
         //if (sendUpdateLayerTreeMessage)
