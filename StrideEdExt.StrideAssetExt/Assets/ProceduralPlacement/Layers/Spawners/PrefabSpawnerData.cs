@@ -10,7 +10,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners;
 public class PrefabSpawnerData : ObjectSpawnerDataBase
 {
     [Display(Browsable = false)]
-    public DateTime? LastModifiedSourceFile { get; set; }
+    public DateTimeOffset? LastModifiedSourceFile { get; set; }
 
     protected override void OnSerializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger logger)
     {

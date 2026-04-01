@@ -11,7 +11,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.DensityMa
 public class TextureObjectDensityMapLayerData : ObjectDensityMapLayerDataBase
 {
     [Display(Browsable = false)]
-    public DateTime? LastModifiedSourceFile { get; set; }
+    public DateTimeOffset? LastModifiedSourceFile { get; set; }
 
     public Vector2 ObjectDensityMapTextureScale { get; set; } = Vector2.One;
 

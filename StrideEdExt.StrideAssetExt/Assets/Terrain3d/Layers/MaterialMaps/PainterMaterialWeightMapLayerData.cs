@@ -15,7 +15,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.MaterialMaps;
 public class PainterMaterialWeightMapLayerData : TerrainMaterialMapLayerDataBase
 {
     [Display(Browsable = false)]
-    public DateTime? LastModifiedSourceFile { get; set; }
+    public DateTimeOffset? LastModifiedSourceFile { get; set; }
 
     /// <summary>
     /// MaterialWeightMap values are normalized values in range [0...1].

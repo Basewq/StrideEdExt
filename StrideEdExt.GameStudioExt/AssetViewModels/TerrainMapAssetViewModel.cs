@@ -120,7 +120,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                     _onTransactionFinished_IsMaterialIndexMapLayersUpdateRequired = true;
                 }
 
-                Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+                Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                 var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
                 var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
                 UndoRedoService.PushOperation(trxOp);
@@ -416,7 +416,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                     UpdateHeightmapFromLayers(sendHeightmapUpdateMessage: true);
 
                     assetTransactionBuilder.AddPostExecuteAction(() => UpdateHeightmapFromLayers(sendHeightmapUpdateMessage: true));
-                    Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                     var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
                     var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
                     UndoRedoService.PushOperation(trxOp);
@@ -470,7 +470,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                         UpdateMaterialIndexMapFromLayers(sendMaterialMapUpdateMessage: true);
                         SendUpdateMaterialLayerWeightMapMessage(layerData);
                     });
-                    Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                     var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
                     var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
                     UndoRedoService.PushOperation(trxOp);
@@ -533,7 +533,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                         {
                             layerData.IsSerializeIntermediateFileRequired = true;
                         }
-                        Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+                        Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                         var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
                         var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
                         UndoRedoService.PushOperation(trxOp);
@@ -553,7 +553,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                         UpdateHeightmapFromLayers(sendHeightmapUpdateMessage: true);
                     }
                     assetTransactionBuilder.AddPostExecuteAction(() => UpdateHeightmapFromLayers(sendHeightmapUpdateMessage: true));
-                    Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                     var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
                     var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
                     UndoRedoService.PushOperation(trxOp);
@@ -570,7 +570,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                         layerData.MaterialName = e.NewValue as string;
                     }
                     assetTransactionBuilder.AddPostExecuteAction(() => UpdateMaterialIndexMapFromLayers(sendMaterialMapUpdateMessage: true));
-                    Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                     var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
                     var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
                     UndoRedoService.PushOperation(trxOp);
@@ -645,7 +645,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                         });
                     }
 
-                    Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                     var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
                     var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
                     UndoRedoService.PushOperation(trxOp);

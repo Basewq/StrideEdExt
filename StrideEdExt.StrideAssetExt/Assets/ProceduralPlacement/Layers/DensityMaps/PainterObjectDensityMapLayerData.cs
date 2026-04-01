@@ -14,7 +14,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.DensityMa
 public class PainterObjectDensityMapLayerData : ObjectDensityMapLayerDataBase
 {
     [Display(Browsable = false)]
-    public DateTime? LastModifiedSourceFile { get; set; }
+    public DateTimeOffset? LastModifiedSourceFile { get; set; }
 
     /// <summary>
     /// ObjectDensityMap values are normalized values in range [0...1].

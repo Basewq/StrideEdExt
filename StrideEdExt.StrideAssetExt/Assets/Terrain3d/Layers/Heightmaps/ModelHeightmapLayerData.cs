@@ -12,7 +12,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.Heightmaps;
 public class ModelHeightmapLayerData : TerrainHeightmapLayerDataBase
 {
     [Display(Browsable = false)]
-    public DateTime? LastModifiedSourceFile { get; set; }
+    public DateTimeOffset? LastModifiedSourceFile { get; set; }
     public string? ModelAssetUrl { get; set; }
 
     /// <summary>

@@ -11,7 +11,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners;
 public class ModelInstancingSpawnerData : ObjectSpawnerDataBase
 {
     [Display(Browsable = false)]
-    public DateTime? LastModifiedSourceFile { get; set; }
+    public DateTimeOffset? LastModifiedSourceFile { get; set; }
 
     //[DataMemberIgnore]
     public ObjectPlacementModelType ModelType { get; set; }

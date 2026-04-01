@@ -11,7 +11,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.Heightmaps;
 public class TextureHeightmapLayerData : TerrainHeightmapLayerDataBase
 {
     [Display(Browsable = false)]
-    public DateTime? LastModifiedSourceFile { get; set; }
+    public DateTimeOffset? LastModifiedSourceFile { get; set; }
 
     /// <summary>
     /// Heightmap values are normalized values in range [0...1].

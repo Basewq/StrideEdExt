@@ -14,7 +14,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers;
 public abstract class ObjectPlacementLayerDataBase
 {
     public Guid LayerId { get; set; }
-    public DateTime? LastModifiedIntermediateFile { get; set; }
+    public DateTimeOffset? LastModifiedIntermediateFile { get; set; }
 
     [DataMemberIgnore]
     public bool IsSerializeIntermediateFileRequired { get; set; }

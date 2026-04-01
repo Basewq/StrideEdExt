@@ -15,7 +15,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers;
 public abstract class TerrainMapLayerDataBase
 {
     public Guid LayerId { get; set; }
-    public DateTime? LastModifiedIntermediateFile { get; set; }
+    public DateTimeOffset? LastModifiedIntermediateFile { get; set; }
 
     [DataMemberIgnore]
     public bool IsSerializeIntermediateFileRequired { get; set; }

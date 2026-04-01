@@ -104,7 +104,7 @@ public class TerrainMapAsset : Asset
 
     [Display(Browsable = false)]
     [DataMember]
-    internal DateTime? LastUserModifiedDateTimeUtc { get; set; }
+    internal DateTimeOffset? LastUserModifiedDateTimeUtc { get; set; }
 
     [DataMemberIgnore]
     public bool HasTerrainMapLayerSerializedIntermediateFiles { get; set; }
@@ -529,7 +529,7 @@ public class TerrainMapAsset : Asset
                             if (layerData.IsSerializeIntermediateFileRequired)
                             {
                                 layerData.SerializeIntermediateFile(resourceFolderFullPath, this, logger);
-                                layerData.LastModifiedIntermediateFile = DateTime.UtcNow;
+                                layerData.LastModifiedIntermediateFile = DateTimeOffset.UtcNow;
                                 layerData.IsSerializeIntermediateFileRequired = false;
                                 HasTerrainMapLayerSerializedIntermediateFiles = true;
                             }
@@ -542,7 +542,7 @@ public class TerrainMapAsset : Asset
                             if (layerData.IsSerializeIntermediateFileRequired)
                             {
                                 layerData.SerializeIntermediateFile(resourceFolderFullPath, this, logger);
-                                layerData.LastModifiedIntermediateFile = DateTime.UtcNow;
+                                layerData.LastModifiedIntermediateFile = DateTimeOffset.UtcNow;
                                 layerData.IsSerializeIntermediateFileRequired = false;
                                 HasTerrainMapLayerSerializedIntermediateFiles = true;
                             }

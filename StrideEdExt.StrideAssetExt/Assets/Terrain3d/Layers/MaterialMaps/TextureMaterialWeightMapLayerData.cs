@@ -12,7 +12,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.MaterialMaps;
 public class TextureMaterialWeightMapLayerData : TerrainMaterialMapLayerDataBase
 {
     [Display(Browsable = false)]
-    public DateTime? LastModifiedSourceFile { get; set; }
+    public DateTimeOffset? LastModifiedSourceFile { get; set; }
 
     [DataMemberIgnore]
     public Array2d<Half>? MaterialWeightMapData;

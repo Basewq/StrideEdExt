@@ -7,13 +7,13 @@ TotalObjectPlacementCount: 0
 DensityMapLayerDataList:
     ece5ceafbb0d6814cdd839511a1a6fdd: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.DensityMaps.PainterObjectDensityMapLayerData,StrideEdExt.StrideAssetExt
         LayerId: 1445a826-6472-471c-87b5-add4c77b078c
-        LastModifiedIntermediateFile: 2026-03-31T08:42:51.4356873Z
+        LastModifiedIntermediateFile: 2026-03-31T21:42:51.4356873Z
         ObjectDensityMapTexturePixelStartPosition: {X: 0, Y: 0}
         ObjectDensityMapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_density_1445a8266472471c87b5add4c77b078c.txt
         LastModifiedSourceFile: null
     a82388e015549433e240a44716c3cc70: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.DensityMaps.TextureObjectDensityMapLayerData,StrideEdExt.StrideAssetExt
         LayerId: a91dfe4b-86cd-4432-b7c9-5eb05d80e0d3
-        LastModifiedIntermediateFile: 2026-03-31T08:42:51.4363991Z
+        LastModifiedIntermediateFile: 2026-03-31T21:42:51.4363991Z
         ObjectDensityMapTexturePixelStartPosition: {X: 0, Y: 0}
         ObjectDensityMapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_density_a91dfe4b86cd4432b7c95eb05d80e0d3.txt
         LastModifiedSourceFile: null
@@ -21,7 +21,7 @@ DensityMapLayerDataList:
 SpawnerDataList:
     46e886dcfb31b9dc327c1f26d96de887: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners.ModelInstancingSpawnerData,StrideEdExt.StrideAssetExt
         LayerId: feacac39-9480-413d-9ca5-c6e2590319d1
-        LastModifiedIntermediateFile: 2026-03-31T12:45:40.8626006
+        LastModifiedIntermediateFile: 2026-04-01T05:39:52.3404757Z
         ObjectSpawnerFilePath: !file ../../Resources/Terrain/ExampleTerrainData/object_placement_spawner_feacac399480413d9ca5c6e2590319d1.txt
         MinimumDensityValueThreshold: 0.0
         SpawnAssetDefinitionList:
@@ -33,7 +33,7 @@ SpawnerDataList:
         ModelType: Static
     ff9b0136c7b15afff5ebdef7db6dcdc6: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners.ModelInstancingSpawnerData,StrideEdExt.StrideAssetExt
         LayerId: 4396cec8-a435-4eaf-a1a7-4f47b6a3efb1
-        LastModifiedIntermediateFile: 2026-03-31T12:45:44.1272676
+        LastModifiedIntermediateFile: 2026-04-01T05:41:03.2523497Z
         ObjectSpawnerFilePath: !file ../../Resources/Terrain/ExampleTerrainData/object_placement_spawner_4396cec8a4354eafa1a74f47b6a3efb1.txt
         MinimumDensityValueThreshold: 0.0
         SpawnAssetDefinitionList:
@@ -43,7 +43,7 @@ SpawnerDataList:
                 CollisionRadius: 0.1
         LastModifiedSourceFile: null
         ModelType: Foliage
-LastUserModifiedDateTimeUtc: 2026-03-31T08:42:47.0693088Z
+LastUserModifiedDateTimeUtc: 2026-04-01T04:38:33.5818171Z
 ResourceFolderPath: !dir ../../Resources/Terrain/ExampleTerrainData
 ModelAssetUrlList:
     62218efe38734c87bd5bd14b2d233d39: Foliage/Capsule

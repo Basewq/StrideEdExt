@@ -133,7 +133,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             ////        _onTransactionFinished_IsSpawnersUpdateRequired = true;
             ////    }
 
-            ////    Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+            ////    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
             ////    var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
             ////    var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
             ////    UndoRedoService.PushOperation(trxOp);
@@ -470,7 +470,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
 
                     //assetTransactionBuilder.AddPostExecuteAction(() => UpdateDensityMapFromLayers(sendDensityMapUpdateMessage: true));
                     assetTransactionBuilder.AddPostExecuteAction(() => UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true));
-                    Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                     var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
                     var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
                     UndoRedoService.PushOperation(trxOp);
@@ -547,7 +547,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                         {
                             layerData.IsSerializeIntermediateFileRequired = true;
                         }
-                        Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+                        Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                         var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
                         var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
                         UndoRedoService.PushOperation(trxOp);
@@ -567,7 +567,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             //            UpdateDensityMapFromLayers(sendDensityMapUpdateMessage: true);
             //        }
             //        assetTransactionBuilder.AddPostExecuteAction(() => UpdateDensityMapFromLayers(sendDensityMapUpdateMessage: true));
-            //        Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+            //        Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
             //        var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
             //        var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
             //        UndoRedoService.PushOperation(trxOp);
@@ -584,7 +584,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             //            layerData.MaterialName = e.NewValue as string;
             //        }
             //        assetTransactionBuilder.AddPostExecuteAction(() => UpdateSpawnerFromLayers(sendSpawnerUpdateMessage: true));
-            //        Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+            //        Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
             //        var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
             //        var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
             //        UndoRedoService.PushOperation(trxOp);
@@ -656,7 +656,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                         _pendingLayerTreeUpdateList.Add(pendingUpdate);
                     });
 
-                    Asset.LastUserModifiedDateTimeUtc = DateTime.UtcNow;
+                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
                     var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
                     var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
                     UndoRedoService.PushOperation(trxOp);
