@@ -23,7 +23,6 @@ SpawnerDataList:
         LayerId: feacac39-9480-413d-9ca5-c6e2590319d1
         LastModifiedIntermediateFile: 2026-04-01T05:39:52.3404757Z
         ObjectSpawnerFilePath: !file ../../Resources/Terrain/ExampleTerrainData/object_placement_spawner_feacac399480413d9ca5c6e2590319d1.txt
-        MinimumDensityValueThreshold: 0.0
         SpawnAssetDefinitionList:
             631e93b3cd7a0432fea47ea39b918571:
                 AssetUrl: Foliage/Capsule
@@ -35,7 +34,6 @@ SpawnerDataList:
         LayerId: 4396cec8-a435-4eaf-a1a7-4f47b6a3efb1
         LastModifiedIntermediateFile: 2026-04-01T05:41:03.2523497Z
         ObjectSpawnerFilePath: !file ../../Resources/Terrain/ExampleTerrainData/object_placement_spawner_4396cec8a4354eafa1a74f47b6a3efb1.txt
-        MinimumDensityValueThreshold: 0.0
         SpawnAssetDefinitionList:
             cfe24c38c61972372075e6129147b3d3:
                 AssetUrl: Foliage/GrassMesh

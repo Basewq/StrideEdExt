@@ -78,8 +78,6 @@ public abstract class ObjectSpawnerDataBase : ObjectPlacementLayerDataBase, IObj
     [UPath(UPathRelativeTo.Package)]
     public UFile? ObjectSpawnerFilePath { get; set; }
 
-    public float MinimumDensityValueThreshold { get; set; }
-
     /// <summary>
     /// Pool of assets used to spawn an object.
     /// </summary>

@@ -420,8 +420,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
         {
             if (Asset.TryGetObjectSpawnerData<ModelInstancingSpawnerData>(req.LayerId, out var modelInstancingSpawnerData))
             {
-                //modelInstancingSpawnerData.MinimumDensityValueThreshold = req.MinimumDensityValueThreshold;
-                //modelInstancingSpawnerData.ModelType = req.ModelType;
+                modelInstancingSpawnerData.ModelType = req.ModelType;
                 AssetReplaceableExt.ReplaceList(sourceList: req.ObjectSpawnAssetDefinitionList, destinationList: modelInstancingSpawnerData.SpawnAssetDefinitionList);
 
                 modelInstancingSpawnerData.IsSerializeIntermediateFileRequired = true;
@@ -436,7 +435,6 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
         {
             if (Asset.TryGetObjectSpawnerData<PrefabSpawnerData>(req.LayerId, out var prefabSpawnerData))
             {
-                //prefabSpawnerData.MinimumDensityValueThreshold = req.MinimumDensityValueThreshold;
                 AssetReplaceableExt.ReplaceList(sourceList: req.ObjectSpawnAssetDefinitionList, destinationList: prefabSpawnerData.SpawnAssetDefinitionList);
 
                 prefabSpawnerData.IsSerializeIntermediateFileRequired = true;
@@ -851,6 +849,8 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             int objCountX = (int)Math.Floor(objCountVec2.X);
             int objCountY = (int)Math.Floor(objCountVec2.Y);
 
+            float minimumDensityValueThreshold = spawnerLayer.MinimumDensityValueThreshold;
+
             float rndPosOffsetMinRadius = spawnerLayer.PositionOffsetMinimumRadius;
             float rndPosOffsetMaxRadius = spawnerLayer.PositionOffsetMaximumRadius;
             float rndPosOffsetMinAngleRad = MathUtil.DegreesToRadians(spawnerLayer.RotationYOffsetMinimumAngleDegrees);
@@ -890,7 +890,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                     {
                         continue;
                     }
-                    if (spawnerData.MinimumDensityValueThreshold > densityValue)
+                    if (minimumDensityValueThreshold > densityValue)
                     {
                         continue;
                     }

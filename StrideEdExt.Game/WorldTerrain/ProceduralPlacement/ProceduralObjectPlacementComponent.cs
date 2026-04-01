@@ -61,11 +61,11 @@ public class ProceduralObjectPlacementComponent : TerrainMapChunkStreamListenerB
         _graphicsDevice = game.GraphicsDevice;
         _contentManager = game.Content;
 
-        //if (Entity.EntityManager.ExecutionMode == ExecutionMode.Runtime && ObjectPlacementMap is not null)
-        //{
-        //    // Only load the asset as-is when running as an app, the editor loads the meshes via TerrainMapEditorProcessor
-        //    ObjectPlacementMap.Initialize();
-        //}
+        if (Entity.EntityManager.ExecutionMode == ExecutionMode.Runtime && ObjectPlacementMap is not null)
+        {
+            // Only load the asset as-is when running as an app, the editor loads the meshes via TerrainMapEditorProcessor
+            ObjectPlacementMap.Initialize();
+        }
     }
 
     internal void Deinitialize()
