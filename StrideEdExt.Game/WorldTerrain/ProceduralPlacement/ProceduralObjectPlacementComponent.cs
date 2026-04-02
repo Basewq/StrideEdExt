@@ -379,10 +379,18 @@ public class ProceduralObjectPlacementComponent : TerrainMapChunkStreamListenerB
 
             var modelUrlRef = prefabModelInstancingComp.ModelUrlRef;
             var modelUrl = modelUrlRef?.Url;
-            if (modelUrlRef is not null && modelUrl is not null
-                && !existingModelUrlToInstancingComponentMap.TryGetValue(modelUrl, out var instancingComponent))
+
+            if (modelUrlRef is not null && modelUrl is not null)
             {
-                if (TryCreateInstancingEntityForPrefab(modelUrlRef, out var instancingEntity))
+                if (!existingModelUrlToInstancingComponentMap.TryGetValue(modelUrl, out var instancingComponent))
+                {
+                    // Create the instancing entity that this entity will belong to
+                    if (TryCreateInstancingEntityForPrefab(modelUrlRef, out var instancingEntity, out instancingComponent))
+                    {
+                        existingModelUrlToInstancingComponentMap[modelUrl] = instancingComponent;
+                    }
+                }
+                if (instancingComponent is not null)
                 {
                     if (!entity.TryGetComponent<InstanceComponent>(out var instanceComponent))
                     {
@@ -390,6 +398,10 @@ public class ProceduralObjectPlacementComponent : TerrainMapChunkStreamListenerB
                         entity.Add(instanceComponent);
                     }
                     instanceComponent.Master = instancingComponent;
+                }
+                else
+                {
+                    Debug.WriteLine($"Failed to generate prefab instancing entity for model: {modelUrl}");
                 }
             }
         }
@@ -402,7 +414,7 @@ public class ProceduralObjectPlacementComponent : TerrainMapChunkStreamListenerB
 
     private bool TryCreateInstancingEntityForPrefab(
         UrlReference<Model> modelUrlRef,
-        [NotNullWhen(true)] out Entity? instancingEntity)
+        [NotNullWhen(true)] out Entity? instancingEntity, [NotNullWhen(true)] out InstancingComponent? instancingComponent)
     {
         var model = _contentManager.Load(modelUrlRef);
         if (model is null)
@@ -410,6 +422,7 @@ public class ProceduralObjectPlacementComponent : TerrainMapChunkStreamListenerB
             // The editor can sometimes bug out and not load the model...
             //throw new ApplicationException($"Failed to load model: {modelUrlRef.Url}");
             instancingEntity = null;
+            instancingComponent = null;
             return false;
         }
 
@@ -423,11 +436,11 @@ public class ProceduralObjectPlacementComponent : TerrainMapChunkStreamListenerB
 
         instancingEntity.Add(modelComp);
         var instancingEntityTransform = new InstancingEntityTransform();
-        var instComp = new InstancingComponent
+        instancingComponent = new InstancingComponent
         {
             Type = instancingEntityTransform
         };
-        instancingEntity.Add(instComp);
+        instancingEntity.Add(instancingComponent);
 
         return true;
     }
