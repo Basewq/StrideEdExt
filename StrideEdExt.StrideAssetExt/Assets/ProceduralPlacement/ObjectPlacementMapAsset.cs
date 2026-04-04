@@ -114,8 +114,12 @@ public class ObjectPlacementMapAsset : Asset
     [UPath(UPathRelativeTo.Package)]
     public UDirectory? ResourceFolderPath { get; set; }
 
-    public List<string> ModelAssetUrlList { get; set; } = [];
-    public List<string> PrefabAssetUrlList { get; set; } = [];
+    [Display(Browsable = false)]
+    [DataMember]
+    internal List<string> ModelAssetUrlList { get; set; } = [];
+    [Display(Browsable = false)]
+    [DataMember]
+    internal List<string> PrefabAssetUrlList { get; set; } = [];
 
     public ObjectPlacementMapAsset()
     {
