@@ -80,8 +80,8 @@ public struct TextureWorldMeasurement : IEquatable<TextureWorldMeasurement>
     /// </summary>
     public readonly Rectangle GetTextureCoordsRegionXZ(in Vector3 worldPosition1, in Vector3 worldPosition2)
     {
-        MathExt.MinMax(worldPosition1.X, worldPosition2.X, out float minPosX, out float maxPosX);
-        MathExt.MinMax(worldPosition1.Z, worldPosition2.Z, out float minPosZ, out float maxPosZ);
+        MathExt.GetMinMax(worldPosition1.X, worldPosition2.X, out float minPosX, out float maxPosX);
+        MathExt.GetMinMax(worldPosition1.Z, worldPosition2.Z, out float minPosZ, out float maxPosZ);
         // Add half TexelWorldSize because the origin sits in the center of the texel
         minPosX += 0.5f * TexelWorldSize.X;
         maxPosX += 0.5f * TexelWorldSize.X;

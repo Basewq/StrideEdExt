@@ -2,7 +2,7 @@
 {
     rgroup PerView.ObjectInfo
     {
-        // Be sure to include <uint2> otherwise the shader will not correctly read the texture
+        // Be sure to include <uint> otherwise the shader will not correctly read the texture
         stage Texture2D<uint> ObjectInfoData;    // As per shader ObjectInfoOutputShader, x stores the RenderGroup.
     }
 

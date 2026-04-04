@@ -84,7 +84,7 @@ public static class MathExt
         }
     }
 
-    public static void MinMax(float value1, float value2, out float minValue, out float maxValue)
+    public static void GetMinMax(float value1, float value2, out float minValue, out float maxValue)
     {
         if (value1 <= value2)
         {
