@@ -1026,8 +1026,8 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
 
         if (hasChanged && sendSetObjectPlacementObjectDataMessage && _editorToRuntimeMessagingService is not null)
         {
-            AssetReplaceableExt.ReplaceList(sourceList: modelAssetUrlList, destinationList: Asset.ModelAssetUrlList);
-            AssetReplaceableExt.ReplaceList(sourceList: prefabAssetUrlList, destinationList: Asset.PrefabAssetUrlList);
+            AssetReplaceableExt.ReplaceListAssignItems(sourceList: modelAssetUrlList, destinationList: Asset.ModelAssetUrlList);
+            AssetReplaceableExt.ReplaceListAssignItems(sourceList: prefabAssetUrlList, destinationList: Asset.PrefabAssetUrlList);
             SendUpdatedObjectPlacementObjectData(modelAssetUrlList, prefabAssetUrlList, spawnerDataList);
         }
         //if (sendUpdateLayerTreeMessage)

@@ -13,7 +13,7 @@ public static class AssetReplaceableExt
         where T : IAssetReplaceable<T>
     {
         int replaceableCount = Math.Min(sourceList.Count, destinationList.Count);
-        var srcSpan = CollectionsMarshal.AsSpan(destinationList);
+        var srcSpan = CollectionsMarshal.AsSpan(sourceList);
         var destSpan = CollectionsMarshal.AsSpan(destinationList);
         for (int i = 0; i < replaceableCount; i++)
         {
@@ -36,13 +36,13 @@ public static class AssetReplaceableExt
     }
 
     /// <summary>
-    /// Update an existing <see cref="List{string}"/> with the items from another <see cref="List{string}"/>.
+    /// Update an existing <see cref="List{T}"/> with the items from another <see cref="List{T}"/>.
     /// Used to provide a more stable YAML file when changing the contents of the list.
     /// </summary>
-    public static void ReplaceList(List<string> sourceList, List<string> destinationList)
+    public static void ReplaceListAssignItems<T>(List<T> sourceList, List<T> destinationList)
     {
         int replaceableCount = Math.Min(sourceList.Count, destinationList.Count);
-        var srcSpan = CollectionsMarshal.AsSpan(destinationList);
+        var srcSpan = CollectionsMarshal.AsSpan(sourceList);
         var destSpan = CollectionsMarshal.AsSpan(destinationList);
         for (int i = 0; i < replaceableCount; i++)
         {
