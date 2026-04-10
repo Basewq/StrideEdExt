@@ -10,6 +10,7 @@ namespace StrideEdExt.SharedData.ProceduralPlacement.Layers.Spawners;
 [DataContract]
 public class ObjectSpawnAssetDefinition : IAssetReplaceable<ObjectSpawnAssetDefinition>
 {
+    public bool IsEnabled { get; set; } = true;
     public string? AssetUrl { get; set; }
     /// <summary>
     /// Weight value proportion to determine if this specific asset object should be spawned

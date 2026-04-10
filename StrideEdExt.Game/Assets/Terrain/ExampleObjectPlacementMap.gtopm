@@ -21,10 +21,11 @@ DensityMapLayerDataList:
 SpawnerDataList:
     46e886dcfb31b9dc327c1f26d96de887: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners.ModelInstancingSpawnerData,StrideEdExt.StrideAssetExt
         LayerId: feacac39-9480-413d-9ca5-c6e2590319d1
-        LastModifiedIntermediateFile: 2026-04-01T09:38:48.9081062Z
+        LastModifiedIntermediateFile: 2026-04-10T12:55:33.3438704Z
         ObjectSpawnerFilePath: !file ../../Resources/Terrain/ExampleTerrainData/object_placement_spawner_feacac399480413d9ca5c6e2590319d1.txt
         SpawnAssetDefinitionList:
             631e93b3cd7a0432fea47ea39b918571:
+                IsEnabled: true
                 AssetUrl: Foliage/Capsule
                 SpawnWeightValue: 1.0
                 CollisionRadius: 0.5
@@ -32,18 +33,33 @@ SpawnerDataList:
         ModelType: Static
     ff9b0136c7b15afff5ebdef7db6dcdc6: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners.ModelInstancingSpawnerData,StrideEdExt.StrideAssetExt
         LayerId: 4396cec8-a435-4eaf-a1a7-4f47b6a3efb1
-        LastModifiedIntermediateFile: 2026-04-01T09:38:48.9331094Z
+        LastModifiedIntermediateFile: 2026-04-10T12:55:33.3561839Z
         ObjectSpawnerFilePath: !file ../../Resources/Terrain/ExampleTerrainData/object_placement_spawner_4396cec8a4354eafa1a74f47b6a3efb1.txt
         SpawnAssetDefinitionList:
             cfe24c38c61972372075e6129147b3d3:
+                IsEnabled: true
                 AssetUrl: Foliage/GrassMesh
                 SpawnWeightValue: 1.0
                 CollisionRadius: 0.1
         LastModifiedSourceFile: null
         ModelType: Foliage
+    fcba8f4cb4af334fce48bfd0bede7741: !StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners.ManualPrefabSpawnerData,StrideEdExt.StrideAssetExt
+        LayerId: f0e83dd7-eccb-4ab7-8e2a-e2f972154dde
+        LastModifiedIntermediateFile: 2026-04-10T12:55:33.3569309Z
+        ObjectSpawnerFilePath: !file ../../Resources/Terrain/ExampleTerrainData/object_placement_spawner_f0e83dd7eccb4ab78e2ae2f972154dde.txt
+        SpawnAssetDefinitionList:
+            9ed9533f7fb64305e6a581dcd4254e66:
+                IsEnabled: true
+                AssetUrl: TeapotPrefab
+                SpawnWeightValue: 0.0
+                CollisionRadius: 2.0
+        LastModifiedSourceFile: null
+        SpawnAssetDefinitionSpawnInstancingIdList:
+            b6ef94c5304572a720fd62ecb64ac271: 5e991c3d-86c4-449b-86f0-fcdd08ee360a
 LastUserModifiedDateTimeUtc: 2026-04-01T04:38:33.5818171Z
 ResourceFolderPath: !dir ../../Resources/Terrain/ExampleTerrainData
 ModelAssetUrlList:
     62218efe38734c87bd5bd14b2d233d39: Foliage/Capsule
     de83e4374c60408a0961166c96078fd0: Foliage/GrassMesh
-PrefabAssetUrlList: {}
+PrefabAssetUrlList:
+    c6ba950f960fce10d47f351d915a2e8b: TeapotPrefab

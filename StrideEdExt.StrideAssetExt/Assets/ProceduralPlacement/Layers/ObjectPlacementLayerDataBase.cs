@@ -84,24 +84,7 @@ public abstract class ObjectSpawnerDataBase : ObjectPlacementLayerDataBase, IObj
     public List<ObjectSpawnAssetDefinition> SpawnAssetDefinitionList { get; set; } = [];
 
     [DataMemberIgnore]
+    public List<ObjectPlacementSpawnPlacementData> PreviousSpawnPlacementDataList { get; set; } = [];
+    [DataMemberIgnore]
     public List<ObjectPlacementSpawnPlacementData> SpawnPlacementDataList { get; set; } = [];
-
-    public bool IsOccupied(Vector3 position, float radius)
-    {
-        var sphereA = new BoundingSphere(position, radius);
-        foreach (var placementData in SpawnPlacementDataList)
-        {
-            int spawnAssetDefAssetListIndex = placementData.AssetUrlListIndex;
-            if (SpawnAssetDefinitionList.TryGetValue(spawnAssetDefAssetListIndex, out var spawnAssetDefinition))
-            {
-                float scale = placementData.GetMaxScale1d();
-                var sphereB = new BoundingSphere(placementData.Position, spawnAssetDefinition.CollisionRadius * scale);
-                if (CollisionHelper.SphereIntersectsSphere(in sphereA, in sphereB))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

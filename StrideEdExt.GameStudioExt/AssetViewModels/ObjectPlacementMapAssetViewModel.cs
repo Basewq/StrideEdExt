@@ -31,6 +31,7 @@ using StrideEdExt.StrideAssetExt.Assets.Terrain3d;
 using StrideEdExt.StrideAssetExt.Assets.Transaction;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using Half = System.Half;
 
 namespace StrideEdExt.GameStudioExt.AssetViewModels;
@@ -359,6 +360,11 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                 var layerData = Asset.GetOrCreateLayerData<PrefabSpawnerData>(req.LayerId);
                 RebuildPlacementLayerTrees();
             }
+            else if (req.LayerDataType == typeof(ManualPrefabSpawnerData))
+            {
+                var layerData = Asset.GetOrCreateLayerData<ManualPrefabSpawnerData>(req.LayerId);
+                RebuildPlacementLayerTrees();
+            }
             else
             {
                 throw new NotImplementedException($"Unhandled LayerDataType: {req.LayerDataType.Name}");
@@ -443,6 +449,91 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             else
             {
                 Debug.WriteLine($"{nameof(UpdateObjectPlacementPrefabSpawnerDataRequest)}: Failed to find layer ID: {req.LayerId}");
+            }
+        });
+        RegisterRequestHandler<UpdateObjectPlacementManualPrefabSpawnerDataRequest>(req =>
+        {
+            if (Asset.TryGetObjectSpawnerData<ManualPrefabSpawnerData>(req.LayerId, out var manualPrefabSpawnerData))
+            {
+                var spawnAssetDefinitionList = manualPrefabSpawnerData.SpawnAssetDefinitionList.ToList();
+                var spawnAssetDefinitionSpawnInstancingIdList = manualPrefabSpawnerData.SpawnAssetDefinitionSpawnInstancingIdList.ToList();
+
+                var spawnPlacementDataList = manualPrefabSpawnerData.SpawnPlacementDataList;
+
+                if (req.DeletePrefabTransformList is not null)
+                {
+                    foreach (var deletePrefabTransform in req.DeletePrefabTransformList)
+                    {
+                        var spawnInstancingId = deletePrefabTransform.SpawnInstancingId;
+                        if (spawnAssetDefinitionSpawnInstancingIdList.TryFindIndex(x => x == spawnInstancingId, out int assetDefIndex))
+                        {
+                            spawnAssetDefinitionList.RemoveAt(assetDefIndex);
+                            spawnAssetDefinitionSpawnInstancingIdList.RemoveAt(assetDefIndex);
+
+                            if (spawnPlacementDataList.TryFindIndex(x => x.SpawnInstancingId == spawnInstancingId, out int plcDataIndex))
+                            {
+                                spawnPlacementDataList.RemoveAt(plcDataIndex);
+                            }
+                        }
+                    }
+                }
+                if (req.UpsertPrefabTransformList is not null)
+                {
+                    foreach (var upsertPrefabTransform in req.UpsertPrefabTransformList)
+                    {
+                        var spawnInstancingId = upsertPrefabTransform.SpawnInstancingId;
+                        if (!spawnAssetDefinitionSpawnInstancingIdList.TryFindIndex(x => x == spawnInstancingId, out int assetDefIndex))
+                        {
+                            var assetDef = new ObjectSpawnAssetDefinition
+                            {
+                                IsEnabled = upsertPrefabTransform.IsEnabled,
+                                AssetUrl = upsertPrefabTransform.PrefabUrl,
+                                SpawnWeightValue = 0,   // Not relevant
+                                CollisionRadius = upsertPrefabTransform.CollisionRadius,
+                            };
+                            spawnAssetDefinitionList.Add(assetDef);
+                            spawnAssetDefinitionSpawnInstancingIdList.Add(upsertPrefabTransform.SpawnInstancingId);
+                        }
+                        else
+                        {
+                            var assetDef = spawnAssetDefinitionList[assetDefIndex];
+                            assetDef.IsEnabled = upsertPrefabTransform.IsEnabled;
+                            assetDef.AssetUrl = upsertPrefabTransform.PrefabUrl;
+                            assetDef.CollisionRadius = upsertPrefabTransform.CollisionRadius;
+                        }
+
+                        if (!spawnPlacementDataList.TryFindIndex(x => x.SpawnInstancingId == spawnInstancingId, out int plcDataIndex))
+                        {
+                            var objPlcData = new ObjectPlacementManualPrefabSpawnPlacementData
+                            {
+                                SpawnInstancingId = spawnInstancingId,
+                                AssetUrlListIndex = -1,                     // Populated properly in UpdateObjectPlacementsFromSpawnerLayers
+                                Position = upsertPrefabTransform.Position,
+                                Orientation = upsertPrefabTransform.Orientation,
+                                Scale = upsertPrefabTransform.Scale,
+                                SurfaceNormalModelSpace = Vector3.UnitY,    // Not relevant
+                            };
+                            spawnPlacementDataList.Add(objPlcData);
+                        }
+                        else
+                        {
+                            var objPlcData = spawnPlacementDataList[plcDataIndex];
+                            objPlcData.Position = upsertPrefabTransform.Position;
+                            objPlcData.Orientation = upsertPrefabTransform.Orientation;
+                            objPlcData.Scale = upsertPrefabTransform.Scale;
+                        }
+                    }
+                }
+
+                AssetReplaceableExt.ReplaceListAssignItems(sourceList: spawnAssetDefinitionList, destinationList: manualPrefabSpawnerData.SpawnAssetDefinitionList);
+                AssetReplaceableExt.ReplaceListAssignItems(sourceList: spawnAssetDefinitionSpawnInstancingIdList, destinationList: manualPrefabSpawnerData.SpawnAssetDefinitionSpawnInstancingIdList);
+
+                manualPrefabSpawnerData.IsSerializeIntermediateFileRequired = true;
+                UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
+            }
+            else
+            {
+                Debug.WriteLine($"{nameof(UpdateObjectPlacementManualPrefabSpawnerDataRequest)}: Failed to find layer ID: {req.LayerId}");
             }
         });
 
@@ -813,11 +904,79 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
 
         var posToChunkIndex = 1f / chunkWorldSizeVec2;
 
+        // Manual placement objects
         for (int curSpawnerLayerIdx = 0; curSpawnerLayerIdx < spawnerLayerNodeList.Count; curSpawnerLayerIdx++)
         {
             var spawnerLayerNode = spawnerLayerNodeList[curSpawnerLayerIdx];
             if (spawnerLayerNode?.Layer is not IObjectSpawnerLayer spawnerLayer)
             {
+                continue;
+            }
+            if (spawnerLayer.LayerDataType != typeof(ManualPrefabSpawnerData))
+            {
+                continue;
+            }
+
+            var manualPrefabSpawnerData = (ManualPrefabSpawnerData)Asset.GetOrCreateLayerData(spawnerLayer.LayerId, spawnerLayer.LayerDataType);
+            spawnerDataList.Add(manualPrefabSpawnerData);
+
+            var spawnInstancingIdToUrlRefListIndexAndCollisionRadiusMap = GetOrCreateSpawnInstancingIdToPrefabUrlRefListIndexAndCollisionRadiusMap(manualPrefabSpawnerData, prefabAssetUrlList);
+
+            var placementDataList = manualPrefabSpawnerData.SpawnPlacementDataList;
+            for (int i = 0; i < placementDataList.Count; i++)
+            {
+                var objPlcData = placementDataList[i];
+                var spawnInstancingId = objPlcData.SpawnInstancingId;
+                if (!spawnInstancingIdToUrlRefListIndexAndCollisionRadiusMap.TryGetValue(spawnInstancingId, out var assetUrlListIndexAndCollisionRadius))
+                {
+                    continue;
+                }
+                int assetUrlListIndex = assetUrlListIndexAndCollisionRadius.PrefabUrlRefListIndex;
+                objPlcData.AssetUrlListIndex = assetUrlListIndex;
+
+                float collisionRadius = assetUrlListIndexAndCollisionRadius.CollisionRadius;
+                if (collisionRadius > 0)
+                {
+                    // Place in all occupied chunks (assume box rather than sphere)
+                    var objWorldPosXZ = objPlcData.Position.XZ();
+                    var minChunkIndex = MathExt.ToInt2Floor((objWorldPosXZ - new Vector2(collisionRadius)) * posToChunkIndex);
+                    var maxChunkIndex = MathExt.ToInt2Floor((objWorldPosXZ + new Vector2(collisionRadius)) * posToChunkIndex);
+                    var objCollisionSphere = new BoundingSphere(objPlcData.Position, collisionRadius);
+                    for (int chunkIndexY = minChunkIndex.Y; chunkIndexY <= maxChunkIndex.Y; chunkIndexY++)
+                    {
+                        for (int chunkIndexX = minChunkIndex.X; chunkIndexX <= maxChunkIndex.X; chunkIndexX++)
+                        {
+                            var chunkIdx = new TerrainChunkIndex2d(chunkIndexX, chunkIndexY);
+                            if (!chunkIndexToPendingObjects.TryGetValue(chunkIdx, out var pendingObjList))
+                            {
+                                pendingObjList = [];
+                                chunkIndexToPendingObjects[chunkIdx] = pendingObjList;
+                            }
+                            var pendingObj = new PendingObjectPlacement
+                            {
+                                LayerId = spawnerLayer.LayerId,
+                                CollisionSphere = objCollisionSphere,
+                                ObjectPlacementData = objPlcData
+                            };
+                            pendingObjList.Add(pendingObj);
+                        }
+                    }
+                }
+                hasChanged = true;
+            }
+        }
+
+        // Procedurally generated objects
+        for (int curSpawnerLayerIdx = 0; curSpawnerLayerIdx < spawnerLayerNodeList.Count; curSpawnerLayerIdx++)
+        {
+            var spawnerLayerNode = spawnerLayerNodeList[curSpawnerLayerIdx];
+            if (spawnerLayerNode?.Layer is not IObjectSpawnerLayer spawnerLayer)
+            {
+                continue;
+            }
+            else if (spawnerLayer.LayerDataType == typeof(ManualPrefabSpawnerData))
+            {
+                // Already handled
                 continue;
             }
             if (spawnerLayer.ObjectSpacing == 0)
@@ -922,6 +1081,10 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                     double totalSpawnWeightValue = 0;
                     foreach (var spawnAssetDef in spawnerData.SpawnAssetDefinitionList)
                     {
+                        if (!spawnAssetDef.IsEnabled)
+                        {
+                            continue;
+                        }
                         totalSpawnWeightValue += spawnAssetDef.SpawnWeightValue;
                     }
                     double spawnValue = rndSpawnAssetSelectorValue * totalSpawnWeightValue;
@@ -929,6 +1092,10 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                     for (int i = 0; i < spawnerData.SpawnAssetDefinitionList.Count; i++)
                     {
                         var spawnAssetDef = spawnerData.SpawnAssetDefinitionList[i];
+                        if (!spawnAssetDef.IsEnabled)
+                        {
+                            continue;
+                        }
                         nextWeightThreshold += spawnAssetDef.SpawnWeightValue;
                         if (spawnValue < nextWeightThreshold)
                         {
@@ -1026,14 +1193,57 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
 
         if (hasChanged && sendSetObjectPlacementObjectDataMessage && _editorToRuntimeMessagingService is not null)
         {
+            for (int curSpawnerLayerIdx = 0; curSpawnerLayerIdx < spawnerLayerNodeList.Count; curSpawnerLayerIdx++)
+            {
+                var spawnerLayerNode = spawnerLayerNodeList[curSpawnerLayerIdx];
+                if (spawnerLayerNode?.Layer is not IObjectSpawnerLayer spawnerLayer)
+                {
+                    continue;
+                }
+                else if (spawnerLayer.LayerDataType == typeof(ManualPrefabSpawnerData))
+                {
+                    continue;
+                }
+
+                var spawnerData = (ObjectSpawnerDataBase)Asset.GetOrCreateLayerData(spawnerLayer.LayerId, spawnerLayer.LayerDataType);
+                if (spawnerData is null)
+                {
+                    continue;   // Shoudn't be null...
+                }
+
+                if (spawnerData.IsSerializeIntermediateFileRequired)
+                {
+                    spawnerData.PreviousSpawnPlacementDataList.Clear();     // Can safely discard without checking if the placement data has changed
+                    continue;
+                }
+
+                bool isSerializeIntermediateFileRequired = false;
+                if (spawnerData.PreviousSpawnPlacementDataList.Count != spawnerData.SpawnPlacementDataList.Count)
+                {
+                    isSerializeIntermediateFileRequired = true;
+                }
+                else
+                {
+                    var prevListSpan = CollectionsMarshal.AsSpan(spawnerData.PreviousSpawnPlacementDataList);
+                    var curListSpan = CollectionsMarshal.AsSpan(spawnerData.SpawnPlacementDataList);
+                    for (int i = 0; i < curListSpan.Length; i++)
+                    {
+                        if (!curListSpan[i].IsSame(prevListSpan[i]))
+                        {
+                            isSerializeIntermediateFileRequired = true;
+                            break;
+                        }
+                    }
+                }
+
+                spawnerData.IsSerializeIntermediateFileRequired = isSerializeIntermediateFileRequired;
+                spawnerData.PreviousSpawnPlacementDataList.Clear();
+            }
+
             AssetReplaceableExt.ReplaceListAssignItems(sourceList: modelAssetUrlList, destinationList: Asset.ModelAssetUrlList);
             AssetReplaceableExt.ReplaceListAssignItems(sourceList: prefabAssetUrlList, destinationList: Asset.PrefabAssetUrlList);
             SendUpdatedObjectPlacementObjectData(modelAssetUrlList, prefabAssetUrlList, spawnerDataList);
         }
-        //if (sendUpdateLayerTreeMessage)
-        //{
-        //    SendMaterialLayerIndexListMessage(terrainMapAsset);
-        //}
         return hasChanged;
 
         void LoadLayerDataAndClearObjectPlacementData(
@@ -1043,9 +1253,14 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             {
                 var layerData = asset.GetOrCreateLayerData(layerNode.Layer.LayerId, layerNode.Layer.LayerDataType);
                 EnsureLayerIntermediateFileDeserialized(layerData, terrainMapTextureSize);
-                if (layerData is ObjectSpawnerDataBase spawnerData)
+                if (layerData is ObjectSpawnerDataBase spawnerData
+                    && layerData is not ManualPrefabSpawnerData)
                 {
-                    spawnerData.SpawnPlacementDataList.Clear();
+                    // Swap lists for reuse
+                    var prevList = spawnerData.PreviousSpawnPlacementDataList;
+                    var curList = spawnerData.SpawnPlacementDataList;
+                    spawnerData.PreviousSpawnPlacementDataList = curList;
+                    spawnerData.SpawnPlacementDataList = prevList;
                 }
 
                 LoadLayerDataAndClearObjectPlacementData(layerNode.Children, asset, terrainMapTextureSize);
@@ -1120,6 +1335,36 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
 
             return spawnAssetDefListIndexToUrlRefListIndex;
         }
+
+        static Dictionary<Guid, (int PrefabUrlRefListIndex, float CollisionRadius)> GetOrCreateSpawnInstancingIdToPrefabUrlRefListIndexAndCollisionRadiusMap(
+            ManualPrefabSpawnerData manualPrefabSpawnerData, List<string> prefabAssetUrlList)
+        {
+            var spawnAssetDefinitionList = manualPrefabSpawnerData.SpawnAssetDefinitionList;
+            var spawnAssetDefinitionSpawnInstancingIdList = manualPrefabSpawnerData.SpawnAssetDefinitionSpawnInstancingIdList;
+            var spawnInstancingIdToUrlRefListIndexAndCollisionRadiusMap = new Dictionary<Guid, (int PrefabUrlRefListIndex, float CollisionRadius)>();
+
+            for (int i = 0; i < spawnAssetDefinitionList.Count; i++)
+            {
+                var spawnAssetDef = spawnAssetDefinitionList[i];
+                if (!spawnAssetDef.IsEnabled)
+                {
+                    continue;   // Treat the same as it not existing
+                }
+                var spawnInstancingId = spawnAssetDefinitionSpawnInstancingIdList[i];
+                var assetUrl = spawnAssetDef.AssetUrl;
+                if (!string.IsNullOrEmpty(assetUrl))
+                {
+                    if (!prefabAssetUrlList.TryFindIndex(assetUrl, StringComparer.OrdinalIgnoreCase, out int assetUrlListIndex))
+                    {
+                        prefabAssetUrlList.Add(assetUrl);
+                        assetUrlListIndex = prefabAssetUrlList.Count - 1;
+                    }
+                    spawnInstancingIdToUrlRefListIndexAndCollisionRadiusMap[spawnInstancingId] = (assetUrlListIndex, spawnAssetDef.CollisionRadius);
+                }
+            }
+
+            return spawnInstancingIdToUrlRefListIndexAndCollisionRadiusMap;
+        }
     }
 
     private void SendUpdatedObjectPlacementObjectData(
@@ -1176,6 +1421,36 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                 }
 
                 foreach (var spawnPlacementData in spawnerData.SpawnPlacementDataList)
+                {
+                    int assetUrlListIndex = spawnPlacementData.AssetUrlListIndex;
+                    PrefabObjectPlacementsData prefabObjPlacementsData;
+                    if (msgObjPlcDataList.TryFindIndex(x => x.PrefabAssetUrlListIndex == assetUrlListIndex, out int idx))
+                    {
+                        prefabObjPlacementsData = msgObjPlcDataList[idx];
+                    }
+                    else
+                    {
+                        prefabObjPlacementsData = new PrefabObjectPlacementsData()
+                        {
+                            PrefabAssetUrlListIndex = assetUrlListIndex,
+                            Placements = []
+                        };
+                        msgObjPlcDataList.Add(prefabObjPlacementsData);
+                    }
+
+                    var objPlcData = spawnPlacementData.ToObjectPlacementData();
+                    prefabObjPlacementsData.Placements.Add(objPlcData);
+                }
+            }
+            else if (spawnerData is ManualPrefabSpawnerData manualPrefabSpawnerData)
+            {
+                if (!layerIdToPrefabPlacementDataList.TryGetValue(spawnerData.LayerId, out var msgObjPlcDataList))
+                {
+                    msgObjPlcDataList = [];
+                    layerIdToPrefabPlacementDataList[spawnerData.LayerId] = msgObjPlcDataList;
+                }
+
+                foreach (var spawnPlacementData in manualPrefabSpawnerData.SpawnPlacementDataList)
                 {
                     int assetUrlListIndex = spawnPlacementData.AssetUrlListIndex;
                     PrefabObjectPlacementsData prefabObjPlacementsData;

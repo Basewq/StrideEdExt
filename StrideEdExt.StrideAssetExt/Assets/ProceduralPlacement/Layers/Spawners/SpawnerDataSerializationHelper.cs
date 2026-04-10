@@ -18,11 +18,6 @@ public static class SpawnerDataSerializationHelper
         serializeMetadata(writer);
 
         // Write the ObjectPlacementData list
-        SerializeObjectPlacements(writer, objectPlacementDataList);
-    }
-
-    private static void SerializeObjectPlacements(AssetTextWriter writer, List<ObjectPlacementSpawnPlacementData> objectPlacementDataList)
-    {
         var objectPlacementDataListSpan = CollectionsMarshal.AsSpan(objectPlacementDataList);
         for (int i = 0; i < objectPlacementDataListSpan.Length; i++)
         {
@@ -40,16 +35,54 @@ public static class SpawnerDataSerializationHelper
             writer.WriteTabDelimited(objPlacementData.SurfaceNormalModelSpace);
             writer.WriteLine();
         }
+    }
 
-        static Vector3 GetEulerOrientationDegrees(Quaternion orientation)
+    public static void SerializeObjectPlacementsToFile(Action<AssetTextWriter> serializeMetadata, List<ObjectPlacementManualPrefabSpawnPlacementData> objectPlacementDataList, string outputObjectPlacementFilePath)
+    {
+        using var writer = new AssetTextWriter(outputObjectPlacementFilePath);  // Will overwrite the file if it already exists
+
+        // Write metadata at the start
+        serializeMetadata(writer);
+
+        // Write the ObjectPlacementData list
+        var objectPlacementDataListSpan = CollectionsMarshal.AsSpan(objectPlacementDataList);
+        for (int i = 0; i < objectPlacementDataListSpan.Length; i++)
         {
-            Quaternion.RotationYawPitchRoll(ref orientation, out float yawRad, out float pitchRad, out float rollRad);
+            ref var objPlacementData = ref objectPlacementDataListSpan[i];
 
-            float yawDeg = MathUtil.RadiansToDegrees(yawRad);
-            float pitchDeg = MathUtil.RadiansToDegrees(pitchRad);
-            float rollDeg = MathUtil.RadiansToDegrees(rollRad);
-            return new Vector3(pitchDeg, yawDeg, rollDeg);
+            writer.Write(objPlacementData.SpawnInstancingId);
+            writer.WriteTab();
+            writer.Write(objPlacementData.AssetUrlListIndex);
+            writer.WriteTab();
+            writer.WriteTabDelimited(objPlacementData.Position);
+            writer.WriteTab();
+            var eulerOrientationDegrees = GetEulerOrientationDegrees(objPlacementData.Orientation);
+            writer.WriteTabDelimited(eulerOrientationDegrees);
+            writer.WriteTab();
+            writer.WriteTabDelimited(objPlacementData.Scale);
+            writer.WriteTab();
+            writer.WriteTabDelimited(objPlacementData.SurfaceNormalModelSpace);
+            writer.WriteLine();
         }
+    }
+
+    private static Vector3 GetEulerOrientationDegrees(Quaternion orientation)
+    {
+        Quaternion.RotationYawPitchRoll(ref orientation, out float yawRad, out float pitchRad, out float rollRad);
+
+        float yawDeg = MathUtil.RadiansToDegrees(yawRad);
+        float pitchDeg = MathUtil.RadiansToDegrees(pitchRad);
+        float rollDeg = MathUtil.RadiansToDegrees(rollRad);
+        return new Vector3(pitchDeg, yawDeg, rollDeg);
+    }
+
+    private static Quaternion GetOrientationFromEulerDegrees(Vector3 eulerOrientationDegrees)
+    {
+        float yawRad = MathUtil.DegreesToRadians(eulerOrientationDegrees.Y);
+        float pitchRad = MathUtil.DegreesToRadians(eulerOrientationDegrees.X);
+        float rollRad = MathUtil.DegreesToRadians(eulerOrientationDegrees.Z);
+        Quaternion.RotationYawPitchRoll(yawRad, pitchRad, rollRad, out var orientation);
+        return orientation;
     }
 
     public static bool TryDeserializeObjectPlacementsFromFile(
@@ -69,31 +102,9 @@ public static class SpawnerDataSerializationHelper
         {
             return false;
         }
-        //if (assetRefListCount < 0)
-        //{
-        //    errorMessage = $"Invalid AssetRef list count: {assetRefListCount}";
-        //    return false;
-        //}
-        //if (objectPlacementDataListCount < 0)
-        //{
-        //    errorMessage = $"Invalid ObjectPlacementData list count: {objectPlacementDataListCount}";
-        //    return false;
-        //}
 
         //assetRefList = new(capacity: assetRefListCount);
         objectPlacementDataList = new(capacity: objectPlacementDataListCount);
-
-        //// Read the AssetReference list
-        //for (int i = 0; i < assetRefListCount; i++)
-        //{
-        //    var assetRefLine = reader.ReadLine();
-        //    if (!AssetReference.TryParse(assetRefLine, out var assetRef))
-        //    {
-        //        errorMessage = $"Failed to parse AssetReference: {assetRefLine}";
-        //        return false;
-        //    }
-        //    assetRefList.Add(assetRef);
-        //}
 
         // Read the ObjectPlacementData list
         var placementLine = reader.ReadLine();
@@ -101,7 +112,7 @@ public static class SpawnerDataSerializationHelper
         {
             if (!TryParsePlacementLine(
                 placementLine,
-                out var objectPlacementData, out errorMessage))
+                out ObjectPlacementSpawnPlacementData? objectPlacementData, out errorMessage))
             {
                 return false;
             }
@@ -154,13 +165,107 @@ public static class SpawnerDataSerializationHelper
             return false;
         }
 
-        float yawRad = MathUtil.DegreesToRadians(eulerOrientationDegrees.Y);
-        float pitchRad = MathUtil.DegreesToRadians(eulerOrientationDegrees.X);
-        float rollRad = MathUtil.DegreesToRadians(eulerOrientationDegrees.Z);
-        Quaternion.RotationYawPitchRoll(yawRad, pitchRad, rollRad, out var orientation);
-
+        var orientation = GetOrientationFromEulerDegrees(eulerOrientationDegrees);
         objectPlacementData = new ObjectPlacementSpawnPlacementData
         {
+            AssetUrlListIndex = assetUrlListIndex,
+            Position = position,
+            Orientation = orientation,
+            Scale = scale,
+            SurfaceNormalModelSpace = surfaceNormal,
+        };
+        return true;
+    }
+
+    public static bool TryDeserializeObjectPlacementsFromFile(
+        string outputObjectPlacementFilePath,
+        DeserializeMetadataFunc deserializeMetadata,
+        [NotNullWhen(true)] out List<ObjectPlacementManualPrefabSpawnPlacementData>? objectPlacementDataList,
+        [NotNullWhen(false)] out string? errorMessage)
+    {
+        //assetRefList = null;
+        objectPlacementDataList = null;
+        errorMessage = null;
+
+        using var reader = new StreamReader(outputObjectPlacementFilePath);  // Will overwrite the file if it already exists
+
+        // Read metadata at the start
+        if (!deserializeMetadata(reader, out int assetRefListCount, out int objectPlacementDataListCount, out errorMessage))
+        {
+            return false;
+        }
+
+        //assetRefList = new(capacity: assetRefListCount);
+        objectPlacementDataList = new(capacity: objectPlacementDataListCount);
+
+        // Read the ObjectPlacementData list
+        var placementLine = reader.ReadLine();
+        while (placementLine is not null)
+        {
+            if (!TryParsePlacementLine(
+                placementLine,
+                out ObjectPlacementManualPrefabSpawnPlacementData? objectPlacementData, out errorMessage))
+            {
+                return false;
+            }
+            objectPlacementDataList.Add(objectPlacementData);
+
+            placementLine = reader.ReadLine();
+        }
+
+        return true;
+    }
+
+    private static bool TryParsePlacementLine(
+        string placementLine,
+        [NotNullWhen(true)] out ObjectPlacementManualPrefabSpawnPlacementData? objectPlacementData,
+        [NotNullWhen(false)] out string? errorMessage)
+    {
+        objectPlacementData = default;
+
+        const int Vec3TokensPerField = 3;
+        const int TotalGuidFields = 1;
+        const int TotalIntFields = 1;
+        const int TotalVec3Fields = 4;
+        const int TotalTokens = TotalGuidFields + TotalIntFields + (Vec3TokensPerField * TotalVec3Fields);
+        Span<Range> tokenRanges = stackalloc Range[TotalTokens];
+        var placementLineSpan = placementLine.AsSpan();
+        int tokenCount = placementLineSpan.Split(tokenRanges, '\t');
+        if (tokenCount < TotalTokens)
+        {
+            errorMessage = $" Field count mismatched. Expected: {TotalTokens} - Actual: {tokenCount}";
+            return false;
+        }
+        int nextTokenIndex = 0;
+        if (!TryReadNextGuid(placementLineSpan, tokenRanges, ref nextTokenIndex, out var spawnInstancingId, out errorMessage))
+        {
+            return false;
+        }
+        if (!TryReadNextInt(placementLineSpan, tokenRanges, ref nextTokenIndex, out var assetUrlListIndex, out errorMessage))
+        {
+            return false;
+        }
+        if (!TryReadNextVector3(placementLineSpan, tokenRanges, ref nextTokenIndex, out var position, out errorMessage))
+        {
+            return false;
+        }
+        if (!TryReadNextVector3(placementLineSpan, tokenRanges, ref nextTokenIndex, out var eulerOrientationDegrees, out errorMessage))
+        {
+            return false;
+        }
+        if (!TryReadNextVector3(placementLineSpan, tokenRanges, ref nextTokenIndex, out var scale, out errorMessage))
+        {
+            return false;
+        }
+        if (!TryReadNextVector3(placementLineSpan, tokenRanges, ref nextTokenIndex, out var surfaceNormal, out errorMessage))
+        {
+            return false;
+        }
+
+        var orientation = GetOrientationFromEulerDegrees(eulerOrientationDegrees);
+        objectPlacementData = new ObjectPlacementManualPrefabSpawnPlacementData
+        {
+            SpawnInstancingId = spawnInstancingId,
             AssetUrlListIndex = assetUrlListIndex,
             Position = position,
             Orientation = orientation,
@@ -213,6 +318,24 @@ public static class SpawnerDataSerializationHelper
         int tokenLength = tokenRange.End.Value - tokenRange.Start.Value;
         var tokenSpan = lineSpan.Slice(tokenRange.Start.Value, tokenLength);
         if (!int.TryParse(tokenSpan, out value))
+        {
+            errorMessage = $"Failed to parse int value from token: '{tokenSpan}'";
+            return false;
+        }
+
+        errorMessage = null;
+        return true;
+    }
+
+    public static bool TryReadNextGuid(
+        ReadOnlySpan<char> lineSpan, Span<Range> tokenRanges, ref int nextTokenIndex,
+        out Guid value, [NotNullWhen(false)] out string? errorMessage)
+    {
+        var tokenRange = tokenRanges[nextTokenIndex];
+        nextTokenIndex++;
+        int tokenLength = tokenRange.End.Value - tokenRange.Start.Value;
+        var tokenSpan = lineSpan.Slice(tokenRange.Start.Value, tokenLength);
+        if (!Guid.TryParse(tokenSpan, out value))
         {
             errorMessage = $"Failed to parse int value from token: '{tokenSpan}'";
             return false;

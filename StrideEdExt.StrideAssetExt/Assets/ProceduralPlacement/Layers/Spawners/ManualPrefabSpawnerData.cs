@@ -8,10 +8,18 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners;
 
-public class PrefabSpawnerData : ObjectSpawnerDataBase
+public class ManualPrefabSpawnerData : ObjectSpawnerDataBase
 {
     [Display(Browsable = false)]
     public DateTimeOffset? LastModifiedSourceFile { get; set; }
+
+    /// <summary>
+    /// List corresponds 1-1 with <see cref="ObjectSpawnerDataBase.SpawnAssetDefinitionList"/>.
+    /// </summary>
+    public List<Guid> SpawnAssetDefinitionSpawnInstancingIdList { get; set; } = [];
+
+    [DataMemberIgnore]
+    public new List<ObjectPlacementManualPrefabSpawnPlacementData> SpawnPlacementDataList { get; set; } = [];
 
     protected override void OnSerializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger logger)
     {
@@ -42,7 +50,7 @@ public class PrefabSpawnerData : ObjectSpawnerDataBase
             return;
         }
         if (SpawnerDataSerializationHelper.TryDeserializeObjectPlacementsFromFile(
-            spawnerFullFilePath, OnDeserializeMetadata, out List<ObjectPlacementSpawnPlacementData>? objectPlacementDataList, out var errorMessage))
+            spawnerFullFilePath, OnDeserializeMetadata, out List<ObjectPlacementManualPrefabSpawnPlacementData>? objectPlacementDataList, out var errorMessage))
         {
             SpawnPlacementDataList = objectPlacementDataList;
         }
@@ -52,7 +60,7 @@ public class PrefabSpawnerData : ObjectSpawnerDataBase
         }
         return;
 
-        static bool OnDeserializeMetadata(StreamReader reader, out int assetRefListCount, out int objectPlacementDataListCount, [NotNullWhen(false)] out string? errorMessage)
+        bool OnDeserializeMetadata(StreamReader reader, out int assetRefListCount, out int objectPlacementDataListCount, [NotNullWhen(false)] out string? errorMessage)
         {
             assetRefListCount = 0;
             objectPlacementDataListCount = 0;

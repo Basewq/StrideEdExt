@@ -1,0 +1,22 @@
+!PrefabAsset
+Id: 3b87e707-7406-4291-9658-3b07e479d0b2
+SerializedVersion: {Stride: 3.1.0.1}
+Tags: []
+Hierarchy:
+    RootParts:
+        - ref!! 80af8562-299a-4704-bb34-49e87c33abd3
+    Parts:
+        -   Entity:
+                Id: 80af8562-299a-4704-bb34-49e87c33abd3
+                Name: Teapot
+                Components:
+                    9b34002e67e23ed7df26112474053eb2: !TransformComponent
+                        Id: 8bc98f0b-0fb2-47ea-9e74-92d05f843c56
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children: {}
+                    923d6c941f27df32e08b5282013b929c: !ModelComponent
+                        Id: 38ed03e3-15f2-4675-9fc2-4a6358cf6d5c
+                        Model: 40ea84c7-af19-46e8-84f8-8a629ad54032:Teapot
+                        Materials: {}

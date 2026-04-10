@@ -4,6 +4,7 @@ using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using StrideEdExt.SharedData.AssetSerialization;
 using StrideEdExt.SharedData.ProceduralPlacement;
+using StrideEdExt.SharedData.ProceduralPlacement.Layers.Spawners;
 using System.Diagnostics.CodeAnalysis;
 
 namespace StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners;
@@ -47,7 +48,7 @@ public class ModelInstancingSpawnerData : ObjectSpawnerDataBase
             return;
         }
         if (SpawnerDataSerializationHelper.TryDeserializeObjectPlacementsFromFile(
-            spawnerFullFilePath, OnDeserializeMetadata, out var objectPlacementDataList, out var errorMessage))
+            spawnerFullFilePath, OnDeserializeMetadata, out List<ObjectPlacementSpawnPlacementData>? objectPlacementDataList, out var errorMessage))
         {
             SpawnPlacementDataList = objectPlacementDataList;
         }

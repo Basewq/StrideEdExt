@@ -20,7 +20,7 @@ public abstract class ObjectSpawnerComponentBase : EntityComponent, IObjectSpawn
 {
 #if GAME_EDITOR
     private static readonly TimeSpan NextRetryTime = TimeSpan.FromSeconds(3);
-    private DateTime _getObjectDensityMapNextRetryTime = DateTime.MinValue;
+    private DateTime _getObjectPlacementMapNextRetryTime = DateTime.MinValue;
 #endif
 
     protected IServiceRegistry Services { get; private set; } = default!;
@@ -134,7 +134,7 @@ public abstract class ObjectSpawnerComponentBase : EntityComponent, IObjectSpawn
     {
         objectPlacementMapEditor = null;
 #if GAME_EDITOR
-        if (_getObjectDensityMapNextRetryTime > DateTime.Now)
+        if (_getObjectPlacementMapNextRetryTime > DateTime.Now)
         {
             return false;
         }
@@ -157,7 +157,7 @@ public abstract class ObjectSpawnerComponentBase : EntityComponent, IObjectSpawn
         {
             Debug.WriteLine("ObjectSpawnerComponentBase: Editor Content Manager Object Placement Map not ready. Scheduling retry.");
 #if GAME_EDITOR
-            _getObjectDensityMapNextRetryTime = DateTime.Now + NextRetryTime;
+            _getObjectPlacementMapNextRetryTime = DateTime.Now + NextRetryTime;
 #endif
             return false;
         }

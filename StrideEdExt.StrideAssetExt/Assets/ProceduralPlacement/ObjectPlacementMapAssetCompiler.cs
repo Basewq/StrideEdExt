@@ -1,5 +1,4 @@
 using Stride.Assets.Entities;
-using Stride.Assets.Materials;
 using Stride.Assets.Models;
 using Stride.Core.Assets;
 using Stride.Core.Assets.Analysis;
@@ -32,7 +31,6 @@ public class ObjectPlacementMapAssetCompiler : AssetCompilerBase
         yield return new BuildDependencyInfo(typeof(ProceduralModelAsset), typeof(AssetCompilationContext), BuildDependencyType.Runtime | BuildDependencyType.CompileContent);
         yield return new BuildDependencyInfo(typeof(PrefabModelAsset), typeof(AssetCompilationContext), BuildDependencyType.Runtime | BuildDependencyType.CompileContent);
         yield return new BuildDependencyInfo(typeof(PrefabAsset), typeof(AssetCompilationContext), BuildDependencyType.Runtime | BuildDependencyType.CompileContent);
-        yield return new BuildDependencyInfo(typeof(MaterialAsset), typeof(AssetCompilationContext), BuildDependencyType.Runtime | BuildDependencyType.CompileContent);
         yield return new BuildDependencyInfo(typeof(TerrainMapAsset), typeof(AssetCompilationContext), BuildDependencyType.Runtime | BuildDependencyType.CompileContent);
     }
 
@@ -129,7 +127,7 @@ public class ObjectPlacementMapAssetCompiler : AssetCompilerBase
                     }
                     if (spawnerData is ModelInstancingSpawnerData modelInstancingSpawnerData)
                     {
-                        logger.Info($"Generating {spawnerData.GetType().Name} objects: ObjectCount: {spawnerData.SpawnPlacementDataList.Count} - ModelType: {modelInstancingSpawnerData.ModelType}");
+                        logger.Info($"Generating {modelInstancingSpawnerData.GetType().Name} objects: ObjectCount: {modelInstancingSpawnerData.SpawnPlacementDataList.Count} - ModelType: {modelInstancingSpawnerData.ModelType}");
 
                         var objectPlacementDataList = modelInstancingSpawnerData.SpawnPlacementDataList;
                         foreach (var placementData in objectPlacementDataList)
@@ -168,7 +166,7 @@ public class ObjectPlacementMapAssetCompiler : AssetCompilerBase
                     }
                     else if (spawnerData is PrefabSpawnerData prefabSpawnerData)
                     {
-                        logger.Info($"Generating {spawnerData.GetType().Name} objects: ObjectCount: {spawnerData.SpawnPlacementDataList.Count}");
+                        logger.Info($"Generating {prefabSpawnerData.GetType().Name} objects: ObjectCount: {prefabSpawnerData.SpawnPlacementDataList.Count}");
                         var spawnAssetDefinitionList = prefabSpawnerData.SpawnAssetDefinitionList;
                         var spawnListIndexToAssetUrlListIndex = GetOrCreateSpawnListIndexToAssetUrlListIndex(spawnAssetDefinitionList, prefabAssetUrlList);
 
@@ -178,11 +176,46 @@ public class ObjectPlacementMapAssetCompiler : AssetCompilerBase
                             var chunkIndex = TerrainChunkIndex2d.ToChunkIndex(placementData.Position, posToChunkIndex);
                             var chunk = chunkIndexToChunkDataMap.GetOrCreateValue(chunkIndex, x => new ObjectPlacementsChunkData());
 
-                            //if (!spawnListIndexToAssetUrlListIndex.TryGetValue(placementData.AssetUrlListIndex, out int assetUrlListIndex))
-                            //{
-                            //    logger.Warning($"placementData.AssetUrlListIndex out of bounds: Index: {placementData.AssetUrlListIndex} - spawnListIndexToAssetUrlListIndex.Length: {spawnListIndexToAssetUrlListIndex.Length}");
-                            //    continue;
-                            //}
+                            int assetUrlListIndex = placementData.AssetUrlListIndex;
+                            if (assetUrlListIndex < 0 || assetUrlListIndex >= prefabAssetUrlList.Count)
+                            {
+                                logger.Warning($"objPlacementMapAsset.PrefabAssetUrlList out of bounds: Index: {placementData.AssetUrlListIndex} - prefabAssetUrlList.Count: {prefabAssetUrlList.Count}");
+                                continue;
+                            }
+                            List<ObjectPlacementData> chunkObjectPlacementDataList;
+                            if (chunk.PrefabPlacements.TryFindIndex(
+                                x => x.PrefabAssetUrlListIndex == assetUrlListIndex,
+                                out int prefabPlacementDataIndex))
+                            {
+                                chunkObjectPlacementDataList = chunk.PrefabPlacements[prefabPlacementDataIndex].Placements;
+                            }
+                            else
+                            {
+                                var prefabObjectPlacementData = new PrefabObjectPlacementsData
+                                {
+                                    PrefabAssetUrlListIndex = assetUrlListIndex,
+                                    Placements = []
+                                };
+                                chunk.PrefabPlacements.Add(prefabObjectPlacementData);
+                                chunkObjectPlacementDataList = prefabObjectPlacementData.Placements;
+                            }
+
+                            var objPlacementData = placementData.ToObjectPlacementData();
+                            chunkObjectPlacementDataList.Add(objPlacementData);
+                        }
+                    }
+                    else if (spawnerData is ManualPrefabSpawnerData manualPrefabSpawnerData)
+                    {
+                        logger.Info($"Generating {manualPrefabSpawnerData.GetType().Name} objects: ObjectCount: {manualPrefabSpawnerData.SpawnPlacementDataList.Count}");
+                        var spawnAssetDefinitionList = manualPrefabSpawnerData.SpawnAssetDefinitionList;
+                        var spawnListIndexToAssetUrlListIndex = GetOrCreateSpawnListIndexToAssetUrlListIndex(spawnAssetDefinitionList, prefabAssetUrlList);
+
+                        var objectPlacementDataList = manualPrefabSpawnerData.SpawnPlacementDataList;
+                        foreach (var placementData in objectPlacementDataList)
+                        {
+                            var chunkIndex = TerrainChunkIndex2d.ToChunkIndex(placementData.Position, posToChunkIndex);
+                            var chunk = chunkIndexToChunkDataMap.GetOrCreateValue(chunkIndex, x => new ObjectPlacementsChunkData());
+
                             int assetUrlListIndex = placementData.AssetUrlListIndex;
                             if (assetUrlListIndex < 0 || assetUrlListIndex >= prefabAssetUrlList.Count)
                             {
@@ -241,13 +274,24 @@ public class ObjectPlacementMapAssetCompiler : AssetCompilerBase
             }
             logger.Info($"ObjectPlacementMap chunk count: {chunkIndexToChunkDataUrlMap.Count}");
 
+            var modelAssetUrlRefList = new List<UrlReference<Model>>();
+            var prefabAssetUrlRefList = new List<UrlReference<Prefab>>();
+            foreach (var url in modelAssetUrlList)
+            {
+                var asset = AssetFinder.FindAsset(url);
+                modelAssetUrlRefList.Add(new UrlReference<Model>(asset?.Id ?? default, url));
+            }
+            foreach (var url in prefabAssetUrlList)
+            {
+                var asset = AssetFinder.FindAsset(url);
+                prefabAssetUrlRefList.Add(new UrlReference<Prefab>(asset?.Id ?? default, url));
+            }
             var result = new ObjectPlacementMap
             {
                 ObjectPlacementMapAssetId = objPlacementMapAsset.Id,
                 TerrainMapAssetId = terrainMapAsset?.Id,
-                //ChunkSize = Parameters.ChunkSize.ToSize2(),
-                ModelAssetUrlRefList = modelAssetUrlList.Select(url => new UrlReference<Model>(url)).ToList(),
-                PrefabAssetUrlRefList = prefabAssetUrlList.Select(url => new UrlReference<Prefab>(url)).ToList(),
+                ModelAssetUrlRefList = modelAssetUrlRefList,
+                PrefabAssetUrlRefList = prefabAssetUrlRefList,
                 ChunkIndexToChunkDataUrlMap = chunkIndexToChunkDataUrlMap,
             };
             var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);

@@ -86,6 +86,46 @@ Hierarchy:
                         MaterialName: BaseMaterial
                         MaterialWeightMapTexture: 9ce2c580-8b4b-42b6-95ad-4ec6c1ba04ed:Terrain/ExampleMaterialWeightMap1
         -   Entity:
+                Id: 63be3874-36df-47ab-934d-2a131c245a9e
+                Name: ManualPrefabSpawner
+                Components:
+                    2b6f049bf3bc6312b396a17fce24faa8: !TransformComponent
+                        Id: 1287b8a5-ba89-4182-a0ee-bf3cdcb5fc87
+                        Position: {X: 0.0, Y: 0.0, Z: 0.0}
+                        Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
+                        Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                        Children:
+                            e986bb184154b83b91c76b0382d82396: ref!! ed525e26-96b6-4598-aa9a-97204207b949
+                    49b58e17b7278f3aa767f8655556a393: !StrideEdExt.WorldTerrain.ProceduralPlacement.Layers.Spawners.ManualPrefabSpawnerComponent,StrideEdExt.Game
+                        Id: f0e83dd7-eccb-4ab7-8e2a-e2f972154dde
+                        SpawnerRandomSeed: 14936
+                        ObjectSpacing: 1.0
+                        MinimumDensityValueThreshold: 0.0
+                        SurfaceNormalMinimumAngleDegrees: 0.0
+                        SurfaceNormalMaximumAngleDegrees: 180.0
+                        AlignWithSurfaceNormal: false
+                        PositionOffsetMinimumRadius: 0.0
+                        PositionOffsetMaximumRadius: 0.0
+                        RotationYOffsetMinimumAngleDegrees: 0.0
+                        RotationYOffsetMaximumAngleDegrees: 360.0
+                        ScaleMinimum: 1.0
+                        ScaleMaximum: 1.0
+        -   Entity:
+                Id: 63f0ff3b-9cd5-4949-b274-9530e170ccfa
+                Name: Teapot
+                Components:
+                    9b34002e67e23ed7df26112474053eb2: !TransformComponent
+                        Id: ed525e26-96b6-4598-aa9a-97204207b949
+                        Position: {X: 22.6576, Y: -6.6986313, Z: 14.007867}
+                        Rotation: {X: 0.0, Y: 0.38268346, Z: 0.0, W: 0.9238795}
+                        Scale: {X: 2.0, Y: 2.0, Z: 2.0}
+                        Children: {}
+                    f9da47acf030176d0c421fc1810f0325: !StrideEdExt.WorldTerrain.ProceduralPlacement.ManualPrefabSpawnInstancingComponent,StrideEdExt.Game
+                        Id: 5e991c3d-86c4-449b-86f0-fcdd08ee360a
+                        IsEnabled: true
+                        Prefab: 3b87e707-7406-4291-9658-3b07e479d0b2:TeapotPrefab
+                        CollisionRadius: 2.0
+        -   Entity:
                 Id: 75ba2167-9ba9-46a8-9ad1-449983202230
                 Name: CapsuleSpawner
                 Components:
@@ -175,6 +215,7 @@ Hierarchy:
                         Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
+                            b84bfa614057b0cddc2b59805d81b3d3: ref!! 1287b8a5-ba89-4182-a0ee-bf3cdcb5fc87
                             fa4bfd266f94026bdd09892e425bddce: ref!! 519621a6-4064-439f-8ff7-5361c9e02b19
                             254a4e6b7ca18bb487f3dbce75ad00ab: ref!! a4dcf1ac-e68e-4325-9ea0-17e8846c6244
                     e551510de525ebcc673e3dc518f61cee: !StrideEdExt.WorldTerrain.ProceduralPlacement.Editor.ObjectPlacementMapEditorComponent,StrideEdExt.Game

@@ -35,4 +35,21 @@ public class ObjectPlacementSpawnPlacementData
             SurfaceNormalModelSpace = SurfaceNormalModelSpace,
         };
     }
+
+    public bool IsSame(ObjectPlacementSpawnPlacementData other)
+    {
+        bool isSame = true
+            && AssetUrlListIndex == other.AssetUrlListIndex
+            && Position == other.Position
+            && Orientation == other.Orientation
+            && Scale == other.Scale
+            && SurfaceNormalModelSpace == other.SurfaceNormalModelSpace
+            ;
+        return isSame;
+    }
+}
+
+public class ObjectPlacementManualPrefabSpawnPlacementData : ObjectPlacementSpawnPlacementData
+{
+    public required Guid SpawnInstancingId;
 }
