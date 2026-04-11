@@ -37,7 +37,9 @@ public class RenderHeightmapTextureRequest : IRenderTextureRequest<RenderTexture
         // Create the model entity
         var modelEntity = new Entity { Name = "Render Heightmap Model" };
         TransformTRS.SetToEntity(modelEntity);
-        var entityBoundingBox = (BoundingBox)new BoundingBoxExt(Model.BoundingBox.Center, Model.BoundingBox.Extent * TransformTRS.Scale);
+        var bbCenter = Model.BoundingBox.Center;
+        var bbExtent = Model.BoundingBox.Extent * TransformTRS.Scale;
+        var entityBoundingBox = (BoundingBox)new BoundingBoxExt(minimum: bbCenter - bbExtent, maximum: bbCenter + bbExtent);
         BoundingSphere.FromBox(ref entityBoundingBox, out var entityBoundingSphere);
         var modelComp = new ModelComponent
         {
