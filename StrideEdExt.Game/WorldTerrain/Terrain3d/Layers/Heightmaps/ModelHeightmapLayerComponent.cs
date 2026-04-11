@@ -57,6 +57,11 @@ public class ModelHeightmapLayerComponent : TerrainLayerComponentBase, ITerrainM
 
     private void ToggleDebugEntityDisplay(bool show)
     {
+        if (Entity is null)
+        {
+            // The editor's asset version of the component which shouldn't execute anything.
+            return;
+        }
         if (!show)
         {
             if (_debugEntity is not null)
