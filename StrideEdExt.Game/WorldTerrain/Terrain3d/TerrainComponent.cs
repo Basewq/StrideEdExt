@@ -158,7 +158,6 @@ public class TerrainComponent : EntityComponent
     }
 
     private readonly List<TerrainChunkIndex2d> _visibleChunkIndexList = [];
-    //private readonly HashSet<TerrainChunkIndex2d> _hidingChunkIndexSet = [];
     private readonly Dictionary<TerrainChunkIndex2d, ChunkVisibility> _chunkIndexToVisibility = [];
     internal void Update(GameTime time, CameraComponent? overrideCameraComponent)
     {
@@ -285,12 +284,12 @@ public class TerrainComponent : EntityComponent
         // Generate meshes for visible chunks
         lock (_chunkIndexToActiveModelComponent)
         {
-            // Keep track of previously generated chunk models for potential reuse\
+            // Keep track of previously generated chunk models for potential reuse
             if (_chunkIndexToActiveModelComponent.Count > 0)
             {
-                foreach (var kv in _chunkIndexToActiveModelComponent)
+                foreach (var (displayChunkIndex, modelComp) in _chunkIndexToActiveModelComponent)
                 {
-                    _chunkIndexToActiveModelComponentProcessing[kv.Key] = kv.Value;
+                    _chunkIndexToActiveModelComponentProcessing[displayChunkIndex] = modelComp;
                 }
                 _chunkIndexToActiveModelComponent.Clear();
             }
@@ -349,15 +348,15 @@ public class TerrainComponent : EntityComponent
                             subChunk.Mesh = mesh;
                             hasChangedMesh = true;
                         }
-                        var chunkIndex = new DisplayTerrainChunkIndex(visibleChunkIndex, chunkSubCellIndex);
-                        if (_chunkIndexToActiveModelComponentProcessing.Remove(chunkIndex, out var modelComponent))
+                        var displayChunkIndex = new DisplayTerrainChunkIndex(visibleChunkIndex, chunkSubCellIndex);
+                        if (_chunkIndexToActiveModelComponentProcessing.Remove(displayChunkIndex, out var modelComp))
                         {
                             if (hasChangedMesh)
                             {
-                                if (modelComponent.Model is not null)
+                                if (modelComp.Model is not null)
                                 {
                                     // Disposing immediately causes flickering, so only dispose on the next update
-                                    _pendingDisposeModels.Add(modelComponent.Model);
+                                    _pendingDisposeModels.Add(modelComp.Model);
                                 }
 
                                 var model = new Model();
@@ -372,37 +371,37 @@ public class TerrainComponent : EntityComponent
                                     model.BoundingBox = BoundingBox.Empty;
                                     model.BoundingSphere = BoundingSphere.Empty;
                                 }
-                                modelComponent.Model = model;
+                                modelComp.Model = model;
                             }
                         }
                         else
                         {
-                            Debug.WriteLine($"Terrain Map Chunk now visible: {chunkIndex}");
-                            bool wasCreated = TryCreateModelComponent(chunkIndex, mesh, out modelComponent);
+                            Debug.WriteLine($"New Terrain Map Chunk visible and generated: {displayChunkIndex}");
+                            bool wasCreated = TryCreateModelComponent(displayChunkIndex, mesh, out modelComp);
                         }
-                        if (modelComponent is null)
+                        if (modelComp is null)
                         {
                             continue;
                         }
-                        _chunkIndexToActiveModelComponent[chunkIndex] = modelComponent;
-                        if (modelComponent.Entity.Scene is null)
+                        _chunkIndexToActiveModelComponent[displayChunkIndex] = modelComp;
+                        if (modelComp.Entity.Scene is null)
                         {
-                            modelComponent.Entity.SetParent(Entity);
+                            modelComp.Entity.SetParent(Entity);
                         }
                         float terrainEntityHeight = Entity.Transform.Position.Y;
                         var chunkMeshPos = TerrainMap.ToChunkSubCellMinimumWorldPosition(visibleChunkIndex, chunkSubCellIndex, terrainEntityHeight);
-                        modelComponent.Entity.Transform.Position = chunkMeshPos;
+                        modelComp.Entity.Transform.Position = chunkMeshPos;
                     }
                 }
             }
         }
         UpdateMaterialTexturesChanges();
 
-        // Any remaining chunks in _chunkModelIdToActiveModelComponentProcessing are no longer visible and should be removed from the scene
-        foreach (var (chunkModelId, modelComponent) in _chunkIndexToActiveModelComponentProcessing)
+        // Any remaining chunks in _chunkIndexToActiveModelComponentProcessing are no longer visible and should be removed from the scene
+        foreach (var (displayChunkIndex, modelComp) in _chunkIndexToActiveModelComponentProcessing)
         {
-            Debug.WriteLineIf(modelComponent.Entity.Scene is not null, $"Terrain Map Chunk no longer visible: {chunkModelId}");
-            modelComponent.Entity.Scene = null;
+            Debug.WriteLineIf(modelComp.Entity.Scene is not null, $"Terrain Map Chunk no longer visible: {displayChunkIndex}");
+            modelComp.Entity.Scene = null;
         }
         _chunkIndexToActiveModelComponentProcessing.Clear();
 
@@ -539,11 +538,11 @@ public class TerrainComponent : EntityComponent
         var commandList = _graphicsContext.CommandList;
         lock (_chunkIndexToActiveModelComponent)
         {
-            foreach (var (chunkModelId, modelComp) in _chunkIndexToActiveModelComponent)
+            foreach (var (displayChunkIndex, modelComp) in _chunkIndexToActiveModelComponent)
             {
-                if (TerrainMap.TryGetChunk(chunkModelId.ChunkIndex, out var chunk))
+                if (TerrainMap.TryGetChunk(displayChunkIndex.ChunkIndex, out var chunk))
                 {
-                    var chunkSubCellIndex = chunkModelId.ChunkSubCellIndex;
+                    var chunkSubCellIndex = displayChunkIndex.ChunkSubCellIndex;
                     if (!chunk.TryGetSubChunk(chunkSubCellIndex, out var subChunk))
                     {
                         continue;
@@ -556,7 +555,7 @@ public class TerrainComponent : EntityComponent
                         Mesh = mesh
                     };
                     var textureSize = subChunk.HeightmapTextureRegion.Size;
-                    if (!_chunkIndexToRenderTarget.TryGetValue(chunkModelId, out var renderTarget)
+                    if (!_chunkIndexToRenderTarget.TryGetValue(displayChunkIndex, out var renderTarget)
                         || renderTarget.Texture.Width != textureSize.Width || renderTarget.Texture.Height != textureSize.Height)
                     {
                         if (editType == PaintableTerrainEditType.GetOnly)
@@ -573,7 +572,7 @@ public class TerrainComponent : EntityComponent
                             Texture = texture,
                             IsNewTexture = true,
                         };
-                        _chunkIndexToRenderTarget[chunkModelId] = renderTarget;
+                        _chunkIndexToRenderTarget[displayChunkIndex] = renderTarget;
                     }
                     // Assign to material (always re-assign because chunks may be recreated)
                     if (modelComp.Materials.TryGetValue(key: 0, out var material))
@@ -625,7 +624,7 @@ public class TerrainComponent : EntityComponent
                     var meshData = new PaintableTerrainMeshData
                     {
                         StrokeMapRenderTarget = renderTarget,
-                        ChunkIndex = chunkModelId.ChunkIndex,
+                        ChunkIndex = displayChunkIndex.ChunkIndex,
                         ChunkSubCellIndex = chunkSubCellIndex,
                         HeightmapTextureRegion = subChunk.HeightmapTextureRegion,
                     };
@@ -633,7 +632,7 @@ public class TerrainComponent : EntityComponent
                 }
                 else
                 {
-                    Debug.WriteLine($"Warning: ChunkIndex was not found: {chunkModelId.ChunkIndex}");
+                    Debug.WriteLine($"Warning: ChunkIndex was not found: {displayChunkIndex.ChunkIndex}");
                 }
             }
         }
@@ -650,12 +649,12 @@ public class TerrainComponent : EntityComponent
         var commandList = _graphicsContext.CommandList;
         lock (_chunkIndexToActiveModelComponent)
         {
-            foreach (var (chunkModelId, renderTarget) in _chunkIndexToRenderTarget)
+            foreach (var (displayChunkIndex, renderTarget) in _chunkIndexToRenderTarget)
             {
-                if (_chunkIndexToActiveModelComponent.TryGetValue(chunkModelId, out var modelComp)
-                    && TerrainMap.TryGetChunk(chunkModelId.ChunkIndex, out var chunk))
+                if (_chunkIndexToActiveModelComponent.TryGetValue(displayChunkIndex, out var modelComp)
+                    && TerrainMap.TryGetChunk(displayChunkIndex.ChunkIndex, out var chunk))
                 {
-                    var chunkSubCellIndex = chunkModelId.ChunkSubCellIndex;
+                    var chunkSubCellIndex = displayChunkIndex.ChunkSubCellIndex;
                     if (!chunk.TryGetSubChunk(chunkSubCellIndex, out var subChunk))
                     {
                         continue;
@@ -671,8 +670,8 @@ public class TerrainComponent : EntityComponent
                     var meshData = new PaintableTerrainMeshResultData
                     {
                         StrokeMapData = strokeMapData,
-                        ChunkIndex = chunkModelId.ChunkIndex,
-                        ChunkSubCellIndex = chunkModelId.ChunkSubCellIndex,
+                        ChunkIndex = displayChunkIndex.ChunkIndex,
+                        ChunkSubCellIndex = displayChunkIndex.ChunkSubCellIndex,
                         HeightmapTextureRegion = subChunk.HeightmapTextureRegion,
                     };
                     paintableTerrainMeshResultMapOutput[targetEntityMesh] = meshData;

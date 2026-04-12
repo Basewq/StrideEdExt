@@ -44,7 +44,6 @@ class PaintBrushProcessor : EntityProcessor<PaintBrushComponent, PaintBrushProce
     {
         return new AssociatedData
         {
-            TransformComponent = entity.Transform,
         };
     }
 
@@ -56,7 +55,6 @@ class PaintBrushProcessor : EntityProcessor<PaintBrushComponent, PaintBrushProce
     protected override void OnEntityComponentAdding(Entity entity, [NotNull] PaintBrushComponent component, [NotNull] AssociatedData data)
     {
         data.ModelComponent = entity.Get<ModelComponent>();
-        data.Material = data.ModelComponent?.GetMaterial(0);
     }
 
     internal bool IsValidTargetEntityMesh(PaintTargetEntityMesh targetEntityMesh)
@@ -202,9 +200,7 @@ class PaintBrushProcessor : EntityProcessor<PaintBrushComponent, PaintBrushProce
     internal class AssociatedData
     {
         //public bool IsShowing;
-        public TransformComponent TransformComponent = default!;
         public ModelComponent? ModelComponent;
-        public Material? Material;
 
         public Vector3? PreviousHitWorldPosition;
         public Vector2 PreviousHitNormalizedScreenPosition;
