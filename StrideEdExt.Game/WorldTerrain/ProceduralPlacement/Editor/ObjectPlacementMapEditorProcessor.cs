@@ -7,9 +7,11 @@ using Stride.Rendering;
 using StrideEdExt.SharedData.ProceduralPlacement;
 using StrideEdExt.SharedData.ProceduralPlacement.EditorToRuntimeMessages;
 using StrideEdExt.SharedData.ProceduralPlacement.Layers;
+using StrideEdExt.SharedData.ProceduralPlacement.RuntimeToEditorRequests;
 using StrideEdExt.SharedData.StrideEditorExt.EditorRuntimeInterfacing;
 using StrideEdExt.SharedData.StrideEditorExt.EditorRuntimeInterfacing.EditorToRuntimeMessages;
 using StrideEdExt.SharedData.Terrain3d;
+using StrideEdExt.SharedData.Terrain3d.EditorToRuntimeMessages;
 using StrideEdExt.StrideEditorExt;
 using StrideEdExt.WorldTerrain.ProceduralPlacement.Layers;
 using StrideEdExt.WorldTerrain.ProceduralPlacement.Layers.DensityMaps;
@@ -77,6 +79,25 @@ class ObjectPlacementMapEditorProcessor : EntityProcessor<ObjectPlacementMapEdit
                     if (!TryProcessSetObjectPlacements(msg, editorComp, data))
                     {
                         data.PendingSetObjectPlacements = msg;  // Must process later
+                    }
+                }
+            });
+
+            // Heightmap messages
+            RegisterMessageHandler<SetTerrainMapHeightmapDataMessage>(msg =>
+            {
+                foreach (var (editorComp, data) in ComponentDatas)
+                {
+                    if (!msg.IsInitialData
+                        && editorComp.IsInitialized
+                        && editorComp.ObjectPlacementMap?.TerrainMapAssetId == msg.TerrainMapAssetId
+                        && data.LoadedObjectPlacementMap is not null)
+                    {
+                        var request = new RegenerateObjectPlacementSpawnerObjectsDataRequest
+                        {
+                            ObjectPlacementMapAssetId = data.LoadedObjectPlacementMap.ObjectPlacementMapAssetId
+                        };
+                        _runtimeToEditorMessagingService.Send(request);
                     }
                 }
             });

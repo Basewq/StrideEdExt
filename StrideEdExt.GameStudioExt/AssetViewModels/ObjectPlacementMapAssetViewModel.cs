@@ -422,6 +422,10 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
         });
 
         // Spawner modification requests
+        RegisterRequestHandler<RegenerateObjectPlacementSpawnerObjectsDataRequest>(req =>
+        {
+            UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
+        });
         RegisterRequestHandler<UpdateObjectPlacementModelInstacingSpawnerDataRequest>(req =>
         {
             if (Asset.TryGetObjectSpawnerData<ModelInstancingSpawnerData>(req.LayerId, out var modelInstancingSpawnerData))

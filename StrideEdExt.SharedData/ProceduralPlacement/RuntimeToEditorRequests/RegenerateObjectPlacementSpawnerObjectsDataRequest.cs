@@ -1,0 +1,5 @@
+﻿namespace StrideEdExt.SharedData.ProceduralPlacement.RuntimeToEditorRequests;
+
+public class RegenerateObjectPlacementSpawnerObjectsDataRequest : ObjectPlacementMapRequestBase
+{
+}

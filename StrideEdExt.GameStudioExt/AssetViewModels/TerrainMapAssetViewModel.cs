@@ -277,6 +277,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                     var updateHeightmapMsg = new SetTerrainMapHeightmapDataMessage
                     {
                         TerrainMapAssetId = Asset.Id,
+                        IsInitialData = true,
                         HeightmapTextureSize = Asset.HeightmapTextureSize.ToSize2(),
                         HeightmapData = Asset.HeightmapData.Clone()
                     };
@@ -781,6 +782,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
             var updateHeightmapMsg = new SetTerrainMapHeightmapDataMessage
             {
                 TerrainMapAssetId = Asset.Id,
+                IsInitialData = false,
                 HeightmapTextureSize = Asset.HeightmapTextureSize.ToSize2(),
                 HeightmapData = heightmapData.Clone()
             };
