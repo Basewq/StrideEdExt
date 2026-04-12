@@ -61,18 +61,19 @@ class PaintBrushProcessor : EntityProcessor<PaintBrushComponent, PaintBrushProce
 
     internal bool IsValidTargetEntityMesh(PaintTargetEntityMesh targetEntityMesh)
     {
-        bool isValid = _paintableEntityMeshes.Contains(targetEntityMesh);
+        bool isValid = _activeBrushComponent?.SelectedPainterTool?.IsValidTargetEntityMesh(targetEntityMesh) ?? false;
         return isValid;
     }
 
     private readonly Dictionary<PaintTargetEntityMesh, PaintRenderTargetTexture> _paintableEntityMeshToRenderTargetMap = [];
     private readonly HashSet<PaintTargetEntityMesh> _paintableEntityMeshes = [];
     private PaintBrushstrokeHandle? _brushstrokeHandle;
-    private bool _wasPreviousUpdateActiveSession = false;
+    private PaintBrushComponent? _activeBrushComponent;
     public override void Update(GameTime time)
     {
         if (_painterService.TryGetActiveSessionId(out var activePaintSessionId))
         {
+            PaintBrushComponent? activeBrushComp = null;
             foreach (var (comp, data) in ComponentDatas)
             {
                 if (comp.PaintSessionId != activePaintSessionId
@@ -81,7 +82,6 @@ class PaintBrushProcessor : EntityProcessor<PaintBrushComponent, PaintBrushProce
                     continue;
                 }
                 ProcessActiveBrush(comp, data, painterTool);
-                _wasPreviousUpdateActiveSession = true;
 
                 // Set entity IDs for next rendering
                 _paintableEntityMeshToRenderTargetMap.Clear();
@@ -92,13 +92,15 @@ class PaintBrushProcessor : EntityProcessor<PaintBrushComponent, PaintBrushProce
                     _paintableEntityMeshes.Add(targetEntityMesh);
                 }
 
-                break;
                 // Only one brush should be active
+                activeBrushComp = comp;
+                break;
             }
+            _activeBrushComponent = activeBrushComp;
         }
-        else if (_wasPreviousUpdateActiveSession)
+        else if (_activeBrushComponent is not null)
         {
-            _wasPreviousUpdateActiveSession = false;
+            _activeBrushComponent = null;
 
             _paintableEntityMeshToRenderTargetMap.Clear();
             _paintableEntityMeshes.Clear();

@@ -107,16 +107,17 @@ public class TerrainComponent : EntityComponent
         {
             foreach (var (_, modelComp) in _chunkIndexToActiveModelComponent)
             {
+                _pendingDisposeModels.Add(modelComp.Model);
                 modelComp.Entity.Scene = null;
             }
             _chunkIndexToActiveModelComponent.Clear();
+
+            foreach (var (_, renderTarget) in _chunkIndexToRenderTarget)
+            {
+                renderTarget.Texture.Dispose();
+            }
+            _chunkIndexToRenderTarget.Clear();
         }
-        ////_chunkModelIdToActiveModelComponentProcessing.Clear();
-        foreach (var (_, renderTarget) in _chunkIndexToRenderTarget)
-        {
-            renderTarget.Texture.Dispose();
-        }
-        _chunkIndexToRenderTarget.Clear();
 
         if (_staticPhysicsColliderEntity is not null)
         {
@@ -341,6 +342,9 @@ public class TerrainComponent : EntityComponent
                                     BoundingBox = boundingBox,
                                     BoundingSphere = BoundingSphere.FromBox(boundingBox)
                                 };
+#if GAME_EDITOR
+                                mesh.Name = $"TerrainChunk: {visibleChunkIndex} - SubIdx: {chunkSubCellIndex} - {DateTime.Now:HH:mm:ss:ffff}";
+#endif
                             }
                             subChunk.Mesh = mesh;
                             hasChangedMesh = true;
@@ -697,8 +701,30 @@ public class TerrainComponent : EntityComponent
 
                 _pendingDisposables.Add(renderTarget.Texture);
             }
+            _chunkIndexToRenderTarget.Clear();
         }
-        _chunkIndexToRenderTarget.Clear();
+    }
+
+    internal bool IsValidTargetEntityMesh(PaintTargetEntityMesh targetEntityMesh)
+    {
+        foreach (var (displayChunkIndex, modelComp) in _chunkIndexToActiveModelComponent)
+        {
+            var entityId = modelComp.Entity.Id;
+            foreach (var mesh in modelComp.Model.Meshes)
+            {
+                var checkEntityMesh = new PaintTargetEntityMesh
+                {
+                    EntityId = entityId,
+                    Mesh = mesh
+                };
+                if (targetEntityMesh == checkEntityMesh)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public void BuildPhysicsColliders()

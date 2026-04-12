@@ -268,5 +268,17 @@ public class PainterMaterialWeightMapLayerComponent : TerrainLayerComponentBase,
                 return request;
             });
         }
+
+        public override bool IsValidTargetEntityMesh(PaintTargetEntityMesh targetEntityMesh)
+        {
+            if (_parent.TryGetTerrainMapEditor(out var terrainMapEditor)
+               && terrainMapEditor.TryGetTerrainComponent(out var terrainComponent))
+            {
+                bool isValidTarget = terrainComponent.IsValidTargetEntityMesh(targetEntityMesh);
+                return isValidTarget;
+            }
+
+            return false;
+        }
     }
 }

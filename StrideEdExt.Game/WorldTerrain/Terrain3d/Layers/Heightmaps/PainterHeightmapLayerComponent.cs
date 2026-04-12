@@ -280,6 +280,18 @@ public class PainterHeightmapLayerComponent : TerrainLayerComponentBase, ITerrai
             });
         }
 
+        public override bool IsValidTargetEntityMesh(PaintTargetEntityMesh targetEntityMesh)
+        {
+            if (_parent.TryGetTerrainMapEditor(out var terrainMapEditor)
+               && terrainMapEditor.TryGetTerrainComponent(out var terrainComponent))
+            {
+                bool isValidTarget = terrainComponent.IsValidTargetEntityMesh(targetEntityMesh);
+                return isValidTarget;
+            }
+
+            return false;
+        }
+
         private Array2d<float> CalculateRaiseHeightAdjustment(
             Array2d<float> layerHeightmapData,
             Array2d<float> strokeMapData, Int2 strokeMapStartPosition,

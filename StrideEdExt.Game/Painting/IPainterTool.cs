@@ -36,6 +36,8 @@ public interface IPainterTool
 
     void PaintStarted(BrushPoint strokeMapBrushPoint);
     void PaintCompleted(List<BrushPoint> strokeMapBrushPoints);
+
+    bool IsValidTargetEntityMesh(PaintTargetEntityMesh targetEntityMesh);
 }
 
 public abstract class PainterToolBase : IPainterTool
@@ -109,4 +111,5 @@ public abstract class PainterToolBase : IPainterTool
     }
     protected abstract void OnPaintCompleted(List<BrushPoint> strokeMapBrushPoints);
 
+    public abstract bool IsValidTargetEntityMesh(PaintTargetEntityMesh targetEntityMesh);
 }

@@ -80,18 +80,6 @@ class TerrainProcessor : EntityProcessor<TerrainComponent, TerrainProcessor.Asso
         }
     }
 
-    public override void Draw(RenderContext context)
-    {
-        //foreach (var (comp, data) in ComponentDatas)
-        //{
-        //    if (!comp.IsEnabled)
-        //    {
-        //        continue;
-        //    }
-        //    comp.UpdateForDraw(context.Time);
-        //}
-    }
-
     public class AssociatedData
     {
     }
