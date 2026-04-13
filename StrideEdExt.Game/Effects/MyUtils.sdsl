@@ -10,16 +10,17 @@
         return texMapUvOffset;
     }
 
-    float3 ReconstructNormalFromXY(float3 normal, float xyScale)
+    float3 ReconstructNormalFromTextureXY(float3 normal, float xyScale)
     {
         //if (TScaleAndBias)
         {
-            normal = (2.0f * normal) - 1.0f;    // Gets values in [-1...1] range.
+            // Convert to [-1...1] range from texture in [0...1] range.
+            normal = (2.0f * normal) - 1.0f;
         }
 
         normal.xy *= xyScale;
 
-        // Stride removes z-component due to compression, so reconstruct here
+        // Stride removes z-component due to compression, so reconstruct it here
         // If Z is calculated from XY do it here
         //if (TIsNormalXY1)
         {

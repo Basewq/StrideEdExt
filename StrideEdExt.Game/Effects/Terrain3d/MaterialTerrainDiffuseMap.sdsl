@@ -28,7 +28,7 @@
         struct MaterialData
         {
             float4 Diffuse;
-            float3 Normal;
+            float3 TextureNormal;   // Normal vector in [0...1] range
             float Height;
         };
 
@@ -55,8 +55,9 @@
 
             float4 diffuse = DiffuseMap.Sample(LinearRepeatSampler, float3(materialTexCoord, materialIndex));
             float3 normal = NormalMap.Sample(LinearRepeatSampler, float3(materialTexCoord, materialIndex)).xyz;
+
             nextMaterialData.Diffuse = lerp(currentMaterialData.Diffuse, diffuse, finalBlendWeight);
-            nextMaterialData.Normal = lerp(currentMaterialData.Normal, normal, finalBlendWeight);
+            nextMaterialData.TextureNormal = lerp(currentMaterialData.TextureNormal, normal, finalBlendWeight);
             nextMaterialData.Height = max(currentMaterialData.Height, heightNext);
 
             return nextMaterialData;
@@ -135,7 +136,7 @@
 
             MaterialData materialData;
             materialData.Diffuse = 0;
-            materialData.Normal = streams.meshNormal;
+            materialData.TextureNormal = float3(0.5, 0.5, 1.0);
             materialData.Height = 0;
             {   // Calculate final color/normal
                 [unroll(4)]     // Suppresses warning X3570 'gradient instruction used in a loop with varying iteration'
@@ -148,7 +149,9 @@
                 // Uncomment to see the unblended material indices (the top-left corner of the material texture is where its vertices are).
                 //float matIndex = MaterialIndexMap.Sample(MaterialIndexMapSampler, terrainTexCoord).r * MaxMaterialIndexPerTerrain;
                 //materialData.Diffuse = DiffuseMap.Sample(LinearRepeatSampler, float3(materialTexCoord, matIndex));
-                //materialData.Normal = NormalMap.Sample(LinearRepeatSampler, float3(materialTexCoord, matIndex));
+                //materialData.TextureNormal = NormalMap.Sample(LinearRepeatSampler, float3(materialTexCoord, matIndex));
+                //materialData.Diffuse = float4(MyUtils.ReconstructNormalFromTextureXY(materialData.TextureNormal, 1.0), 1.0);
+                //materialData.Diffuse = float4(abs(streams.meshNormal), 1.0);
 
                 //float matIndex = sortedMatIndices[0];
                 //float matIdxColor = (matIndex / 32) + 0.025;
@@ -156,9 +159,9 @@
 
                 //int idx = 0;
                 //materialData.Diffuse = float4(sortedTransitionAlphas[idx], 0, 0, 1);
-                //materialData.Normal = float4(0,0,1,0);
+                //materialData.TextureNormal = float4(0,0,1,0);
 
-                //materialData.Diffuse = float4(MyUtils.ReconstructNormalFromXY(materialData.Normal, 1.0), 1.0);
+                //materialData.Diffuse = float4(MyUtils.ReconstructNormalFromTextureXY(materialData.TextureNormal, 1.0), 1.0);
                 //materialData.Diffuse = float4(0.5, 0.5, 0.5, 1.0);
             }
 
@@ -170,8 +173,8 @@
 
             // Note that we can set the surface normal in this shader without a NormalMapFeature because
             // the diffuse shader occurs before surface/normal calculations, but this will flow through correctly.
-            // Don't normalize the streams.matNormal here, it's being normalize when streams.normalWS is calculated
-            streams.matNormal = MyUtils.ReconstructNormalFromXY(materialData.Normal, 1.0);
+            // Don't normalize the streams.matNormal here, it gets normalized when streams.normalWS is calculated
+            streams.matNormal = MyUtils.ReconstructNormalFromTextureXY(materialData.TextureNormal, 1.0);
         }
     };
 }
