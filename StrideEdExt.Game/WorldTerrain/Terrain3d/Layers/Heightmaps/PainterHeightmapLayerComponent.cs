@@ -32,7 +32,7 @@ public class PainterHeightmapLayerComponent : TerrainLayerComponentBase, ITerrai
 
     public override Type LayerDataType => typeof(PainterHeightmapLayerData);
 
-    public TerrainHeightmapLayerBlendType LayerBlendType { get; set; } = TerrainHeightmapLayerBlendType.Maximum;
+    public TerrainHeightmapLayerBlendType LayerBlendType { get; set; }
 
     private PainterHeightmapBrushSettings? _prevBrushSettings;
     [Display(Expand = ExpandRule.Once)]

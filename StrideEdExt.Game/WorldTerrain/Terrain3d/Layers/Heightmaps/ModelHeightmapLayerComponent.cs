@@ -38,7 +38,7 @@ public class ModelHeightmapLayerComponent : TerrainLayerComponentBase, ITerrainM
 
     public override Type LayerDataType => typeof(ModelHeightmapLayerData);
 
-    public TerrainHeightmapLayerBlendType LayerBlendType { get; set; } = TerrainHeightmapLayerBlendType.Maximum;
+    public TerrainHeightmapLayerBlendType LayerBlendType { get; set; }
 
     private Entity? _debugEntity;
     private bool _showDebug;

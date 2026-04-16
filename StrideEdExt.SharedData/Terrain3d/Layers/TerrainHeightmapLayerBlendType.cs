@@ -5,7 +5,7 @@ namespace StrideEdExt.SharedData.Terrain3d.Layers;
 [DataContract]
 public enum TerrainHeightmapLayerBlendType
 {
-    Average,
+    Maximum,
     Minimum,
-    Maximum
+    Average,
 }

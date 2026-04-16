@@ -58,7 +58,7 @@ public class TextureHeightmapLayerComponent : TerrainLayerComponentBase, ITerrai
         }
     }
 
-    public TerrainHeightmapLayerBlendType LayerBlendType { get; set; } = TerrainHeightmapLayerBlendType.Maximum;
+    public TerrainHeightmapLayerBlendType LayerBlendType { get; set; }
 
     protected override void OnInitialize()
     {
