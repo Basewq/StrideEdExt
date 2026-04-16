@@ -157,10 +157,9 @@ public class AssetTransactionBuilder
                                 collectionPath.Pop();
                                 var graphNodePath = GraphNodePath.From(assetObjectNode, collectionPath, out _);
                                 var collectionMemberNode = (IMemberNode)graphNodePath.GetNode();
-                                processedCollectionSet.Add(collectionMemberNode);
                                 if (processedCollectionSet.Add(collectionMemberNode))
                                 {
-                                    collectionMemberNode.Target.ItemReferences.Refresh(collectionMemberNode, assetNodeContainer);
+                                    collectionMemberNode.Target.ItemReferences?.Refresh(collectionMemberNode, assetNodeContainer);
                                 }
                             }
                         }
