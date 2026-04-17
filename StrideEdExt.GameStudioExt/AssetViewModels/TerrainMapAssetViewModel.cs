@@ -2,14 +2,12 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
 using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
-using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Engine;
 using StrideEdExt.GameStudioExt.Assets.Transaction;
@@ -49,7 +47,18 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
 
     protected override void Initialize()
     {
+        var assetFullFilePath = AssetItem.FullPath;
+        if (assetFullFilePath?.IsAbsolute == true)
+        {
+            // The editor creates a copy of the asset object which does not go through our custom YAML serializer
+            lock (Asset)
+            {
+                Asset.OnAssetLoaded(assetFullFilePath, _logger);
+            }
+        }
+
         base.Initialize();
+
         var pluginService = ServiceProvider.Get<IAssetsPluginService>();
         var gameAssetsEditorPlugin = (GameAssetsEditorPlugin)pluginService.Plugins.First(x => x is GameAssetsEditorPlugin);
         Task.Run(async () =>
@@ -58,12 +67,6 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
             _editorToRuntimeMessagingService = ServiceProvider.Get<IEditorToRuntimeMessagingService>();
             SubscribeRuntimeMessagingRequests();
         });
-
-        if (Asset.ResourceFolderPath is not null)
-        {
-            var packageFolderPath = AssetItem.Package.FullPath.GetFullDirectory();
-            Asset.EnsureFinalizeContentDeserialization(_logger, packageFolderPath);
-        }
 
         Session.UndoRedoService.Done += OnUndoRedoServiceTransactionFinished;
         Session.UndoRedoService.Undone += OnUndoRedoServiceTransactionFinished;
@@ -92,7 +95,6 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                 var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
 
                 var heightmapTextureSize = Asset.HeightmapTextureSize.ToSize2();
-                //Asset.ResizeMap(Asset.MapSize, assetTransactionBuilder);
                 if (Asset.HeightmapLayerDataList?.Count > 0)
                 {
                     foreach (var layerData in Asset.HeightmapLayerDataList)
@@ -148,42 +150,18 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
         base.Destroy();
     }
 
-    protected override void OnSessionSaved()
+    protected override void OnPropertyChanged(params string[] propertyNames)
     {
-        var logger = new LoggerResult();
+        base.OnPropertyChanged(propertyNames);
 
-        var packageFolderPath = AssetItem.Package.FullPath.GetFullDirectory();
-
-        using (var undoRedoTransaction = UndoRedoService.CreateTransaction())
+        if (propertyNames.Any(x => x == nameof(Url)))
         {
-            UndoRedoService.SetName(undoRedoTransaction, "TerrainMapAsset - Serialized Layer Data");
-            var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
-
-            Asset.SerializeIntermediateFiles(logger, packageFolderPath);
-
-            var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
-            var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
-            UndoRedoService.PushOperation(trxOp);
-        }
-        if (Asset.HasTerrainMapLayerSerializedIntermediateFiles)
-        {
-            Asset.HasTerrainMapLayerSerializedIntermediateFiles = false;
-            // HACK: OnSessionSaved occurs after the asset has already been serialized to disk,
-            // but we've made additional changes so need to save it again.
-            var assetAnalysisParams = new AssetAnalysisParameters()
+            // Asset location changed
+            var assetFullPath = AssetItem.FullPath;
+            if (assetFullPath?.IsAbsolute == true)
             {
-                IsProcessingUPaths = true,
-                ConvertUPathTo = UPathType.Relative,
-            };
-            AssetAnalysis.Run(AssetItem, logger, assetAnalysisParams);      // Ensures we save our file/folder paths as relative to the package it belongs to.
-            Package.SaveSingleAsset(AssetItem, logger);
-            UpdateDirtiness(false);
-        }
-
-        if (logger.HasErrors)
-        {
-            var dialogService = ServiceProvider.Get<IDialogService>();
-            _ = dialogService.MessageBoxAsync("Failed to save Terrain Map asset.", MessageBoxButton.OK, MessageBoxImage.Information);
+                Asset.AssetFullFilePath = assetFullPath.FullPath;
+            }
         }
     }
 
@@ -252,23 +230,7 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
                     }
                 }
             }
-            // Ensure intermediate data is loaded
-            var hmLayers = Asset.HeightmapLayerDataList;
-            if (hmLayers is not null)
-            {
-                foreach (var layerData in hmLayers)
-                {
-                    EnsureLayerIntermediateFileDeserialized(layerData);
-                }
-            }
-            var mwmLayers = Asset.MaterialWeightMapLayerDataList;
-            if (mwmLayers is not null)
-            {
-                foreach (var layerData in mwmLayers)
-                {
-                    EnsureLayerIntermediateFileDeserialized(layerData);
-                }
-            }
+
             // Provide the heightmap data and material layer ordering to the run-time editor tool(s)
             if (_editorToRuntimeMessagingService is not null)
             {
@@ -594,63 +556,70 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
             {
                 // This detects layer ordering changes (eg. new layer, delete layer, reorder layer)
                 bool isItemRemoved = e.ChangeType == ContentChangeType.CollectionRemove;
-                var entity = isItemRemoved
-                    ? (e.OldValue as TransformComponent)?.Entity
-                    : (e.NewValue as TransformComponent)?.Entity;
-                if (entity is not null && entity.TryGetComponent<ITerrainMapLayer>(out var terrainMapLayer))
+                var changedItem = isItemRemoved ? e.OldValue : e.NewValue;
+                var terrainMapLayer = changedItem as ITerrainMapLayer;
+                if (terrainMapLayer is null && changedItem is TransformComponent transformComp)
+                {
+                    // Check if an entity containing a layer was deleted
+                    transformComp.Entity.TryGetComponent<ITerrainMapLayer>(out terrainMapLayer);
+                }
+                if (terrainMapLayer is not null)
                 {
                     // Layer changed (either added or removed - reordered is done with remove + add)
                     var layerId = terrainMapLayer.LayerId;
-                    var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
-
                     bool isHeightmapLayer = terrainMapLayer is ITerrainMapHeightmapLayer;
                     bool isMaterialWeightMapLayer = terrainMapLayer is ITerrainMapMaterialWeightMapLayer;
                     if (!isHeightmapLayer && !isMaterialWeightMapLayer)
                     {
                         throw new NotImplementedException($"Unhandled layer type: {terrainMapLayer.GetType().Name}");
                     }
-                    if (isItemRemoved)
+
+                    lock (Asset)
                     {
-                        bool wasRemoved = Asset.TryRemoveLayerData(layerId);
-                        if (!wasRemoved)
+                        var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
+
+                        if (isItemRemoved)
                         {
-                            throw new InvalidOperationException($"Layer to remove was missing - LayerId: {layerId}");
-                        }
-                    }
-                    else
-                    {
-                        _ = Asset.GetOrCreateLayerData(layerId, terrainMapLayer.LayerDataType);
-                        if (isHeightmapLayer)
-                        {
-                            var layerOrdering = GetLayerOrdering<ITerrainMapHeightmapLayer>(editorEntityId, sceneRootVm);
-                            Asset.SetHeightmapLayerOrdering(layerOrdering);
+                            bool wasRemoved = Asset.TryRemoveLayerData(layerId);
+                            if (!wasRemoved)
+                            {
+                                throw new InvalidOperationException($"Layer to remove was missing - LayerId: {layerId}");
+                            }
                         }
                         else
                         {
-                            var layerOrdering = GetLayerOrdering<ITerrainMapMaterialWeightMapLayer>(editorEntityId, sceneRootVm);
-                            Asset.SetMaterialWeightMapLayerOrdering(layerOrdering);
+                            _ = Asset.GetOrCreateLayerData(layerId, terrainMapLayer.LayerDataType);
+                            if (isHeightmapLayer)
+                            {
+                                var layerOrdering = GetLayerOrdering<ITerrainMapHeightmapLayer>(editorEntityId, sceneRootVm);
+                                Asset.SetHeightmapLayerOrdering(layerOrdering);
+                            }
+                            else
+                            {
+                                var layerOrdering = GetLayerOrdering<ITerrainMapMaterialWeightMapLayer>(editorEntityId, sceneRootVm);
+                                Asset.SetMaterialWeightMapLayerOrdering(layerOrdering);
+                            }
                         }
-                    }
-                    if (isHeightmapLayer)
-                    {
-                        assetTransactionBuilder.AddPostExecuteAction(() =>
+                        if (isHeightmapLayer)
                         {
-                            _onTransactionFinished_IsHeightmapLayersUpdateRequired = true;
-                        });
-                    }
-                    else
-                    {
-                        assetTransactionBuilder.AddPostExecuteAction(() =>
+                            assetTransactionBuilder.AddPostExecuteAction(() =>
+                            {
+                                _onTransactionFinished_IsHeightmapLayersUpdateRequired = true;
+                            });
+                        }
+                        else
                         {
-                            _onTransactionFinished_IsMaterialIndexMapLayersUpdateRequired = true;
-                        });
+                            assetTransactionBuilder.AddPostExecuteAction(() =>
+                            {
+                                _onTransactionFinished_IsMaterialIndexMapLayersUpdateRequired = true;
+                            });
+                        }
+
+                        Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
+                        var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
+                        var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
+                        UndoRedoService.PushOperation(trxOp);
                     }
-
-                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
-                    var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
-                    var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
-                    UndoRedoService.PushOperation(trxOp);
-
                     // In the case of reordering layers, Stride raises a remove and add event, but we only need to refresh
                     // at the end of the transaction
                     if (isHeightmapLayer)
@@ -748,11 +717,15 @@ public class TerrainMapAssetViewModel : AssetViewModel<TerrainMapAsset>
 
     private void EnsureLayerIntermediateFileDeserialized(TerrainMapLayerDataBase layerData)
     {
-        if (layerData.IsDeserializeIntermediateFileRequired && Asset.ResourceFolderPath is not null)
+        if (layerData.IsDeserializeIntermediateFileRequired
+            && !string.IsNullOrWhiteSpace(Asset.OriginalAssetFullFilePath)
+            && !string.IsNullOrWhiteSpace(Asset.OriginalResourceRelativeFolderPath))
         {
-            var packageFolderPath = AssetItem.Package.FullPath.GetFullDirectory();
-            var resourceFolderFullPath = UPath.Combine(packageFolderPath, Asset.ResourceFolderPath).ToOSPath();
-            layerData.DeserializeIntermediateFile(resourceFolderFullPath, Asset, _logger);
+            var assetFullFolderPath = new UFile(Asset.OriginalAssetFullFilePath).GetFullDirectory();
+            var resourceRelativeFolderPath = new UDirectory(Asset.OriginalResourceRelativeFolderPath);
+            var intermediateFilesFullFolderPath = UPath.Combine(assetFullFolderPath, resourceRelativeFolderPath).ToOSPath();
+
+            layerData.DeserializeIntermediateFile(intermediateFilesFullFolderPath, assetFullFolderPath, Asset, _logger);
         }
     }
 

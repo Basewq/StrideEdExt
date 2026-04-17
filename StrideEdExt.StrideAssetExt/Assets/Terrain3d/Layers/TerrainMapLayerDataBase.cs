@@ -1,5 +1,4 @@
 using Stride.Core;
-using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
@@ -23,18 +22,20 @@ public abstract class TerrainMapLayerDataBase
     [DataMemberIgnore]
     public bool IsDeserializeIntermediateFileRequired { get; set; } = true;
 
-    public void SerializeIntermediateFile(UDirectory packageFolderPath, TerrainMapAsset terrainMapAsset, ILogger logger)
+    public void SerializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, TerrainMapAsset terrainMapAsset, ILogger? logger)
     {
-        OnSerializeIntermediateFile(packageFolderPath, terrainMapAsset, logger);
+        OnSerializeIntermediateFile(intermediateFilesFullFolderPath, terrainMapAssetFullFolderPath, terrainMapAsset, logger);
     }
-    protected abstract void OnSerializeIntermediateFile(UDirectory packageFolderPath, TerrainMapAsset terrainMapAsset, ILogger logger);
+    protected abstract void OnSerializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, TerrainMapAsset terrainMapAsset, ILogger? logger);
 
-    public void DeserializeIntermediateFile(UDirectory packageFolderPath, TerrainMapAsset terrainMapAsset, ILogger logger)
+    public void DeserializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, TerrainMapAsset terrainMapAsset, ILogger? logger)
     {
-        OnDeserializeIntermediateFile(packageFolderPath, terrainMapAsset, logger);
+        OnDeserializeIntermediateFile(intermediateFilesFullFolderPath, terrainMapAssetFullFolderPath, terrainMapAsset, logger);
         IsDeserializeIntermediateFileRequired = false;
     }
-    protected abstract void OnDeserializeIntermediateFile(UDirectory packageFolderPath, TerrainMapAsset terrainMapAsset, ILogger logger);
+    protected abstract void OnDeserializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, TerrainMapAsset terrainMapAsset, ILogger? logger);
+
+    public abstract void DeleteIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, ILogger? logger);
 
     public void UpdateForTerrainMapResized(Size2 heightmapTextureSize, AssetTransactionBuilder assetTransactionBuilder)
     {
@@ -60,18 +61,42 @@ public abstract class TerrainMapLayerDataBase
             array2d.Resize(expectedSize);
         }
     }
+
+    public string GetIntermediateFileFullFilePath(
+        UDirectory intermediateFilesFullFolderPath, string fileNameFormat)
+    {
+        string fileName = string.Format(fileNameFormat, LayerId.ToString("N"));
+        string heightmapFullFilePath = UDirectory.Combine(intermediateFilesFullFolderPath, fileName).ToOSPath();
+        return heightmapFullFilePath;
+    }
 }
 
 public abstract class TerrainHeightmapLayerDataBase : TerrainMapLayerDataBase
 {
     internal const string IntermediateHeightmapFileNameFormat = "layer_heightmap_{0}.txt";
 
-    [UPath(UPathRelativeTo.Package)]
-    public UFile? HeightmapFilePath { get; set; }
+    /// <summary>
+    /// Path relative to its main asset.
+    /// </summary>
+    public UFile? HeightmapRelativeFilePath { get; set; }
 
-    public Int2? HeightmapTexturePixelStartPosition;
+    public Int2 HeightmapTexturePixelStartPosition { get; set; }
 
     public TerrainHeightmapLayerBlendType LayerBlendType { get; set; }
+
+    public override void DeleteIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, ILogger? logger)
+    {
+        string? intermediateFileFullFilePath;
+        if (HeightmapRelativeFilePath is not null)
+        {
+            intermediateFileFullFilePath = UPath.Combine(terrainMapAssetFullFolderPath, HeightmapRelativeFilePath).ToOSPath();
+        }
+        else
+        {
+            intermediateFileFullFilePath = GetIntermediateFileFullFilePath(intermediateFilesFullFolderPath, IntermediateHeightmapFileNameFormat);
+        }
+        _ = AssetExt.TryDeleteFile(intermediateFileFullFilePath, logger);
+    }
 
     /// <summary>
     /// Apply this layer's modification to <paramref name="terrainMapHeightmapData"/>.
@@ -83,15 +108,31 @@ public abstract class TerrainMaterialMapLayerDataBase : TerrainMapLayerDataBase
 {
     internal const string IntermediateMaterialWeightMapFileNameFormat = "layer_material_{0}.txt";
 
-    [UPath(UPathRelativeTo.Package)]
-    public UFile? MaterialWeightMapFilePath { get; set; }
+    /// <summary>
+    /// Path relative to its main asset.
+    /// </summary>
+    public UFile? MaterialWeightMapRelativeFilePath { get; set; }
 
-    public Int2? MaterialWeightMapTexturePixelStartPosition;
+    public Int2 MaterialWeightMapTexturePixelStartPosition { get; set; }
 
     /// <summary>
     /// Target Material Name. Must match <see cref="TerrainMaterialLayerDefinitionAsset.MaterialName"/>.
     /// </summary>
     public string? MaterialName { get; set; }
+
+    public override void DeleteIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, ILogger? logger)
+    {
+        string? intermediateFileFullFilePath;
+        if (MaterialWeightMapRelativeFilePath is not null)
+        {
+            intermediateFileFullFilePath = UPath.Combine(terrainMapAssetFullFolderPath, MaterialWeightMapRelativeFilePath).ToOSPath();
+        }
+        else
+        {
+            intermediateFileFullFilePath = GetIntermediateFileFullFilePath(intermediateFilesFullFolderPath, IntermediateMaterialWeightMapFileNameFormat);
+        }
+        _ = AssetExt.TryDeleteFile(intermediateFileFullFilePath, logger);
+    }
 
     /// <summary>
     /// Apply this layer's modification to <paramref name="materialIndexMapData"/>.

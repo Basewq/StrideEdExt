@@ -56,23 +56,23 @@ public class ObjectPlacementMapAssetCompiler : AssetCompilerBase
     protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
     {
         var asset = (ObjectPlacementMapAsset)assetItem.Asset;
-        asset.TotalObjectPlacementCount = 0;
-
         result.BuildSteps = new AssetBuildStep(assetItem);
-        result.BuildSteps.Add(new ObjectPlacementMapAssetCommand(targetUrlInStorage, asset, assetItem.Package, assetItem.Package.FullPath));
+
+        var assetFilePath = assetItem.FullPath;
+        result.BuildSteps.Add(new ObjectPlacementMapAssetCommand(targetUrlInStorage, asset, assetItem.Package, assetFilePath));
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Serialization", "STRDIAG010:Invalid Constructor", Justification = "Not required")]
     private class ObjectPlacementMapAssetCommand : AssetCommand<ObjectPlacementMapAsset>
     {
-        private UFile _assetPackageFullPath;
+        private UFile _assetFullFilePath;
 
-        public ObjectPlacementMapAssetCommand(string url, ObjectPlacementMapAsset parameters, IAssetFinder assetFinder, UFile assetPackageFullPath)
+        public ObjectPlacementMapAssetCommand(string url, ObjectPlacementMapAsset parameters, IAssetFinder assetFinder, UFile assetFilePath)
             : base(url, parameters, assetFinder)
         {
             Version = 1;
 
-            _assetPackageFullPath = assetPackageFullPath;
+            _assetFullFilePath = assetFilePath;
         }
 
         protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
@@ -80,222 +80,219 @@ public class ObjectPlacementMapAssetCompiler : AssetCompilerBase
             // Converts the 'asset' object into the real 'definition' object which will be serialised.
             var logger = commandContext.Logger;
             var objPlacementMapAsset = Parameters;
-
-            // Get the assigned Terrain Map Asset
-            TerrainMapAsset? terrainMapAsset = null;
-            Size2 terrainMapTextureSize = Size2.Zero;
-            Vector2 chunkIndexToPos = Vector2.Zero;
-            Vector2 posToChunkIndex = Vector2.Zero;
-            if (objPlacementMapAsset.TerrainMap is not null)
+            lock (objPlacementMapAsset)     // Lock to prevent ObjectPlacementMapAssetViewModel from modifying it
             {
-                terrainMapAsset = AssetFinder.FindAssetFromProxyObject(objPlacementMapAsset.TerrainMap)?.Asset as TerrainMapAsset;
-                if (terrainMapAsset is not null)
+                objPlacementMapAsset.OnAssetLoaded(_assetFullFilePath, logger);
+
+                var assetFullFolderPath = new UFile(objPlacementMapAsset.OriginalAssetFullFilePath!).GetFullDirectory();
+                var resourceRelativeFolderPath = new UDirectory(objPlacementMapAsset.OriginalResourceRelativeFolderPath!);
+                var intermediateFilesFullFolderPath = UPath.Combine(assetFullFolderPath, resourceRelativeFolderPath).ToOSPath();
+
+                // Get the assigned Terrain Map Asset
+                TerrainMapAsset? terrainMapAsset = null;
+                var terrainMapTextureSize = objPlacementMapAsset.TerrainMapTextureSize;
+                var chunkIndexToPos = Vector2.Zero;
+                var posToChunkIndex = Vector2.Zero;
+                if (objPlacementMapAsset.TerrainMap is not null)
                 {
-                    terrainMapTextureSize = terrainMapAsset.HeightmapTextureSize.ToSize2();
-
-                    var quadPerChunk = terrainMapAsset.QuadsPerMesh * terrainMapAsset.MeshPerChunk.GetSingleAxisLength();
-                    chunkIndexToPos = terrainMapAsset.MeshQuadSize * (Vector2)quadPerChunk;
-                    posToChunkIndex = chunkIndexToPos != Vector2.Zero
-                                        ? 1f / chunkIndexToPos
-                                        : Vector2.Zero;
-                }
-            }
-
-            string? resourceFolderFullPath = null;
-            if (objPlacementMapAsset.ResourceFolderPath is not null)
-            {
-                var packageFolderPath = _assetPackageFullPath.GetFullDirectory();
-                objPlacementMapAsset.EnsureFinalizeContentDeserialization(logger, packageFolderPath);
-
-                resourceFolderFullPath = UPath.Combine(packageFolderPath, objPlacementMapAsset.ResourceFolderPath)?.ToOSPath();
-            }
-
-            var chunkIndexToChunkDataMap = new Dictionary<TerrainChunkIndex2d, ObjectPlacementsChunkData>();
-
-            var modelAssetUrlList = objPlacementMapAsset.ModelAssetUrlList;
-            var prefabAssetUrlList = objPlacementMapAsset.PrefabAssetUrlList;
-
-            if (objPlacementMapAsset.SpawnerDataList is not null)
-            {
-                foreach (var spawnerData in objPlacementMapAsset.SpawnerDataList)
-                {
-                    if (resourceFolderFullPath is not null
-                        && spawnerData is ObjectPlacementLayerDataBase layerData
-                        && layerData.IsDeserializeIntermediateFileRequired)
+                    terrainMapAsset = AssetFinder.FindAssetFromProxyObject(objPlacementMapAsset.TerrainMap)?.Asset as TerrainMapAsset;
+                    if (terrainMapAsset is not null)
                     {
-                        layerData.DeserializeIntermediateFile(resourceFolderFullPath, objPlacementMapAsset, default, logger);
-                    }
-                    if (spawnerData is ModelInstancingSpawnerData modelInstancingSpawnerData)
-                    {
-                        logger.Info($"Generating {modelInstancingSpawnerData.GetType().Name} objects: ObjectCount: {modelInstancingSpawnerData.SpawnPlacementDataList.Count} - ModelType: {modelInstancingSpawnerData.ModelType}");
+                        terrainMapTextureSize = terrainMapAsset.HeightmapTextureSize.ToSize2();
 
-                        var objectPlacementDataList = modelInstancingSpawnerData.SpawnPlacementDataList;
-                        foreach (var placementData in objectPlacementDataList)
-                        {
-                            var chunkIndex = TerrainChunkIndex2d.ToChunkIndex(placementData.Position, posToChunkIndex);
-                            var chunk = chunkIndexToChunkDataMap.GetOrCreateValue(chunkIndex, x => new ObjectPlacementsChunkData());
-
-                            int assetUrlListIndex = placementData.AssetUrlListIndex;
-                            if (assetUrlListIndex < 0 || assetUrlListIndex >= modelAssetUrlList.Count)
-                            {
-                                logger.Warning($"objPlacementMapAsset.ModelAssetUrlList out of bounds: Index: {placementData.AssetUrlListIndex} - modelAssetUrlList.Count: {modelAssetUrlList.Count}");
-                                continue;
-                            }
-                            List<ObjectPlacementData> chunkObjectPlacementDataList;
-                            if (chunk.ModelPlacements.TryFindIndex(
-                                x => x.ModelAssetUrlListIndex == assetUrlListIndex && x.ModelType == modelInstancingSpawnerData.ModelType,
-                                out int modelPlacementDataIndex))
-                            {
-                                chunkObjectPlacementDataList = chunk.ModelPlacements[modelPlacementDataIndex].Placements;
-                            }
-                            else
-                            {
-                                var modelObjectPlacementData = new ModelObjectPlacementsData
-                                {
-                                    ModelAssetUrlListIndex = assetUrlListIndex,
-                                    ModelType = modelInstancingSpawnerData.ModelType,
-                                    Placements = []
-                                };
-                                chunk.ModelPlacements.Add(modelObjectPlacementData);
-                                chunkObjectPlacementDataList = modelObjectPlacementData.Placements;
-                            }
-
-                            var objPlacementData = placementData.ToObjectPlacementData();
-                            chunkObjectPlacementDataList.Add(objPlacementData);
-                        }
-                    }
-                    else if (spawnerData is PrefabSpawnerData prefabSpawnerData)
-                    {
-                        logger.Info($"Generating {prefabSpawnerData.GetType().Name} objects: ObjectCount: {prefabSpawnerData.SpawnPlacementDataList.Count}");
-                        var spawnAssetDefinitionList = prefabSpawnerData.SpawnAssetDefinitionList;
-                        var spawnListIndexToAssetUrlListIndex = GetOrCreateSpawnListIndexToAssetUrlListIndex(spawnAssetDefinitionList, prefabAssetUrlList);
-
-                        var objectPlacementDataList = prefabSpawnerData.SpawnPlacementDataList;
-                        foreach (var placementData in objectPlacementDataList)
-                        {
-                            var chunkIndex = TerrainChunkIndex2d.ToChunkIndex(placementData.Position, posToChunkIndex);
-                            var chunk = chunkIndexToChunkDataMap.GetOrCreateValue(chunkIndex, x => new ObjectPlacementsChunkData());
-
-                            int assetUrlListIndex = placementData.AssetUrlListIndex;
-                            if (assetUrlListIndex < 0 || assetUrlListIndex >= prefabAssetUrlList.Count)
-                            {
-                                logger.Warning($"objPlacementMapAsset.PrefabAssetUrlList out of bounds: Index: {placementData.AssetUrlListIndex} - prefabAssetUrlList.Count: {prefabAssetUrlList.Count}");
-                                continue;
-                            }
-                            List<ObjectPlacementData> chunkObjectPlacementDataList;
-                            if (chunk.PrefabPlacements.TryFindIndex(
-                                x => x.PrefabAssetUrlListIndex == assetUrlListIndex,
-                                out int prefabPlacementDataIndex))
-                            {
-                                chunkObjectPlacementDataList = chunk.PrefabPlacements[prefabPlacementDataIndex].Placements;
-                            }
-                            else
-                            {
-                                var prefabObjectPlacementData = new PrefabObjectPlacementsData
-                                {
-                                    PrefabAssetUrlListIndex = assetUrlListIndex,
-                                    Placements = []
-                                };
-                                chunk.PrefabPlacements.Add(prefabObjectPlacementData);
-                                chunkObjectPlacementDataList = prefabObjectPlacementData.Placements;
-                            }
-
-                            var objPlacementData = placementData.ToObjectPlacementData();
-                            chunkObjectPlacementDataList.Add(objPlacementData);
-                        }
-                    }
-                    else if (spawnerData is ManualPrefabSpawnerData manualPrefabSpawnerData)
-                    {
-                        logger.Info($"Generating {manualPrefabSpawnerData.GetType().Name} objects: ObjectCount: {manualPrefabSpawnerData.SpawnPlacementDataList.Count}");
-                        var spawnAssetDefinitionList = manualPrefabSpawnerData.SpawnAssetDefinitionList;
-                        var spawnListIndexToAssetUrlListIndex = GetOrCreateSpawnListIndexToAssetUrlListIndex(spawnAssetDefinitionList, prefabAssetUrlList);
-
-                        var objectPlacementDataList = manualPrefabSpawnerData.SpawnPlacementDataList;
-                        foreach (var placementData in objectPlacementDataList)
-                        {
-                            var chunkIndex = TerrainChunkIndex2d.ToChunkIndex(placementData.Position, posToChunkIndex);
-                            var chunk = chunkIndexToChunkDataMap.GetOrCreateValue(chunkIndex, x => new ObjectPlacementsChunkData());
-
-                            int assetUrlListIndex = placementData.AssetUrlListIndex;
-                            if (assetUrlListIndex < 0 || assetUrlListIndex >= prefabAssetUrlList.Count)
-                            {
-                                logger.Warning($"objPlacementMapAsset.PrefabAssetUrlList out of bounds: Index: {placementData.AssetUrlListIndex} - prefabAssetUrlList.Count: {prefabAssetUrlList.Count}");
-                                continue;
-                            }
-                            List<ObjectPlacementData> chunkObjectPlacementDataList;
-                            if (chunk.PrefabPlacements.TryFindIndex(
-                                x => x.PrefabAssetUrlListIndex == assetUrlListIndex,
-                                out int prefabPlacementDataIndex))
-                            {
-                                chunkObjectPlacementDataList = chunk.PrefabPlacements[prefabPlacementDataIndex].Placements;
-                            }
-                            else
-                            {
-                                var prefabObjectPlacementData = new PrefabObjectPlacementsData
-                                {
-                                    PrefabAssetUrlListIndex = assetUrlListIndex,
-                                    Placements = []
-                                };
-                                chunk.PrefabPlacements.Add(prefabObjectPlacementData);
-                                chunkObjectPlacementDataList = prefabObjectPlacementData.Placements;
-                            }
-
-                            var objPlacementData = placementData.ToObjectPlacementData();
-                            chunkObjectPlacementDataList.Add(objPlacementData);
-                        }
-                    }
-                    else
-                    {
-                        throw new NotImplementedException($"Unhandled spawner data type: {spawnerData.GetType().Name}");
+                        var quadPerChunk = terrainMapAsset.QuadsPerMesh * terrainMapAsset.MeshPerChunk.GetSingleAxisLength();
+                        chunkIndexToPos = terrainMapAsset.MeshQuadSize * (Vector2)quadPerChunk;
+                        posToChunkIndex = chunkIndexToPos != Vector2.Zero
+                                            ? 1f / chunkIndexToPos
+                                            : Vector2.Zero;
                     }
                 }
-            }
 
-            // Serialize all chunk data to disk as separate content
-            var chunkIndexToChunkDataUrlMap = new Dictionary<TerrainChunkIndex2d, string>();
-            lock (ObjectPlacementsChunkData.SerializerLock)
-            {
-                foreach (var kv in chunkIndexToChunkDataMap)
+                var chunkIndexToChunkDataMap = new Dictionary<TerrainChunkIndex2d, ObjectPlacementsChunkData>();
+
+                var modelAssetUrlList = objPlacementMapAsset.ModelAssetUrlList;
+                var prefabAssetUrlList = objPlacementMapAsset.PrefabAssetUrlList;
+
+                var objPlcMapAssetItem = AssetFinder.FindAsset(objPlacementMapAsset.Id);
+                if (objPlacementMapAsset.SpawnerDataList is not null)
                 {
-                    var chunkIndex = kv.Key;
-                    var chunkData = kv.Value;
-                    var chunkDataUrl = $"{Url}_ChunkData_({chunkIndex.X},{chunkIndex.Z})";
-                    commandContext.AddTag(new ObjectUrl(UrlType.Content, chunkDataUrl), Builder.DoNotCompressTag);
+                    foreach (var spawnerData in objPlacementMapAsset.SpawnerDataList)
+                    {
+                        if (spawnerData.IsDeserializeIntermediateFileRequired)
+                        {
+                            spawnerData.DeserializeIntermediateFile(intermediateFilesFullFolderPath, assetFullFolderPath, objPlacementMapAsset, terrainMapTextureSize, logger);
+                        }
+                        if (spawnerData is ModelInstancingSpawnerData modelInstancingSpawnerData)
+                        {
+                            logger.Info($"{Url}: Generating {modelInstancingSpawnerData.GetType().Name} objects: ObjectCount: {modelInstancingSpawnerData.SpawnPlacementDataList.Count} - ModelType: {modelInstancingSpawnerData.ModelType}");
 
-                    using var outputStream = MicrothreadLocalDatabases.DatabaseFileProvider.OpenStream(
-                        chunkDataUrl, VirtualFileMode.Create, VirtualFileAccess.Write, VirtualFileShare.Read, StreamFlags.Seekable);
-                    var writer = new BinarySerializationWriter(outputStream);
-                    chunkData.Serialize(writer);
+                            var objectPlacementDataList = modelInstancingSpawnerData.SpawnPlacementDataList;
+                            foreach (var placementData in objectPlacementDataList)
+                            {
+                                var chunkIndex = TerrainChunkIndex2d.ToChunkIndex(placementData.Position, posToChunkIndex);
+                                var chunk = chunkIndexToChunkDataMap.GetOrCreateValue(chunkIndex, x => new ObjectPlacementsChunkData());
 
-                    chunkIndexToChunkDataUrlMap.Add(chunkIndex, chunkDataUrl);
+                                int assetUrlListIndex = placementData.AssetUrlListIndex;
+                                if (assetUrlListIndex < 0 || assetUrlListIndex >= modelAssetUrlList.Count)
+                                {
+                                    logger.Warning($"{Url}: ModelAssetUrlList out of bounds: Index: {placementData.AssetUrlListIndex} - modelAssetUrlList.Count: {modelAssetUrlList.Count}");
+                                    continue;
+                                }
+                                List<ObjectPlacementData> chunkObjectPlacementDataList;
+                                if (chunk.ModelPlacements.TryFindItem(
+                                    x => x.ModelAssetUrlListIndex == assetUrlListIndex && x.ModelType == modelInstancingSpawnerData.ModelType,
+                                    out var modelPlacementData))
+                                {
+                                    chunkObjectPlacementDataList = modelPlacementData.Placements;
+                                }
+                                else
+                                {
+                                    var modelObjectPlacementData = new ModelObjectPlacementsData
+                                    {
+                                        ModelAssetUrlListIndex = assetUrlListIndex,
+                                        ModelType = modelInstancingSpawnerData.ModelType,
+                                        Placements = []
+                                    };
+                                    chunk.ModelPlacements.Add(modelObjectPlacementData);
+                                    chunkObjectPlacementDataList = modelObjectPlacementData.Placements;
+                                }
 
-                    logger.Info($"ObjectPlacementMap chunk data saved at: {chunkDataUrl}");
+                                var objPlacementData = placementData.ToObjectPlacementData();
+                                chunkObjectPlacementDataList.Add(objPlacementData);
+                            }
+                        }
+                        else if (spawnerData is PrefabSpawnerData prefabSpawnerData)
+                        {
+                            logger.Info($"{Url}: Generating {prefabSpawnerData.GetType().Name} objects: ObjectCount: {prefabSpawnerData.SpawnPlacementDataList.Count}");
+                            var spawnAssetDefinitionList = prefabSpawnerData.SpawnAssetDefinitionList;
+                            var spawnListIndexToAssetUrlListIndex = GetOrCreateSpawnListIndexToAssetUrlListIndex(spawnAssetDefinitionList, prefabAssetUrlList);
+
+                            var objectPlacementDataList = prefabSpawnerData.SpawnPlacementDataList;
+                            foreach (var placementData in objectPlacementDataList)
+                            {
+                                var chunkIndex = TerrainChunkIndex2d.ToChunkIndex(placementData.Position, posToChunkIndex);
+                                var chunk = chunkIndexToChunkDataMap.GetOrCreateValue(chunkIndex, x => new ObjectPlacementsChunkData());
+
+                                int assetUrlListIndex = placementData.AssetUrlListIndex;
+                                if (assetUrlListIndex < 0 || assetUrlListIndex >= prefabAssetUrlList.Count)
+                                {
+                                    logger.Warning($"{Url}: PrefabAssetUrlList out of bounds: Index: {placementData.AssetUrlListIndex} - prefabAssetUrlList.Count: {prefabAssetUrlList.Count}");
+                                    continue;
+                                }
+                                List<ObjectPlacementData> chunkObjectPlacementDataList;
+                                if (chunk.PrefabPlacements.TryFindItem(
+                                    x => x.PrefabAssetUrlListIndex == assetUrlListIndex,
+                                    out var prefabPlacementData))
+                                {
+                                    chunkObjectPlacementDataList = prefabPlacementData.Placements;
+                                }
+                                else
+                                {
+                                    var prefabObjectPlacementData = new PrefabObjectPlacementsData
+                                    {
+                                        PrefabAssetUrlListIndex = assetUrlListIndex,
+                                        Placements = []
+                                    };
+                                    chunk.PrefabPlacements.Add(prefabObjectPlacementData);
+                                    chunkObjectPlacementDataList = prefabObjectPlacementData.Placements;
+                                }
+
+                                var objPlacementData = placementData.ToObjectPlacementData();
+                                chunkObjectPlacementDataList.Add(objPlacementData);
+                            }
+                        }
+                        else if (spawnerData is ManualPrefabSpawnerData manualPrefabSpawnerData)
+                        {
+                            logger.Info($"{Url}: Generating {manualPrefabSpawnerData.GetType().Name} objects: ObjectCount: {manualPrefabSpawnerData.SpawnPlacementDataList.Count}");
+                            var spawnAssetDefinitionList = manualPrefabSpawnerData.SpawnAssetDefinitionList;
+                            var spawnListIndexToAssetUrlListIndex = GetOrCreateSpawnListIndexToAssetUrlListIndex(spawnAssetDefinitionList, prefabAssetUrlList);
+
+                            var objectPlacementDataList = manualPrefabSpawnerData.SpawnPlacementDataList;
+                            foreach (var placementData in objectPlacementDataList)
+                            {
+                                var chunkIndex = TerrainChunkIndex2d.ToChunkIndex(placementData.Position, posToChunkIndex);
+                                var chunk = chunkIndexToChunkDataMap.GetOrCreateValue(chunkIndex, x => new ObjectPlacementsChunkData());
+
+                                int assetUrlListIndex = placementData.AssetUrlListIndex;
+                                if (assetUrlListIndex < 0 || assetUrlListIndex >= prefabAssetUrlList.Count)
+                                {
+                                    logger.Warning($"{Url}: PrefabAssetUrlList out of bounds: Index: {placementData.AssetUrlListIndex} - prefabAssetUrlList.Count: {prefabAssetUrlList.Count}");
+                                    continue;
+                                }
+                                List<ObjectPlacementData> chunkObjectPlacementDataList;
+                                if (chunk.PrefabPlacements.TryFindItem(
+                                    x => x.PrefabAssetUrlListIndex == assetUrlListIndex,
+                                    out var prefabPlacementData))
+                                {
+                                    chunkObjectPlacementDataList = prefabPlacementData.Placements;
+                                }
+                                else
+                                {
+                                    var prefabObjectPlacementData = new PrefabObjectPlacementsData
+                                    {
+                                        PrefabAssetUrlListIndex = assetUrlListIndex,
+                                        Placements = []
+                                    };
+                                    chunk.PrefabPlacements.Add(prefabObjectPlacementData);
+                                    chunkObjectPlacementDataList = prefabObjectPlacementData.Placements;
+                                }
+
+                                var objPlacementData = placementData.ToObjectPlacementData();
+                                chunkObjectPlacementDataList.Add(objPlacementData);
+                            }
+                        }
+                        else
+                        {
+                            throw new NotImplementedException($"Unhandled spawner data type: {spawnerData.GetType().Name}");
+                        }
+                    }
                 }
-            }
-            logger.Info($"ObjectPlacementMap chunk count: {chunkIndexToChunkDataUrlMap.Count}");
 
-            var modelAssetUrlRefList = new List<UrlReference<Model>>();
-            var prefabAssetUrlRefList = new List<UrlReference<Prefab>>();
-            foreach (var url in modelAssetUrlList)
-            {
-                var asset = AssetFinder.FindAsset(url);
-                modelAssetUrlRefList.Add(new UrlReference<Model>(asset?.Id ?? default, url));
+                // Serialize all chunk data to disk as separate content
+                var chunkIndexToChunkDataUrlMap = new Dictionary<TerrainChunkIndex2d, string>();
+                lock (ObjectPlacementsChunkData.SerializerLock)
+                {
+                    foreach (var kv in chunkIndexToChunkDataMap)
+                    {
+                        var (chunkIndex, chunkData) = kv;
+                        var chunkDataUrl = $"{Url}_ChunkData_({chunkIndex.X},{chunkIndex.Z})";
+                        commandContext.AddTag(new ObjectUrl(UrlType.Content, chunkDataUrl), Builder.DoNotCompressTag);
+
+                        using var outputStream = MicrothreadLocalDatabases.DatabaseFileProvider.OpenStream(
+                            chunkDataUrl, VirtualFileMode.Create, VirtualFileAccess.Write, VirtualFileShare.Read, StreamFlags.Seekable);
+                        var writer = new BinarySerializationWriter(outputStream);
+                        chunkData.Serialize(writer);
+
+                        chunkIndexToChunkDataUrlMap.Add(chunkIndex, chunkDataUrl);
+
+                        logger.Info($"{Url}: ObjectPlacementMap chunk data saved at: {chunkDataUrl}");
+                    }
+                }
+                logger.Info($"{Url}: ObjectPlacementMap chunk count: {chunkIndexToChunkDataUrlMap.Count}");
+
+                var modelAssetUrlRefList = new List<UrlReference<Model>>();
+                var prefabAssetUrlRefList = new List<UrlReference<Prefab>>();
+                foreach (var url in modelAssetUrlList)
+                {
+                    var asset = AssetFinder.FindAsset(url);
+                    modelAssetUrlRefList.Add(new UrlReference<Model>(asset?.Id ?? default, url));
+                }
+                foreach (var url in prefabAssetUrlList)
+                {
+                    var asset = AssetFinder.FindAsset(url);
+                    prefabAssetUrlRefList.Add(new UrlReference<Prefab>(asset?.Id ?? default, url));
+                }
+                var result = new ObjectPlacementMap
+                {
+                    ObjectPlacementMapAssetId = objPlacementMapAsset.Id,
+                    TerrainMapAssetId = terrainMapAsset?.Id,
+                    ModelAssetUrlRefList = modelAssetUrlRefList,
+                    PrefabAssetUrlRefList = prefabAssetUrlRefList,
+                    ChunkIndexToChunkDataUrlMap = chunkIndexToChunkDataUrlMap,
+                };
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
+                assetManager.Save(Url, result);
             }
-            foreach (var url in prefabAssetUrlList)
-            {
-                var asset = AssetFinder.FindAsset(url);
-                prefabAssetUrlRefList.Add(new UrlReference<Prefab>(asset?.Id ?? default, url));
-            }
-            var result = new ObjectPlacementMap
-            {
-                ObjectPlacementMapAssetId = objPlacementMapAsset.Id,
-                TerrainMapAssetId = terrainMapAsset?.Id,
-                ModelAssetUrlRefList = modelAssetUrlRefList,
-                PrefabAssetUrlRefList = prefabAssetUrlRefList,
-                ChunkIndexToChunkDataUrlMap = chunkIndexToChunkDataUrlMap,
-            };
-            var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
-            assetManager.Save(Url, result);
 
             return Task.FromResult(ResultStatus.Successful);
 

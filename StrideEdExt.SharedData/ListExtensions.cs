@@ -4,6 +4,19 @@ namespace StrideEdExt;
 
 public static class ListExtensions
 {
+    public static bool AddDistinct<TElement>(this List<TElement> list, TElement item, Predicate<TElement> isSameItem)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (isSameItem(list[i]))
+            {
+                return false;
+            }
+        }
+        list.Add(item);
+        return true;
+    }
+
     public static bool TryGetValue<TElement>(this IReadOnlyList<TElement> list, int index, [NotNullWhen(true)] out TElement? value)
     {
         if (index < 0 || index >= list.Count)
@@ -81,6 +94,41 @@ public static class ListExtensions
             }
         }
         index = -1;
+        return false;
+    }
+
+    public static bool TryFindItem<TElement>(this List<TElement> list, Func<TElement, bool> isMatchPredicate, [NotNullWhen(true)] out TElement? foundItem)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            var currentItem = list[i];
+            if (isMatchPredicate(currentItem))
+            {
+                foundItem = currentItem!;
+                return true;
+            }
+        }
+        foundItem = default;
+        return false;
+    }
+
+    /// <summary>
+    /// Remove the first item found by <paramref name="isMatchPredicate"/>
+    /// and copies the element to <paramref name="removedItem"/>.
+    /// </summary>
+    public static bool TryRemoveItem<TElement>(this List<TElement> list, Func<TElement, bool> isMatchPredicate, [NotNullWhen(true)] out TElement? removedItem)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            var currentItem = list[i];
+            if (isMatchPredicate(currentItem))
+            {
+                list.RemoveAt(i);
+                removedItem = currentItem!;
+                return true;
+            }
+        }
+        removedItem = default;
         return false;
     }
 }

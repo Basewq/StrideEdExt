@@ -1,4 +1,3 @@
-using StrideEdExt.SharedData.Terrain3d;
 using Stride.Assets;
 using Stride.Assets.Textures;
 using Stride.Core;
@@ -12,6 +11,7 @@ using Stride.Core.Serialization;
 using Stride.Core.Serialization.Contents;
 using Stride.Graphics;
 using Stride.TextureConverter;
+using StrideEdExt.SharedData.Terrain3d;
 
 namespace StrideEdExt.StrideAssetExt.Assets.Terrain3d;
 
@@ -309,11 +309,11 @@ public class TerrainMaterialAssetCompiler : AssetCompilerBase
                     var texAssetItem = AssetFinder.FindAssetFromProxyObject(tex);
                     if (texAssetItem.Asset is not TextureAsset texAsset)
                     {
-                        throw new Exception($"{Url} - TextureAsset not found at index {i}");
+                        throw new Exception($"{Url}:  TextureAsset not found at index {i}");
                     }
                     else if (texAsset.Source is null)
                     {
-                        throw new Exception($"{Url} - TextureAsset file path not specified at index {i}");
+                        throw new Exception($"{Url}:  TextureAsset file path not specified at index {i}");
                     }
                     texImage = texTool.Load(texAsset.Source, isSRgb);
                     switch (texImage.Format)
@@ -331,7 +331,7 @@ public class TerrainMaterialAssetCompiler : AssetCompilerBase
                     texTool.Decompress(texImage, texImage.Format.IsSRgb());
                     if (texImage.Width != textureSize.Width || texImage.Height != textureSize.Height)
                     {
-                        logger.Warning($"{Url} - Inconsistent diffuse texture size at index {i}. Changing from ({texImage.Width},{texImage.Height}) to {textureSize}");
+                        logger.Warning($"{Url}:  Inconsistent diffuse texture size at index {i}. Changing from ({texImage.Width},{texImage.Height}) to {textureSize}");
                         texTool.Resize(texImage, textureSize.Width, textureSize.Height, Filter.Rescaling.Nearest);
                     }
                 }
@@ -363,7 +363,7 @@ public class TerrainMaterialAssetCompiler : AssetCompilerBase
                 }
                 else if (texImage.Format != texArrayPixelFormat)
                 {
-                    logger.Warning($"{Url} - Inconsistent diffuse texture pixel format at index {i}. Changing from {texImage.Format} to {texArrayPixelFormat}");
+                    logger.Warning($"{Url}:  Inconsistent diffuse texture pixel format at index {i}. Changing from {texImage.Format} to {texArrayPixelFormat}");
                     texTool.Convert(texImage, texArrayPixelFormat);
                 }
             }
@@ -398,11 +398,11 @@ public class TerrainMaterialAssetCompiler : AssetCompilerBase
                     var texAssetItem = AssetFinder.FindAssetFromProxyObject(tex);
                     if (texAssetItem.Asset is not TextureAsset texAsset)
                     {
-                        throw new Exception($"{Url} - TextureAsset not found at index {i}");
+                        throw new Exception($"{Url}:  TextureAsset not found at index {i}");
                     }
                     else if (texAsset.Source is null)
                     {
-                        throw new Exception($"{Url} - TextureAsset file path not specified at index {i}");
+                        throw new Exception($"{Url}:  TextureAsset file path not specified at index {i}");
                     }
                     texImage = texTool.Load(texAsset.Source, isSRgb);
                     texTool.Decompress(texImage, texImage.Format.IsSRgb());
@@ -420,7 +420,7 @@ public class TerrainMaterialAssetCompiler : AssetCompilerBase
                     }
                     if (texImage.Width != textureSize.Width || texImage.Height != textureSize.Height)
                     {
-                        logger.Warning($"{Url} - Inconsistent normal map texture size at index {i}. Changing from ({texImage.Width},{texImage.Height}) to {textureSize}");
+                        logger.Warning($"{Url}:  Inconsistent normal map texture size at index {i}. Changing from ({texImage.Width},{texImage.Height}) to {textureSize}");
                         texTool.Resize(texImage, textureSize.Width, textureSize.Height, Filter.Rescaling.Nearest);
                     }
                     bool invertY = normalMapInvertYList[i];
@@ -458,7 +458,7 @@ public class TerrainMaterialAssetCompiler : AssetCompilerBase
                 }
                 else if (texImage.Format != texArrayPixelFormat)
                 {
-                    logger.Warning($"{Url} - Inconsistent normal map texture pixel format at index {i}. Changing from {texImage.Format} to {texArrayPixelFormat}");
+                    logger.Warning($"{Url}:  Inconsistent normal map texture pixel format at index {i}. Changing from {texImage.Format} to {texArrayPixelFormat}");
                     texTool.Convert(texImage, texArrayPixelFormat);
                 }
             }
@@ -489,22 +489,22 @@ public class TerrainMaterialAssetCompiler : AssetCompilerBase
                     var texAssetItem = AssetFinder.FindAssetFromProxyObject(tex);
                     if (texAssetItem.Asset is not TextureAsset texAsset)
                     {
-                        throw new Exception($"{Url} - TextureAsset not found at index {i}");
+                        throw new Exception($"{Url}:  TextureAsset not found at index {i}");
                     }
                     else if (texAsset.Source is null)
                     {
-                        throw new Exception($"{Url} - TextureAsset file path not specified at index {i}");
+                        throw new Exception($"{Url}:  TextureAsset file path not specified at index {i}");
                     }
                     texImage = texTool.Load(texAsset.Source, isSRgb);
                     texTool.Decompress(texImage, texImage.Format.IsSRgb());
                     if (texImage.Format != texArrayPixelFormat)
                     {
-                        logger.Warning($"{Url} - Inconsistent greyscale texture pixel format at index {i}. Changing from {texImage.Format} to {texArrayPixelFormat}");
+                        logger.Warning($"{Url}:  Inconsistent greyscale texture pixel format at index {i}. Changing from {texImage.Format} to {texArrayPixelFormat}");
                         texTool.Convert(texImage, texArrayPixelFormat);
                     }
                     if (texImage.Width != textureSize.Width || texImage.Height != textureSize.Height)
                     {
-                        logger.Warning($"{Url} - Inconsistent greyscale texture size at index {i}. Changing from ({texImage.Width},{texImage.Height}) to {textureSize}");
+                        logger.Warning($"{Url}:  Inconsistent greyscale texture size at index {i}. Changing from ({texImage.Width},{texImage.Height}) to {textureSize}");
                         texTool.Resize(texImage, textureSize.Width, textureSize.Height, Filter.Rescaling.Nearest);
                     }
                 }

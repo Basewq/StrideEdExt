@@ -3,7 +3,6 @@ using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
 using StrideEdExt.SharedData.AssetSerialization;
-using StrideEdExt.SharedData.ProceduralPlacement.Layers.Spawners;
 using System.Diagnostics.CodeAnalysis;
 
 namespace StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement.Layers.Spawners;
@@ -18,15 +17,12 @@ public class ManualPrefabSpawnerData : ObjectSpawnerDataBase
     /// </summary>
     public List<Guid> SpawnAssetDefinitionSpawnInstancingIdList { get; set; } = [];
 
-    [DataMemberIgnore]
-    public new List<ObjectPlacementManualPrefabSpawnPlacementData> SpawnPlacementDataList { get; set; } = [];
-
-    protected override void OnSerializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger logger)
+    protected override void OnSerializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory objectPlacementMapAssetFullFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger? logger)
     {
-        var spawnerFullFilePath = this.GetFilePathOrDefaultPath(ObjectSpawnerFilePath, packageFolderPath, IntermediateObjectSpawnerFileNameFormat);
-        SpawnerDataSerializationHelper.SerializeObjectPlacementsToFile(OnSerializeMetadata, SpawnPlacementDataList, spawnerFullFilePath);
+        string spawnerFullFilePath = GetIntermediateFileFullFilePath(intermediateFilesFullFolderPath, IntermediateObjectSpawnerFileNameFormat);
+        SpawnerDataSerializationHelper.SerializeManualObjectPlacementsToFile(OnSerializeMetadata, SpawnPlacementDataList, spawnerFullFilePath);
 
-        ObjectSpawnerFilePath = spawnerFullFilePath;
+        ObjectSpawnerRelativeFilePath = new UFile(spawnerFullFilePath).MakeRelative(objectPlacementMapAssetFullFolderPath);
         return;
 
         void OnSerializeMetadata(AssetTextWriter writer)
@@ -36,27 +32,27 @@ public class ManualPrefabSpawnerData : ObjectSpawnerDataBase
         }
     }
 
-    protected override void OnDeserializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, Size2 terrainMapTextureSize, ILogger logger)
+    protected override void OnDeserializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory objectPlacementMapAssetFullFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, Size2 terrainMapTextureSize, ILogger? logger)
     {
-        if (ObjectSpawnerFilePath is null)
+        if (ObjectSpawnerRelativeFilePath is null)
         {
-            logger.Info($"Intermediate file path for layer {LayerId} was not set.");
+            logger?.Info($"Intermediate file path for layer {LayerId} was not set.");
             return;
         }
-        var spawnerFullFilePath = this.GetFilePathOrDefaultPath(ObjectSpawnerFilePath, packageFolderPath, IntermediateObjectSpawnerFileNameFormat);
+        string spawnerFullFilePath = GetIntermediateFileFullFilePath(intermediateFilesFullFolderPath, IntermediateObjectSpawnerFileNameFormat);
         if (!File.Exists(spawnerFullFilePath))
         {
-            logger.Info($"Intermediate file for layer {LayerId} does not exist: {spawnerFullFilePath}");
+            logger?.Info($"Intermediate file for layer {LayerId} does not exist: {spawnerFullFilePath}");
             return;
         }
-        if (SpawnerDataSerializationHelper.TryDeserializeObjectPlacementsFromFile(
-            spawnerFullFilePath, OnDeserializeMetadata, out List<ObjectPlacementManualPrefabSpawnPlacementData>? objectPlacementDataList, out var errorMessage))
+        if (SpawnerDataSerializationHelper.TryDeserializeManualObjectPlacementsFromFile(
+            spawnerFullFilePath, OnDeserializeMetadata, out var objectPlacementDataList, out var errorMessage))
         {
             SpawnPlacementDataList = objectPlacementDataList;
         }
         else
         {
-            logger.Error(errorMessage);
+            logger?.Error(errorMessage);
         }
         return;
 

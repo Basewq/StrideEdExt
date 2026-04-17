@@ -24,10 +24,9 @@ class EditorToRuntimeMessagingService : IEditorToRuntimeMessagingService
     {
         if (data is not IRuntimeToEditorRequest request)
         {
-            return;
-            //throw new ArgumentException($"Invalid data type received: {data.GetType().Name} - expected type: {typeof(IRuntimeToEditorRequest).Name}");
+            throw new ArgumentException($"Invalid data type received: {data.GetType().Name} - expected type: {typeof(IRuntimeToEditorRequest).Name}");
         }
-        Debug.WriteLineIf(condition: true, $"Request received: {request.GetType().Name}");
+        Debug.WriteLineIf(condition: true, $"Editor: Request received: {request.GetType().Name}");
 
         // Dispatcher ensures requests are processed on the UI thread.
         _dispatcher.Invoke(() =>
@@ -76,7 +75,7 @@ class EditorToRuntimeMessagingService : IEditorToRuntimeMessagingService
     public void Send<TMessage>(TMessage message)
         where TMessage : IEditorToRuntimeMessage
     {
-        Debug.WriteLineIf(condition: true, $"Sending message: {message.GetType().Name}");
+        Debug.WriteLineIf(condition: true, $"Editor: Sending message: {message.GetType().Name}");
         _editorEndpoint.SendData(message);
     }
 

@@ -68,7 +68,9 @@ https://github.com/user-attachments/assets/e11c40d2-4ec1-4d8a-9f25-52d498deb2c4
 - Terrain flickers to black for a single frame after a modification - this is probably due to the material referencing some disposed texture which needs to be fixed (but doesn't appear to be catastrophic, for the time being).
 - Editor uses (legacy) Bullet physics to generate static mesh. Bepu has not been implemented.
 - Random editor crashes if modifying data too quickly.
+- Random editor crashes when using redo/undo on heightmap/object placement modification (only works sometimes...).
 - Cannot select procedurally generated objects within the editor, and cannot manually override individual properties of these objects.
+- Intermediate files does not get deleted if the asset is deleted. The workaround is to delete all the entity layers and save that first, then delete the asset.
 
 ---
 

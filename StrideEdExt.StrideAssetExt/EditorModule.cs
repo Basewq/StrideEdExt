@@ -1,5 +1,7 @@
 using Stride.Core;
+using Stride.Core.Assets;
 using Stride.Core.Reflection;
+using StrideEdExt.StrideAssetExt.YamlSerializers;
 
 namespace StrideEdExt.StrideAssetExt;
 
@@ -12,5 +14,7 @@ internal class EditorModule
     public static void Initialize()
     {
         AssemblyRegistry.Register(typeof(EditorModule).Assembly, AssemblyCommonCategories.Assets);
+
+        AssetFileSerializer.Register(StrideCustomAssetSerializer.Default);
     }
 }

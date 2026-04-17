@@ -5,65 +5,65 @@ Tags: []
 HeightmapLayerDataList:
     92e022f69e5bd6c607b32fb381e35272: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.Heightmaps.PainterHeightmapLayerData,StrideEdExt.StrideAssetExt
         LayerId: ad7b0ccc-2ebf-41e9-abd9-1e5cefbc2bab
-        LastModifiedIntermediateFile: 2025-09-06T21:56:40.8560268
+        LastModifiedIntermediateFile: 2026-04-18T07:00:39.2149384Z
+        HeightmapRelativeFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_ad7b0ccc2ebf41e9abd91e5cefbc2bab.txt
         HeightmapTexturePixelStartPosition: {X: 0, Y: 0}
-        HeightmapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_ad7b0ccc2ebf41e9abd91e5cefbc2bab.txt
         LayerBlendType: Maximum
         LastModifiedSourceFile: null
-    9102cb7de2c17949b932a6789ec8b8d0: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.Heightmaps.ModelHeightmapLayerData,StrideEdExt.StrideAssetExt
+    5f3d068acd7aa8614e4c2bc03794aea1: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.Heightmaps.ModelHeightmapLayerData,StrideEdExt.StrideAssetExt
         LayerId: c4d1ebe4-3572-4f8d-87c5-0c115b0020c5
-        LastModifiedIntermediateFile: 2025-06-26T15:53:34.1914241
+        LastModifiedIntermediateFile: 2026-04-16T21:32:31.3158737Z
+        HeightmapRelativeFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_c4d1ebe435724f8d87c50c115b0020c5.txt
         HeightmapTexturePixelStartPosition: {X: 22, Y: 20}
-        HeightmapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_c4d1ebe435724f8d87c50c115b0020c5.txt
         LayerBlendType: Maximum
         LastModifiedSourceFile: null
         ModelAssetUrl: Terrain/Sphere
     af6175e063a97d9f01df1606a1ed095c: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.Heightmaps.ModelHeightmapLayerData,StrideEdExt.StrideAssetExt
         LayerId: 98315aac-4a0b-43f4-a467-6e26fe653295
-        LastModifiedIntermediateFile: 2025-05-14T17:19:19.5882399
+        LastModifiedIntermediateFile: 2026-04-16T21:32:31.3163052Z
+        HeightmapRelativeFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_98315aac4a0b43f4a4676e26fe653295.txt
         HeightmapTexturePixelStartPosition: {X: 28, Y: 15}
-        HeightmapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_98315aac4a0b43f4a4676e26fe653295.txt
         LayerBlendType: Maximum
         LastModifiedSourceFile: null
         ModelAssetUrl: Terrain/Sphere
     e01c54c09b30f2e762872f3c047f5955: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.Heightmaps.TextureHeightmapLayerData,StrideEdExt.StrideAssetExt
         LayerId: 473636e0-69ee-4873-9a7f-babbb49661eb
-        LastModifiedIntermediateFile: 2025-05-28T15:52:55.2608669
+        LastModifiedIntermediateFile: 2026-04-18T06:23:58.9012694Z
+        HeightmapRelativeFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_473636e069ee48739a7fbabbb49661eb.txt
         HeightmapTexturePixelStartPosition: {X: 0, Y: 0}
-        HeightmapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_heightmap_473636e069ee48739a7fbabbb49661eb.txt
         LayerBlendType: Maximum
-        LastModifiedSourceFile: 2025-05-24T13:56:39.5852894
+        LastModifiedSourceFile: 2025-05-24T13:56:39.5852894Z
 MaterialWeightMapLayerDataList:
-    7256616cf16b0346b49a2d2663545cbc: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.MaterialMaps.PainterMaterialWeightMapLayerData,StrideEdExt.StrideAssetExt
-        LayerId: 3c5bf180-e44e-4c8e-8963-1a4e4256c34a
-        LastModifiedIntermediateFile: 2025-09-07T18:24:22.1539823
+    7256616cf16b0346b49a2d2663545cbc: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.MaterialMaps.TextureMaterialWeightMapLayerData,StrideEdExt.StrideAssetExt
+        LayerId: 0e91fc44-6c8a-4f8b-8a9c-4c3c492cae79
+        LastModifiedIntermediateFile: 2026-04-16T21:32:31.3177885Z
+        MaterialWeightMapRelativeFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_material_0e91fc446c8a4f8b8a9c4c3c492cae79.txt
         MaterialWeightMapTexturePixelStartPosition: {X: 0, Y: 0}
-        MaterialWeightMapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_material_3c5bf180e44e4c8e89631a4e4256c34a.txt
+        MaterialName: MatLayer3
+        LastModifiedSourceFile: 2025-05-24T14:11:02.3471339Z
+    41c60fee0931ab913282abe528155e92: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.MaterialMaps.PainterMaterialWeightMapLayerData,StrideEdExt.StrideAssetExt
+        LayerId: 3c5bf180-e44e-4c8e-8963-1a4e4256c34a
+        LastModifiedIntermediateFile: 2026-04-16T21:32:31.3185351Z
+        MaterialWeightMapRelativeFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_material_3c5bf180e44e4c8e89631a4e4256c34a.txt
+        MaterialWeightMapTexturePixelStartPosition: {X: 0, Y: 0}
         MaterialName: MatLayer3
         LastModifiedSourceFile: null
-    41c60fee0931ab913282abe528155e92: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.MaterialMaps.TextureMaterialWeightMapLayerData,StrideEdExt.StrideAssetExt
-        LayerId: 0e91fc44-6c8a-4f8b-8a9c-4c3c492cae79
-        LastModifiedIntermediateFile: 2025-06-26T15:54:44.9715015
-        MaterialWeightMapTexturePixelStartPosition: {X: 0, Y: 0}
-        MaterialWeightMapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_material_0e91fc446c8a4f8b8a9c4c3c492cae79.txt
-        MaterialName: MatLayer3
-        LastModifiedSourceFile: 2025-05-24T14:11:02.3471339
     822a1b0e8fb6fc5517110e9010f9652e: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.MaterialMaps.TextureMaterialWeightMapLayerData,StrideEdExt.StrideAssetExt
         LayerId: 487f2a25-29f3-42b2-aef1-bf5280ac03b1
-        LastModifiedIntermediateFile: 2025-05-28T15:52:55.3268706
+        LastModifiedIntermediateFile: 2026-04-16T21:32:31.3192262Z
+        MaterialWeightMapRelativeFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_material_487f2a2529f342b2aef1bf5280ac03b1.txt
         MaterialWeightMapTexturePixelStartPosition: {X: 0, Y: 0}
-        MaterialWeightMapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_material_487f2a2529f342b2aef1bf5280ac03b1.txt
         MaterialName: MatLayer2
-        LastModifiedSourceFile: 2025-05-24T13:56:39.5857894
+        LastModifiedSourceFile: 2025-05-24T13:56:39.5857894Z
     3453dbde557ce4dddaf9d48fa7f41e28: !StrideEdExt.StrideAssetExt.Assets.Terrain3d.Layers.MaterialMaps.TextureMaterialWeightMapLayerData,StrideEdExt.StrideAssetExt
         LayerId: a9824b40-71b9-4f06-bb9c-cff16c1a1150
-        LastModifiedIntermediateFile: 2025-05-28T15:52:55.2948688
+        LastModifiedIntermediateFile: 2026-04-16T21:32:31.3198773Z
+        MaterialWeightMapRelativeFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_material_a9824b4071b94f06bb9ccff16c1a1150.txt
         MaterialWeightMapTexturePixelStartPosition: {X: 0, Y: 0}
-        MaterialWeightMapFilePath: !file ../../Resources/Terrain/ExampleTerrainData/layer_material_a9824b4071b94f06bb9ccff16c1a1150.txt
         MaterialName: BaseMaterial
-        LastModifiedSourceFile: 2025-05-24T13:56:39.5857894
-LastUserModifiedDateTimeUtc: 2025-09-07T18:24:18.6707830
-ResourceFolderPath: !dir ../../Resources/Terrain/ExampleTerrainData
+        LastModifiedSourceFile: 2025-05-24T13:56:39.5857894Z
+LastUserModifiedDateTimeUtc: 2026-04-18T07:00:36.4632903Z
+ResourceRelativeFolderPath: !dir ../../Resources/Terrain/ExampleTerrainData
 HeightmapTextureSize: {X: 64, Y: 64}
 QuadsPerMesh: {X: 16, Y: 16}
 MeshQuadSize: {X: 1.0, Y: 1.0}

@@ -95,7 +95,8 @@ class ObjectPlacementMapEditorProcessor : EntityProcessor<ObjectPlacementMapEdit
                     {
                         var request = new RegenerateObjectPlacementSpawnerObjectsDataRequest
                         {
-                            ObjectPlacementMapAssetId = data.LoadedObjectPlacementMap.ObjectPlacementMapAssetId
+                            ObjectPlacementMapAssetId = data.LoadedObjectPlacementMap.ObjectPlacementMapAssetId,
+                            TerrainMapTextureSize = msg.HeightmapTextureSize,
                         };
                         _runtimeToEditorMessagingService.Send(request);
                     }
@@ -256,17 +257,6 @@ class ObjectPlacementMapEditorProcessor : EntityProcessor<ObjectPlacementMapEdit
             var chunkIndexToChunkDataMap = new Dictionary<TerrainChunkIndex2d, ObjectPlacementsChunkData>();
             foreach (var (layerId, modelObjPlcDataList) in setObjectPlacementsMsg.LayerIdToModelPlacementDataList)
             {
-                //if (!TryGetComponentByLayerId<ObjectSpawnerComponentBase>(layerId, out var layerComp))
-                //{
-                //    System.Diagnostics.Debug.WriteLine($"{nameof(SetObjectPlacementObjectDataMessage)}: Spawner Layer Component not was found: {layerId}");
-                //    continue;
-                //}
-                //if (layerComp is not ModelInstancingSpawnerComponent modelInstancingSpawnerComp)
-                //{
-                //    System.Diagnostics.Debug.WriteLine($"{nameof(SetObjectPlacementObjectDataMessage)}: Spawner Layer Component type mismatch: Expected {nameof(ModelInstancingSpawnerComponent)} but type was {layerComp.GetType().Name}");
-                //    continue;
-                //}
-
                 foreach (var modelObjPlacementsData in modelObjPlcDataList)
                 {
                     // Separate placements into chunks
@@ -288,17 +278,6 @@ class ObjectPlacementMapEditorProcessor : EntityProcessor<ObjectPlacementMapEdit
             }
             foreach (var (layerId, prefabObjPlcDataList) in setObjectPlacementsMsg.LayerIdToPrefabPlacementDataList)
             {
-                //if (!TryGetComponentByLayerId<ObjectSpawnerComponentBase>(layerId, out var layerComp))
-                //{
-                //    System.Diagnostics.Debug.WriteLine($"{nameof(SetObjectPlacementObjectDataMessage)}: Spawner Layer Component not was found: {layerId}");
-                //    continue;
-                //}
-                //if (layerComp is not PrefabSpawnerComponent prefabSpawnerComp)
-                //{
-                //    System.Diagnostics.Debug.WriteLine($"{nameof(SetObjectPlacementObjectDataMessage)}: Spawner Layer Component type mismatch: Expected {nameof(PrefabSpawnerComponent)} but type was {layerComp.GetType().Name}");
-                //    continue;
-                //}
-
                 foreach (var prefabObjPlacementsData in prefabObjPlcDataList)
                 {
                     // Separate placements into chunks

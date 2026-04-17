@@ -37,7 +37,7 @@ public static class SpawnerDataSerializationHelper
         }
     }
 
-    public static void SerializeObjectPlacementsToFile(Action<AssetTextWriter> serializeMetadata, List<ObjectPlacementManualPrefabSpawnPlacementData> objectPlacementDataList, string outputObjectPlacementFilePath)
+    public static void SerializeManualObjectPlacementsToFile(Action<AssetTextWriter> serializeMetadata, List<ObjectPlacementSpawnPlacementData> objectPlacementDataList, string outputObjectPlacementFilePath)
     {
         using var writer = new AssetTextWriter(outputObjectPlacementFilePath);  // Will overwrite the file if it already exists
 
@@ -168,6 +168,7 @@ public static class SpawnerDataSerializationHelper
         var orientation = GetOrientationFromEulerDegrees(eulerOrientationDegrees);
         objectPlacementData = new ObjectPlacementSpawnPlacementData
         {
+            SpawnInstancingId = default,    // Not applicable
             AssetUrlListIndex = assetUrlListIndex,
             Position = position,
             Orientation = orientation,
@@ -177,10 +178,10 @@ public static class SpawnerDataSerializationHelper
         return true;
     }
 
-    public static bool TryDeserializeObjectPlacementsFromFile(
+    public static bool TryDeserializeManualObjectPlacementsFromFile(
         string outputObjectPlacementFilePath,
         DeserializeMetadataFunc deserializeMetadata,
-        [NotNullWhen(true)] out List<ObjectPlacementManualPrefabSpawnPlacementData>? objectPlacementDataList,
+        [NotNullWhen(true)] out List<ObjectPlacementSpawnPlacementData>? objectPlacementDataList,
         [NotNullWhen(false)] out string? errorMessage)
     {
         //assetRefList = null;
@@ -202,9 +203,9 @@ public static class SpawnerDataSerializationHelper
         var placementLine = reader.ReadLine();
         while (placementLine is not null)
         {
-            if (!TryParsePlacementLine(
+            if (!TryParseManualObjectPlacementLine(
                 placementLine,
-                out ObjectPlacementManualPrefabSpawnPlacementData? objectPlacementData, out errorMessage))
+                out var objectPlacementData, out errorMessage))
             {
                 return false;
             }
@@ -216,9 +217,9 @@ public static class SpawnerDataSerializationHelper
         return true;
     }
 
-    private static bool TryParsePlacementLine(
+    private static bool TryParseManualObjectPlacementLine(
         string placementLine,
-        [NotNullWhen(true)] out ObjectPlacementManualPrefabSpawnPlacementData? objectPlacementData,
+        [NotNullWhen(true)] out ObjectPlacementSpawnPlacementData? objectPlacementData,
         [NotNullWhen(false)] out string? errorMessage)
     {
         objectPlacementData = default;
@@ -263,7 +264,7 @@ public static class SpawnerDataSerializationHelper
         }
 
         var orientation = GetOrientationFromEulerDegrees(eulerOrientationDegrees);
-        objectPlacementData = new ObjectPlacementManualPrefabSpawnPlacementData
+        objectPlacementData = new ObjectPlacementSpawnPlacementData
         {
             SpawnInstancingId = spawnInstancingId,
             AssetUrlListIndex = assetUrlListIndex,

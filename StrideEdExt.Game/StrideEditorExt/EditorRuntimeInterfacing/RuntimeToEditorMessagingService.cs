@@ -31,10 +31,9 @@ class RuntimeToEditorMessagingService : GameSystem, IRuntimeToEditorMessagingSer
     {
         if (data is not IEditorToRuntimeMessage message)
         {
-            return;
-            //throw new ArgumentException($"Invalid data type received: {data.GetType().Name} - expected type: {typeof(IRuntimeToEditorRequest).Name}");
+            throw new ArgumentException($"Invalid data type received: {data.GetType().Name} - expected type: {typeof(IRuntimeToEditorRequest).Name}");
         }
-        Debug.WriteLineIf(condition: false, $"OnEndpointDataReceived: Message received: {message.GetType().Name}");
+        Debug.WriteLineIf(condition: false, $"Runtime.OnEndpointDataReceived: Message received: {message.GetType().Name}");
 
         lock (_pendingMessages)
         {
@@ -58,7 +57,7 @@ class RuntimeToEditorMessagingService : GameSystem, IRuntimeToEditorMessagingSer
         {
             foreach (var message in _processingMessages)
             {
-                Debug.WriteLineIf(condition: false, $"Message received: {message.GetType().Name}");
+                Debug.WriteLineIf(condition: false, $"Runtime: Message received: {message.GetType().Name}");
                 if (_messageTypeToSubscribers.TryGetValue(message.GetType(), out var handlers))
                 {
                     Debug.WriteLineIf(condition: handlers.Count > 0, $"Message handler ReceiveMessage: {message.GetType().Name}");
@@ -88,7 +87,7 @@ class RuntimeToEditorMessagingService : GameSystem, IRuntimeToEditorMessagingSer
     public void Send<TRequest>(TRequest request)
         where TRequest : IRuntimeToEditorRequest
     {
-        Debug.WriteLineIf(condition: true, $"Sending request: {request.GetType().Name}");
+        Debug.WriteLineIf(condition: true, $"Runtime: Sending request: {request.GetType().Name}");
         _runtimeEndpoint.SendData(request);
     }
 

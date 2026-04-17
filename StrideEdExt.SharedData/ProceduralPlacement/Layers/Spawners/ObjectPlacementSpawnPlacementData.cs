@@ -5,6 +5,10 @@ namespace StrideEdExt.SharedData.ProceduralPlacement.Layers.Spawners;
 public class ObjectPlacementSpawnPlacementData
 {
     /// <summary>
+    /// Only applicable to manual placement layer type.
+    /// </summary>
+    public required Guid SpawnInstancingId;
+    /// <summary>
     /// Corresponds to the index on <see cref="ObjectPlacementMap.ModelAssetUrlRefList"/> or <see cref="ObjectPlacementMap.PrefabAssetUrlRefList"/>.
     /// </summary>
     public required int AssetUrlListIndex;
@@ -39,6 +43,7 @@ public class ObjectPlacementSpawnPlacementData
     public bool IsSame(ObjectPlacementSpawnPlacementData other)
     {
         bool isSame = true
+            && SpawnInstancingId == other.SpawnInstancingId
             && AssetUrlListIndex == other.AssetUrlListIndex
             && Position == other.Position
             && Orientation == other.Orientation
@@ -47,9 +52,4 @@ public class ObjectPlacementSpawnPlacementData
             ;
         return isSame;
     }
-}
-
-public class ObjectPlacementManualPrefabSpawnPlacementData : ObjectPlacementSpawnPlacementData
-{
-    public required Guid SpawnInstancingId;
 }

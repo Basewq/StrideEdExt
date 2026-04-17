@@ -63,9 +63,9 @@ Hierarchy:
                             75db4ec66443c0f75d7b8c85849b52e9: ref!! 8b9bc827-87a0-45e5-89bd-80fb39e261d1
                             d886895f2551ae3c46ae8a2a2bb5fd34: ref!! 4eed5664-4450-4066-9405-55679d65a732
                             7404ebc8216f9fc5ff1e7f63bdf0107a: ref!! 087e2b23-44a3-48f3-be5f-34b77c2d9116
-                            b94f4e354497601cc045556b4a415e95: ref!! 1996a9c8-d18b-4cb5-b196-46305ab4630e
-                            12581535b2c199745b7f73b933c2e286: ref!! 863ee0a8-daf6-4efc-bd7a-9c3327f32290
-                            a76ce45a2a8c6c71c573fa30b0c901e9: ref!! f0a059db-5e22-4143-999e-6883ebab3492
+                            a5bb2513f8afa6e298e0797a91e9f4ee: ref!! 863ee0a8-daf6-4efc-bd7a-9c3327f32290
+                            5aaad9e1161235fe2382378a67c8a3f4: ref!! 1996a9c8-d18b-4cb5-b196-46305ab4630e
+                            3116f8931b8b388741545fbec4d7af55: ref!! f0a059db-5e22-4143-999e-6883ebab3492
                             fbb1b93ab7cebbd485a8572e87d6e219: ref!! eb00d8db-0b61-4538-bd5d-4d3bf5738a97
                     e718e0369b9c634135104bc605ef88ae: !StrideEdExt.WorldTerrain.Terrain3d.Editor.TerrainMapEditorComponent,StrideEdExt.Game
                         Id: 91c2e888-0a36-40f0-9285-9a5b6f572ae2
@@ -116,7 +116,7 @@ Hierarchy:
                 Components:
                     9b34002e67e23ed7df26112474053eb2: !TransformComponent
                         Id: ed525e26-96b6-4598-aa9a-97204207b949
-                        Position: {X: 22.6576, Y: -6.6986313, Z: 14.007867}
+                        Position: {X: 23.313538, Y: -6.6986313, Z: 18.737392}
                         Rotation: {X: 0.0, Y: 0.38268346, Z: 0.0, W: 0.9238795}
                         Scale: {X: 2.0, Y: 2.0, Z: 2.0}
                         Children: {}

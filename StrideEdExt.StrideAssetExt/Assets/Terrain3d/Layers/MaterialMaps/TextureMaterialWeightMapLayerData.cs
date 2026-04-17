@@ -17,30 +17,30 @@ public class TextureMaterialWeightMapLayerData : TerrainMaterialMapLayerDataBase
     [DataMemberIgnore]
     public Array2d<Half>? MaterialWeightMapData;
 
-    protected override void OnSerializeIntermediateFile(UDirectory packageFolderPath, TerrainMapAsset terrainMapAsset, ILogger logger)
+    protected override void OnSerializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, TerrainMapAsset terrainMapAsset, ILogger? logger)
     {
         if (MaterialWeightMapData is null)
         {
-            logger.Warning($"Could not serialize intermediate file because layer {LayerId} did not generate material data.");
+            logger?.Warning($"Could not serialize intermediate file because layer {LayerId} did not generate material data.");
             return;
         }
 
-        var materialWeightMapFullFilePath = this.GetFilePathOrDefaultPath(MaterialWeightMapFilePath, packageFolderPath, IntermediateMaterialWeightMapFileNameFormat);
+        string materialWeightMapFullFilePath = GetIntermediateFileFullFilePath(intermediateFilesFullFolderPath, IntermediateMaterialWeightMapFileNameFormat);
         HeightmapSerializationHelper.SerializeHalfArray2dToHexFile(MaterialWeightMapData, materialWeightMapFullFilePath);
-        MaterialWeightMapFilePath = materialWeightMapFullFilePath;
+        MaterialWeightMapRelativeFilePath = new UFile(materialWeightMapFullFilePath).MakeRelative(terrainMapAssetFullFolderPath);
     }
 
-    protected override void OnDeserializeIntermediateFile(UDirectory packageFolderPath, TerrainMapAsset terrainMapAsset, ILogger logger)
+    protected override void OnDeserializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, TerrainMapAsset terrainMapAsset, ILogger? logger)
     {
-        if (MaterialWeightMapFilePath is null)
+        if (MaterialWeightMapRelativeFilePath is null)
         {
-            logger.Info($"Intermediate file path for layer {LayerId} was not set.");
+            logger?.Info($"Intermediate file path for layer {LayerId} was not set.");
             return;
         }
-        var materialWeightMapFullFilePath = this.GetFilePathOrDefaultPath(MaterialWeightMapFilePath, packageFolderPath, IntermediateMaterialWeightMapFileNameFormat);
+        string materialWeightMapFullFilePath = GetIntermediateFileFullFilePath(intermediateFilesFullFolderPath, IntermediateMaterialWeightMapFileNameFormat);
         if (!File.Exists(materialWeightMapFullFilePath))
         {
-            logger.Info($"Intermediate file for layer {LayerId} does not exist: {materialWeightMapFullFilePath}");
+            logger?.Info($"Intermediate file for layer {LayerId} does not exist: {materialWeightMapFullFilePath}");
             return;
         }
         if (HeightmapSerializationHelper.TryDeserializeHalfArray2dFromHexFile(materialWeightMapFullFilePath, out var materialWeightMapData, out var errorMessage))
@@ -50,14 +50,13 @@ public class TextureMaterialWeightMapLayerData : TerrainMaterialMapLayerDataBase
         }
         else
         {
-            logger.Error(errorMessage);
+            logger?.Error(errorMessage);
         }
     }
 
     public override void ApplyLayerMaterialMapModifications(Array2d<Half> materialWeightMapData, Array2d<byte> materialIndexMapData, List<TerrainMaterialLayerDefinitionAsset> materialLayers)
     {
-        if (MaterialWeightMapData is not Array2d<Half> layerMaterialWeightMapData
-            || MaterialWeightMapTexturePixelStartPosition is not Int2 startingIndex)
+        if (MaterialWeightMapData is not Array2d<Half> layerMaterialWeightMapData)
         {
             return;
         }
@@ -66,6 +65,7 @@ public class TextureMaterialWeightMapLayerData : TerrainMaterialMapLayerDataBase
             return;
         }
 
+        var startingIndex = MaterialWeightMapTexturePixelStartPosition;
         TerrainMapLayerExtensions.UpdateMaterialWeightMapRegion(
             layerMaterialWeightMapData, materialIndex, startingIndex,
             materialWeightMapData, materialIndexMapData);

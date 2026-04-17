@@ -18,30 +18,30 @@ public class TextureObjectDensityMapLayerData : ObjectDensityMapLayerDataBase
     [DataMemberIgnore]
     public Array2d<Half>? ObjectDensityMapData;
 
-    protected override void OnSerializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger logger)
+    protected override void OnSerializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory objectPlacementMapAssetFullFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger? logger)
     {
         if (ObjectDensityMapData is null)
         {
-            logger.Warning($"Could not serialize intermediate file because layer {LayerId} did not generate material data.");
+            logger?.Warning($"Could not serialize intermediate file because layer {LayerId} did not generate material data.");
             return;
         }
 
-        var densityMapFullFilePath = this.GetFilePathOrDefaultPath(ObjectDensityMapFilePath, packageFolderPath, IntermediateObjectDensityMapFileNameFormat);
+        string densityMapFullFilePath = GetIntermediateFileFullFilePath(intermediateFilesFullFolderPath, IntermediateObjectDensityMapFileNameFormat);
         HeightmapSerializationHelper.SerializeHalfArray2dToHexFile(ObjectDensityMapData, densityMapFullFilePath);
-        ObjectDensityMapFilePath = densityMapFullFilePath;
+        ObjectDensityMapRelativeFilePath = new UFile(densityMapFullFilePath).MakeRelative(objectPlacementMapAssetFullFolderPath);
     }
 
-    protected override void OnDeserializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, Size2 terrainMapTextureSize, ILogger logger)
+    protected override void OnDeserializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory objectPlacementMapAssetFullFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, Size2 terrainMapTextureSize, ILogger? logger)
     {
-        if (ObjectDensityMapFilePath is null)
+        if (ObjectDensityMapRelativeFilePath is null)
         {
-            logger.Info($"Intermediate file path for layer {LayerId} was not set.");
+            logger?.Info($"Intermediate file path for layer {LayerId} was not set.");
             return;
         }
-        var densityMapFullFilePath = this.GetFilePathOrDefaultPath(ObjectDensityMapFilePath, packageFolderPath, IntermediateObjectDensityMapFileNameFormat);
+        string densityMapFullFilePath = GetIntermediateFileFullFilePath(intermediateFilesFullFolderPath, IntermediateObjectDensityMapFileNameFormat);
         if (!File.Exists(densityMapFullFilePath))
         {
-            logger.Info($"Intermediate file for layer {LayerId} does not exist: {densityMapFullFilePath}");
+            logger?.Info($"Intermediate file for layer {LayerId} does not exist: {densityMapFullFilePath}");
             return;
         }
         if (HeightmapSerializationHelper.TryDeserializeHalfArray2dFromHexFile(densityMapFullFilePath, out var densityMapData, out var errorMessage))
@@ -51,7 +51,7 @@ public class TextureObjectDensityMapLayerData : ObjectDensityMapLayerDataBase
         }
         else
         {
-            logger.Error(errorMessage);
+            logger?.Error(errorMessage);
         }
     }
 }

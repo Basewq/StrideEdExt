@@ -1,5 +1,4 @@
 using Stride.Core;
-using Stride.Core.Assets;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
@@ -22,18 +21,20 @@ public abstract class ObjectPlacementLayerDataBase
     [DataMemberIgnore]
     public bool IsDeserializeIntermediateFileRequired { get; set; } = true;
 
-    public void SerializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger logger)
+    public void SerializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory objectPlacementMapAssetFullFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger? logger)
     {
-        OnSerializeIntermediateFile(packageFolderPath, objectPlacementMapAsset, logger);
+        OnSerializeIntermediateFile(intermediateFilesFullFolderPath, objectPlacementMapAssetFullFolderPath, objectPlacementMapAsset, logger);
     }
-    protected abstract void OnSerializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger logger);
+    protected abstract void OnSerializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory objectPlacementMapAssetFullFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, ILogger? logger);
 
-    public void DeserializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, Size2 terrainMapTextureSize, ILogger logger)
+    public void DeserializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory objectPlacementMapAssetFullFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, Size2 terrainMapTextureSize, ILogger? logger)
     {
-        OnDeserializeIntermediateFile(packageFolderPath, objectPlacementMapAsset, terrainMapTextureSize, logger);
+        OnDeserializeIntermediateFile(intermediateFilesFullFolderPath, objectPlacementMapAssetFullFolderPath, objectPlacementMapAsset, terrainMapTextureSize, logger);
         IsDeserializeIntermediateFileRequired = false;
     }
-    protected abstract void OnDeserializeIntermediateFile(UDirectory packageFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, Size2 terrainMapTextureSize, ILogger logger);
+    protected abstract void OnDeserializeIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory objectPlacementMapAssetFullFolderPath, ObjectPlacementMapAsset objectPlacementMapAsset, Size2 terrainMapTextureSize, ILogger? logger);
+
+    public abstract void DeleteIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, ILogger? logger);
 
     public void UpdateForTerrainMapResized(Size2 heightmapTextureSize, AssetTransactionBuilder assetTransactionBuilder)
     {
@@ -59,24 +60,50 @@ public abstract class ObjectPlacementLayerDataBase
             array2d.Resize(expectedSize);
         }
     }
+
+    public string GetIntermediateFileFullFilePath(
+        UDirectory intermediateFilesFullFolderPath, string fileNameFormat)
+    {
+        string fileName = string.Format(fileNameFormat, LayerId.ToString("N"));
+        string layerFullFilePath = UDirectory.Combine(intermediateFilesFullFolderPath, fileName).ToOSPath();
+        return layerFullFilePath;
+    }
 }
 
 public abstract class ObjectDensityMapLayerDataBase : ObjectPlacementLayerDataBase
 {
     internal const string IntermediateObjectDensityMapFileNameFormat = "layer_density_{0}.txt";
 
-    [UPath(UPathRelativeTo.Package)]
-    public UFile? ObjectDensityMapFilePath { get; set; }
+    /// <summary>
+    /// Path relative to its main asset.
+    /// </summary>
+    public UFile? ObjectDensityMapRelativeFilePath { get; set; }
 
-    public Int2? ObjectDensityMapTexturePixelStartPosition;
+    public Int2 ObjectDensityMapTexturePixelStartPosition { get; set; }
+
+    public override void DeleteIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, ILogger? logger)
+    {
+        string? intermediateFileFullFilePath;
+        if (ObjectDensityMapRelativeFilePath is not null)
+        {
+            intermediateFileFullFilePath = UPath.Combine(terrainMapAssetFullFolderPath, ObjectDensityMapRelativeFilePath).ToOSPath();
+        }
+        else
+        {
+            intermediateFileFullFilePath = GetIntermediateFileFullFilePath(intermediateFilesFullFolderPath, IntermediateObjectDensityMapFileNameFormat);
+        }
+        _ = AssetExt.TryDeleteFile(intermediateFileFullFilePath, logger);
+    }
 }
 
 public abstract class ObjectSpawnerDataBase : ObjectPlacementLayerDataBase, IObjectSpawnerLayerData
 {
     internal const string IntermediateObjectSpawnerFileNameFormat = "object_placement_spawner_{0}.txt";
 
-    [UPath(UPathRelativeTo.Package)]
-    public UFile? ObjectSpawnerFilePath { get; set; }
+    /// <summary>
+    /// Path relative to its main asset.
+    /// </summary>
+    public UFile? ObjectSpawnerRelativeFilePath { get; set; }
 
     /// <summary>
     /// Pool of assets used to spawn an object.
@@ -87,4 +114,18 @@ public abstract class ObjectSpawnerDataBase : ObjectPlacementLayerDataBase, IObj
     public List<ObjectPlacementSpawnPlacementData> PreviousSpawnPlacementDataList { get; set; } = [];
     [DataMemberIgnore]
     public List<ObjectPlacementSpawnPlacementData> SpawnPlacementDataList { get; set; } = [];
+
+    public override void DeleteIntermediateFile(UDirectory intermediateFilesFullFolderPath, UDirectory terrainMapAssetFullFolderPath, ILogger? logger)
+    {
+        string? intermediateFileFullFilePath;
+        if (ObjectSpawnerRelativeFilePath is not null)
+        {
+            intermediateFileFullFilePath = UPath.Combine(terrainMapAssetFullFolderPath, ObjectSpawnerRelativeFilePath).ToOSPath();
+        }
+        else
+        {
+            intermediateFileFullFilePath = GetIntermediateFileFullFilePath(intermediateFilesFullFolderPath, IntermediateObjectSpawnerFileNameFormat);
+        }
+        _ = AssetExt.TryDeleteFile(intermediateFileFullFilePath, logger);
+    }
 }

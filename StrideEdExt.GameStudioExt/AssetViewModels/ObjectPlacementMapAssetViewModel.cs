@@ -2,7 +2,6 @@ using Stride.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
 using Stride.Assets.Presentation.AssetEditors.SceneEditor.ViewModels;
 using Stride.Assets.Presentation.ViewModel;
 using Stride.Core.Assets;
-using Stride.Core.Assets.Analysis;
 using Stride.Core.Assets.Editor.Annotations;
 using Stride.Core.Assets.Editor.Services;
 using Stride.Core.Assets.Editor.ViewModel;
@@ -10,7 +9,6 @@ using Stride.Core.Assets.Quantum;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
-using Stride.Core.Presentation.Services;
 using Stride.Core.Quantum;
 using Stride.Engine;
 using StrideEdExt.GameStudioExt.Assets.Transaction;
@@ -60,6 +58,16 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
 
     protected override void Initialize()
     {
+        var assetFullFilePath = AssetItem.FullPath;
+        if (assetFullFilePath?.IsAbsolute == true)
+        {
+            // The editor creates a copy of the asset object which does not go through our custom YAML serializer
+            lock (Asset)
+            {
+                Asset.OnAssetLoaded(assetFullFilePath, _logger);
+            }
+        }
+
         base.Initialize();
         var pluginService = ServiceProvider.Get<IAssetsPluginService>();
         var gameAssetsEditorPlugin = (GameAssetsEditorPlugin)pluginService.Plugins.First(x => x is GameAssetsEditorPlugin);
@@ -69,12 +77,6 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             _editorToRuntimeMessagingService = ServiceProvider.Get<IEditorToRuntimeMessagingService>();
             SubscribeRuntimeMessagingRequests();
         });
-
-        if (Asset.ResourceFolderPath is not null)
-        {
-            var packageFolderPath = AssetItem.Package.FullPath.GetFullDirectory();
-            Asset.EnsureFinalizeContentDeserialization(_logger, packageFolderPath);
-        }
 
         Session.UndoRedoService.Done += OnUndoRedoServiceTransactionFinished;
         Session.UndoRedoService.Undone += OnUndoRedoServiceTransactionFinished;
@@ -100,7 +102,8 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             string memberName = e.Member.Name;
             if (memberName == nameof(ObjectPlacementMapAsset.TerrainMap))
             {
-
+                // Get texture size?
+                // TODO: OnTerrainMapTextureSizeChanged??
             }
             ////if (memberName == nameof(ObjectPlacementMapAsset.DensityMapTextureSize))
             ////{
@@ -163,55 +166,19 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
         base.Destroy();
     }
 
-    protected override void OnSessionSaved()
-    {
-        var logger = new LoggerResult();
-
-        var packageFolderPath = AssetItem.Package.FullPath.GetFullDirectory();
-
-        using (var undoRedoTransaction = UndoRedoService.CreateTransaction())
-        {
-            UndoRedoService.SetName(undoRedoTransaction, "ObjectPlacementMapAsset - Serialized Layer Data");
-            var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
-
-            Asset.SerializeIntermediateFiles(logger, packageFolderPath);
-
-            var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
-            var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
-            UndoRedoService.PushOperation(trxOp);
-        }
-        if (Asset.HasObjectPlacementLayerSerializedIntermediateFiles)
-        {
-            Asset.HasObjectPlacementLayerSerializedIntermediateFiles = false;
-            // HACK: OnSessionSaved occurs after the asset has already been serialized to disk,
-            // but we've made additional changes so need to save it again.
-            var assetAnalysisParams = new AssetAnalysisParameters()
-            {
-                IsProcessingUPaths = true,
-                ConvertUPathTo = UPathType.Relative,
-            };
-            AssetAnalysis.Run(AssetItem, logger, assetAnalysisParams);      // Ensures we save our file/folder paths as relative to the package it belongs to.
-            Package.SaveSingleAsset(AssetItem, logger);
-            UpdateDirtiness(false);
-        }
-
-        if (logger.HasErrors)
-        {
-            var dialogService = ServiceProvider.Get<IDialogService>();
-            _ = dialogService.MessageBoxAsync("Failed to save Object Placement Map asset.", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-    }
-
     private void OnUndoRedoServiceTransactionFinished(object? sender, Stride.Core.Transactions.TransactionEventArgs e)
     {
         if (_onTransactionFinished_IsSpawnersUpdateRequired)
         {
-            foreach (var pendingLayerTreeUpdate in _pendingLayerTreeUpdateList)
+            lock (Asset)
             {
-                var layerTree = pendingLayerTreeUpdate;
-                UpdatePlacementLayerTree(layerTree);
-                var editorEntityId = pendingLayerTreeUpdate.EditorEntityId;
-                _editorEntityIdToPlacementLayerTree[editorEntityId] = layerTree;
+                foreach (var pendingLayerTreeUpdate in _pendingLayerTreeUpdateList)
+                {
+                    UpdatePlacementLayerTree(pendingLayerTreeUpdate);
+                    var editorEntityId = pendingLayerTreeUpdate.EditorEntityId;
+                    _editorEntityIdToPlacementLayerTree[editorEntityId] = pendingLayerTreeUpdate;
+                }
+                _pendingLayerTreeUpdateList.Clear();
             }
 
             _onTransactionFinished_IsSpawnersUpdateRequired = false;
@@ -279,26 +246,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                     }
                 }
             }
-            TryGetTerrainMapAsset(Asset.TerrainMap, out var terrainMapAsset);   // TODO wait until it's ready?
-            var terrainMapTextureSize = terrainMapAsset?.HeightmapTextureSize.ToSize2() ?? Size2.Zero;
 
-            // Ensure intermediate data is loaded
-            var dmLayers = Asset.DensityMapLayerDataList;
-            if (dmLayers is not null)
-            {
-                foreach (var layerData in dmLayers)
-                {
-                    EnsureLayerIntermediateFileDeserialized(layerData, terrainMapTextureSize);
-                }
-            }
-            var spawnerLayers = Asset.SpawnerDataList;
-            if (spawnerLayers is not null)
-            {
-                foreach (var layerData in spawnerLayers)
-                {
-                    EnsureLayerIntermediateFileDeserialized(layerData, terrainMapTextureSize);
-                }
-            }
             // Provide the object placement data to the run-time editor tool(s)
             if (_editorToRuntimeMessagingService is not null)
             {
@@ -424,17 +372,42 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
         // Spawner modification requests
         RegisterRequestHandler<RegenerateObjectPlacementSpawnerObjectsDataRequest>(req =>
         {
-            UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
+            using (var undoRedoTransaction = UndoRedoService.CreateTransaction())
+            {
+                UndoRedoService.SetName(undoRedoTransaction, "ObjectPlacementMapAsset - RegenerateObjectPlacementSpawnerObjectsDataRequest");
+                var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
+
+                Asset.TerrainMapTextureSize = req.TerrainMapTextureSize;
+                UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
+
+                assetTransactionBuilder.AddPostExecuteAction(() => UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true));
+                Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
+                var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
+                var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
+                UndoRedoService.PushOperation(trxOp);
+            }
         });
         RegisterRequestHandler<UpdateObjectPlacementModelInstacingSpawnerDataRequest>(req =>
         {
             if (Asset.TryGetObjectSpawnerData<ModelInstancingSpawnerData>(req.LayerId, out var modelInstancingSpawnerData))
             {
-                modelInstancingSpawnerData.ModelType = req.ModelType;
-                AssetReplaceableExt.ReplaceList(sourceList: req.ObjectSpawnAssetDefinitionList, destinationList: modelInstancingSpawnerData.SpawnAssetDefinitionList);
+                using (var undoRedoTransaction = UndoRedoService.CreateTransaction())
+                {
+                    UndoRedoService.SetName(undoRedoTransaction, "ObjectPlacementMapAsset - UpdateObjectPlacementModelInstacingSpawnerDataRequest");
+                    var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
 
-                modelInstancingSpawnerData.IsSerializeIntermediateFileRequired = true;
-                UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
+                    modelInstancingSpawnerData.ModelType = req.ModelType;
+                    AssetReplaceableExt.ReplaceList(sourceList: req.ObjectSpawnAssetDefinitionList, destinationList: modelInstancingSpawnerData.SpawnAssetDefinitionList);
+
+                    modelInstancingSpawnerData.IsSerializeIntermediateFileRequired = true;
+                    UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
+
+                    assetTransactionBuilder.AddPostExecuteAction(() => UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true));
+                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
+                    var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
+                    var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
+                    UndoRedoService.PushOperation(trxOp);
+                }
             }
             else
             {
@@ -445,10 +418,22 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
         {
             if (Asset.TryGetObjectSpawnerData<PrefabSpawnerData>(req.LayerId, out var prefabSpawnerData))
             {
-                AssetReplaceableExt.ReplaceList(sourceList: req.ObjectSpawnAssetDefinitionList, destinationList: prefabSpawnerData.SpawnAssetDefinitionList);
+                using (var undoRedoTransaction = UndoRedoService.CreateTransaction())
+                {
+                    UndoRedoService.SetName(undoRedoTransaction, "ObjectPlacementMapAsset - UpdateObjectPlacementPrefabSpawnerDataRequest");
+                    var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
 
-                prefabSpawnerData.IsSerializeIntermediateFileRequired = true;
-                UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
+                    AssetReplaceableExt.ReplaceList(sourceList: req.ObjectSpawnAssetDefinitionList, destinationList: prefabSpawnerData.SpawnAssetDefinitionList);
+
+                    prefabSpawnerData.IsSerializeIntermediateFileRequired = true;
+                    UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
+
+                    assetTransactionBuilder.AddPostExecuteAction(() => UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true));
+                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
+                    var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
+                    var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
+                    UndoRedoService.PushOperation(trxOp);
+                }
             }
             else
             {
@@ -459,81 +444,93 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
         {
             if (Asset.TryGetObjectSpawnerData<ManualPrefabSpawnerData>(req.LayerId, out var manualPrefabSpawnerData))
             {
-                var spawnAssetDefinitionList = manualPrefabSpawnerData.SpawnAssetDefinitionList.ToList();
-                var spawnAssetDefinitionSpawnInstancingIdList = manualPrefabSpawnerData.SpawnAssetDefinitionSpawnInstancingIdList.ToList();
-
-                var spawnPlacementDataList = manualPrefabSpawnerData.SpawnPlacementDataList;
-
-                if (req.DeletePrefabTransformList is not null)
+                using (var undoRedoTransaction = UndoRedoService.CreateTransaction())
                 {
-                    foreach (var deletePrefabTransform in req.DeletePrefabTransformList)
-                    {
-                        var spawnInstancingId = deletePrefabTransform.SpawnInstancingId;
-                        if (spawnAssetDefinitionSpawnInstancingIdList.TryFindIndex(x => x == spawnInstancingId, out int assetDefIndex))
-                        {
-                            spawnAssetDefinitionList.RemoveAt(assetDefIndex);
-                            spawnAssetDefinitionSpawnInstancingIdList.RemoveAt(assetDefIndex);
+                    UndoRedoService.SetName(undoRedoTransaction, "ObjectPlacementMapAsset - UpdateObjectPlacementManualPrefabSpawnerDataRequest");
+                    var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
 
-                            if (spawnPlacementDataList.TryFindIndex(x => x.SpawnInstancingId == spawnInstancingId, out int plcDataIndex))
+                    var spawnAssetDefinitionList = manualPrefabSpawnerData.SpawnAssetDefinitionList.ToList();
+                    var spawnAssetDefinitionSpawnInstancingIdList = manualPrefabSpawnerData.SpawnAssetDefinitionSpawnInstancingIdList.ToList();
+
+                    var spawnPlacementDataList = manualPrefabSpawnerData.SpawnPlacementDataList;
+
+                    if (req.DeletePrefabTransformList is not null)
+                    {
+                        foreach (var deletePrefabTransform in req.DeletePrefabTransformList)
+                        {
+                            var spawnInstancingId = deletePrefabTransform.SpawnInstancingId;
+                            if (spawnAssetDefinitionSpawnInstancingIdList.TryFindIndex(x => x == spawnInstancingId, out int assetDefIndex))
                             {
-                                spawnPlacementDataList.RemoveAt(plcDataIndex);
+                                spawnAssetDefinitionList.RemoveAt(assetDefIndex);
+                                spawnAssetDefinitionSpawnInstancingIdList.RemoveAt(assetDefIndex);
+
+                                if (spawnPlacementDataList.TryFindIndex(x => x.SpawnInstancingId == spawnInstancingId, out int plcDataIndex))
+                                {
+                                    spawnPlacementDataList.RemoveAt(plcDataIndex);
+                                }
                             }
                         }
                     }
-                }
-                if (req.UpsertPrefabTransformList is not null)
-                {
-                    foreach (var upsertPrefabTransform in req.UpsertPrefabTransformList)
+                    if (req.UpsertPrefabTransformList is not null)
                     {
-                        var spawnInstancingId = upsertPrefabTransform.SpawnInstancingId;
-                        if (!spawnAssetDefinitionSpawnInstancingIdList.TryFindIndex(x => x == spawnInstancingId, out int assetDefIndex))
+                        foreach (var upsertPrefabTransform in req.UpsertPrefabTransformList)
                         {
-                            var assetDef = new ObjectSpawnAssetDefinition
+                            var spawnInstancingId = upsertPrefabTransform.SpawnInstancingId;
+                            if (!spawnAssetDefinitionSpawnInstancingIdList.TryFindIndex(x => x == spawnInstancingId, out int assetDefIndex))
                             {
-                                IsEnabled = upsertPrefabTransform.IsEnabled,
-                                AssetUrl = upsertPrefabTransform.PrefabUrl,
-                                SpawnWeightValue = 0,   // Not relevant
-                                CollisionRadius = upsertPrefabTransform.CollisionRadius,
-                            };
-                            spawnAssetDefinitionList.Add(assetDef);
-                            spawnAssetDefinitionSpawnInstancingIdList.Add(upsertPrefabTransform.SpawnInstancingId);
-                        }
-                        else
-                        {
-                            var assetDef = spawnAssetDefinitionList[assetDefIndex];
-                            assetDef.IsEnabled = upsertPrefabTransform.IsEnabled;
-                            assetDef.AssetUrl = upsertPrefabTransform.PrefabUrl;
-                            assetDef.CollisionRadius = upsertPrefabTransform.CollisionRadius;
-                        }
+                                var assetDef = new ObjectSpawnAssetDefinition
+                                {
+                                    IsEnabled = upsertPrefabTransform.IsEnabled,
+                                    AssetUrl = upsertPrefabTransform.PrefabUrl,
+                                    SpawnWeightValue = 0,   // Not relevant
+                                    CollisionRadius = upsertPrefabTransform.CollisionRadius,
+                                };
+                                spawnAssetDefinitionList.Add(assetDef);
+                                spawnAssetDefinitionSpawnInstancingIdList.Add(upsertPrefabTransform.SpawnInstancingId);
+                            }
+                            else
+                            {
+                                var assetDef = spawnAssetDefinitionList[assetDefIndex];
+                                assetDef.IsEnabled = upsertPrefabTransform.IsEnabled;
+                                assetDef.AssetUrl = upsertPrefabTransform.PrefabUrl;
+                                assetDef.CollisionRadius = upsertPrefabTransform.CollisionRadius;
+                            }
 
-                        if (!spawnPlacementDataList.TryFindIndex(x => x.SpawnInstancingId == spawnInstancingId, out int plcDataIndex))
-                        {
-                            var objPlcData = new ObjectPlacementManualPrefabSpawnPlacementData
+                            if (!spawnPlacementDataList.TryFindIndex(x => x.SpawnInstancingId == spawnInstancingId, out int plcDataIndex))
                             {
-                                SpawnInstancingId = spawnInstancingId,
-                                AssetUrlListIndex = -1,                     // Populated properly in UpdateObjectPlacementsFromSpawnerLayers
-                                Position = upsertPrefabTransform.Position,
-                                Orientation = upsertPrefabTransform.Orientation,
-                                Scale = upsertPrefabTransform.Scale,
-                                SurfaceNormalModelSpace = Vector3.UnitY,    // Not relevant
-                            };
-                            spawnPlacementDataList.Add(objPlcData);
-                        }
-                        else
-                        {
-                            var objPlcData = spawnPlacementDataList[plcDataIndex];
-                            objPlcData.Position = upsertPrefabTransform.Position;
-                            objPlcData.Orientation = upsertPrefabTransform.Orientation;
-                            objPlcData.Scale = upsertPrefabTransform.Scale;
+                                var objPlcData = new ObjectPlacementSpawnPlacementData
+                                {
+                                    SpawnInstancingId = spawnInstancingId,
+                                    AssetUrlListIndex = -1,                     // Populated properly in UpdateObjectPlacementsFromSpawnerLayers
+                                    Position = upsertPrefabTransform.Position,
+                                    Orientation = upsertPrefabTransform.Orientation,
+                                    Scale = upsertPrefabTransform.Scale,
+                                    SurfaceNormalModelSpace = Vector3.UnitY,    // Not relevant
+                                };
+                                spawnPlacementDataList.Add(objPlcData);
+                            }
+                            else
+                            {
+                                var objPlcData = spawnPlacementDataList[plcDataIndex];
+                                objPlcData.Position = upsertPrefabTransform.Position;
+                                objPlcData.Orientation = upsertPrefabTransform.Orientation;
+                                objPlcData.Scale = upsertPrefabTransform.Scale;
+                            }
                         }
                     }
+
+                    AssetReplaceableExt.ReplaceListAssignItems(sourceList: spawnAssetDefinitionList, destinationList: manualPrefabSpawnerData.SpawnAssetDefinitionList);
+                    AssetReplaceableExt.ReplaceListAssignItems(sourceList: spawnAssetDefinitionSpawnInstancingIdList, destinationList: manualPrefabSpawnerData.SpawnAssetDefinitionSpawnInstancingIdList);
+
+                    manualPrefabSpawnerData.IsSerializeIntermediateFileRequired = true;
+                    UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
+
+                    assetTransactionBuilder.AddPostExecuteAction(() => UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true));
+                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
+                    var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
+                    var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
+                    UndoRedoService.PushOperation(trxOp);
                 }
-
-                AssetReplaceableExt.ReplaceListAssignItems(sourceList: spawnAssetDefinitionList, destinationList: manualPrefabSpawnerData.SpawnAssetDefinitionList);
-                AssetReplaceableExt.ReplaceListAssignItems(sourceList: spawnAssetDefinitionSpawnInstancingIdList, destinationList: manualPrefabSpawnerData.SpawnAssetDefinitionSpawnInstancingIdList);
-
-                manualPrefabSpawnerData.IsSerializeIntermediateFileRequired = true;
-                UpdateObjectPlacementsFromSpawnerLayers(sendSetObjectPlacementObjectDataMessage: true);
             }
             else
             {
@@ -633,71 +630,79 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             {
                 // This detects layer ordering changes (eg. new layer, delete layer, reorder layer)
                 bool isItemRemoved = e.ChangeType == ContentChangeType.CollectionRemove;
-                var entity = isItemRemoved
-                    ? (e.OldValue as TransformComponent)?.Entity
-                    : (e.NewValue as TransformComponent)?.Entity;
-                if (entity is not null && entity.TryGetComponent<IObjectPlacementLayer>(out var objectPlacementLayer))
+                var changedItem = isItemRemoved ? e.OldValue : e.NewValue;
+                var objectPlacementLayer = changedItem as IObjectPlacementLayer;
+                if (objectPlacementLayer is null && changedItem is TransformComponent transformComp)
+                {
+                    // Check if an entity containing a layer was deleted
+                    transformComp.Entity.TryGetComponent<IObjectPlacementLayer>(out objectPlacementLayer);
+                }
+                if (objectPlacementLayer is not null)
                 {
                     // Layer changed (either added or removed - reordered is done with remove + add)
                     var layerId = objectPlacementLayer.LayerId;
-                    var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
-
                     bool isDensityMapLayer = objectPlacementLayer is IObjectDensityMapLayer;
                     bool isSpawnerLayer = objectPlacementLayer is IObjectSpawnerLayer;
                     if (!isDensityMapLayer && !isSpawnerLayer)
                     {
                         throw new NotImplementedException($"Unhandled layer type: {objectPlacementLayer.GetType().Name}");
                     }
-                    if (isItemRemoved)
+
+                    lock (Asset)
                     {
-                        bool wasRemoved = Asset.TryRemoveLayerData(layerId);
-                        if (!wasRemoved)
+                        var assetTransactionBuilder = AssetTransactionBuilder.Begin(Asset);
+
+                        if (isItemRemoved)
                         {
-                            throw new InvalidOperationException($"Layer to remove was missing - LayerId: {layerId}");
-                        }
-                    }
-                    else
-                    {
-                        _ = Asset.GetOrCreateLayerData(layerId, objectPlacementLayer.LayerDataType);
-                        if (isDensityMapLayer)
-                        {
-                            var layerOrdering = GetLayerOrdering<IObjectDensityMapLayer>(editorEntityId, sceneRootVm);
-                            Asset.SetDensityMapLayerOrdering(layerOrdering);
+                            bool wasRemoved = Asset.TryRemoveLayerData(layerId);
+                            if (!wasRemoved)
+                            {
+                                throw new InvalidOperationException($"Layer to remove was missing - LayerId: {layerId}");
+                            }
                         }
                         else
                         {
-                            var layerOrdering = GetLayerOrdering<IObjectSpawnerLayer>(editorEntityId, sceneRootVm);
-                            Asset.SetSpawnerOrdering(layerOrdering);
+                            _ = Asset.GetOrCreateLayerData(layerId, objectPlacementLayer.LayerDataType);
+                            if (isDensityMapLayer)
+                            {
+                                var layerOrdering = GetLayerOrdering<IObjectDensityMapLayer>(editorEntityId, sceneRootVm);
+                                Asset.SetDensityMapLayerOrdering(layerOrdering);
+                            }
+                            else
+                            {
+                                var layerOrdering = GetLayerOrdering<IObjectSpawnerLayer>(editorEntityId, sceneRootVm);
+                                Asset.SetSpawnerOrdering(layerOrdering);
+                            }
                         }
-                    }
-                    assetTransactionBuilder.AddPostExecuteAction(() =>
-                    {
+                        assetTransactionBuilder.AddPostExecuteAction(() =>
+                        {
+                            _onTransactionFinished_IsSpawnersUpdateRequired = true;
+                            var pendingUpdate = new PlacementLayerTree
+                            {
+                                ObjectPlacementMapAssetId = Asset.Id,
+                                EditorEntityId = editorEntityId,
+                                SceneRootViewModel = sceneRootVm
+                            };
+                            _pendingLayerTreeUpdateList.AddDistinct(pendingUpdate, isSameItem: x => x.EditorEntityId == editorEntityId);
+                        });
+
+                        Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
+                        var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
+                        var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
+                        UndoRedoService.PushOperation(trxOp);
+
+                        // In the case of reordering layers, Stride raises a remove and add event, but we only need to refresh
+                        // at the end of the transaction
                         _onTransactionFinished_IsSpawnersUpdateRequired = true;
-                        var pendingUpdate = new PlacementLayerTree
                         {
-                            ObjectPlacementMapAssetId = Asset.Id,
-                            EditorEntityId = editorEntityId,
-                            SceneRootViewModel = sceneRootVm
-                        };
-                        _pendingLayerTreeUpdateList.Add(pendingUpdate);
-                    });
-
-                    Asset.LastUserModifiedDateTimeUtc = DateTimeOffset.UtcNow;
-                    var assetTransaction = assetTransactionBuilder.CreateTransaction(Session.AssetNodeContainer);
-                    var trxOp = new AssetTransactionOperation(dirtiables: [this], assetTransaction);
-                    UndoRedoService.PushOperation(trxOp);
-
-                    // In the case of reordering layers, Stride raises a remove and add event, but we only need to refresh
-                    // at the end of the transaction
-                    _onTransactionFinished_IsSpawnersUpdateRequired = true;
-                    {
-                        var pendingUpdate = new PlacementLayerTree
-                        {
-                            ObjectPlacementMapAssetId = Asset.Id,
-                            EditorEntityId = editorEntityId,
-                            SceneRootViewModel = sceneRootVm
-                        };
-                        _pendingLayerTreeUpdateList.Add(pendingUpdate);
+                            var pendingUpdate = new PlacementLayerTree
+                            {
+                                ObjectPlacementMapAssetId = Asset.Id,
+                                EditorEntityId = editorEntityId,
+                                SceneRootViewModel = sceneRootVm
+                            };
+                            _pendingLayerTreeUpdateList.AddDistinct(pendingUpdate, isSameItem: x => x.EditorEntityId == editorEntityId);
+                        }
                     }
                     return;
                 }
@@ -707,9 +712,12 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
 
     private void RebuildPlacementLayerTrees()
     {
-        foreach (var (_editorEntityId, placementLayerTree) in _editorEntityIdToPlacementLayerTree)
+        lock (Asset)
         {
-            UpdatePlacementLayerTree(placementLayerTree);
+            foreach (var (_editorEntityId, placementLayerTree) in _editorEntityIdToPlacementLayerTree)
+            {
+                UpdatePlacementLayerTree(placementLayerTree);
+            }
         }
     }
 
@@ -861,315 +869,97 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
 
     private void EnsureLayerIntermediateFileDeserialized(ObjectPlacementLayerDataBase layerData, Size2 terrainMapTextureSize)
     {
-        if (layerData.IsDeserializeIntermediateFileRequired && Asset.ResourceFolderPath is not null)
+        if (layerData.IsDeserializeIntermediateFileRequired
+            && !string.IsNullOrWhiteSpace(Asset.OriginalAssetFullFilePath)
+            && !string.IsNullOrWhiteSpace(Asset.OriginalResourceRelativeFolderPath))
         {
-            var packageFolderPath = AssetItem.Package.FullPath.GetFullDirectory();
-            var resourceFolderFullPath = UPath.Combine(packageFolderPath, Asset.ResourceFolderPath).ToOSPath();
-            layerData.DeserializeIntermediateFile(resourceFolderFullPath, Asset, terrainMapTextureSize, _logger);
+            var assetFullFolderPath = new UFile(Asset.OriginalAssetFullFilePath).GetFullDirectory();
+            var resourceRelativeFolderPath = new UDirectory(Asset.OriginalResourceRelativeFolderPath);
+            var intermediateFilesFullFolderPath = UPath.Combine(assetFullFolderPath, resourceRelativeFolderPath).ToOSPath();
+
+            layerData.DeserializeIntermediateFile(intermediateFilesFullFolderPath, assetFullFolderPath, Asset, terrainMapTextureSize, _logger);
         }
     }
 
     private bool UpdateObjectPlacementsFromSpawnerLayers(bool sendSetObjectPlacementObjectDataMessage)
     {
-        if (!TryGetTerrainMapAsset(Asset.TerrainMap, out var terrainMapAsset))
-        {
-            return false;
-        }
-        var editorEntityIdToLayerTree = _editorEntityIdToPlacementLayerTree.FirstOrDefault();  // There shouldn't be more than one
-        var placementLayerTree = editorEntityIdToLayerTree.Value;
-        if (placementLayerTree is null || terrainMapAsset.HeightmapData is null)
-        {
-            return false;
-        }
-
-        var terrainMapTextureSize = terrainMapAsset.HeightmapTextureSize.ToSize2();
-        LoadLayerDataAndClearObjectPlacementData(placementLayerTree.RootLayers, Asset, terrainMapTextureSize);
-
-        var spawnerLayerNodeList = new List<ObjectPlacementLayerTreeNode>();
-        CollectSpawners(placementLayerTree.RootLayers, spawnerLayerNodeList);
-
-        var quadPerChunk = terrainMapAsset.QuadsPerMesh * terrainMapAsset.MeshPerChunk.GetSingleAxisLength();
-        var chunkWorldSizeVec2 = terrainMapAsset.MeshQuadSize * (Vector2)quadPerChunk;
-
-        var terrainMapHeightmapData = terrainMapAsset.HeightmapData;
-        var terrainMapHeightRange = terrainMapAsset.HeightRange;
-        var terrainMapMeshQuadSize = terrainMapAsset.MeshQuadSize;
-        var terrainMapQuadCount = terrainMapHeightmapData.Length2d.Subtract(Int2.One);
-        var terrainMapWorldSize = terrainMapMeshQuadSize * terrainMapQuadCount.ToVector2();
-
         bool hasChanged = false;
 
-        // Track pending placements and separate into chunks to speed up collision check
-        var chunkIndexToPendingObjects = new Dictionary<TerrainChunkIndex2d, List<PendingObjectPlacement>>();
-
-        var modelAssetUrlList = new List<string>();
-        var prefabAssetUrlList = new List<string>();
-        var spawnerDataList = new List<ObjectSpawnerDataBase>();
-
-        var posToChunkIndex = 1f / chunkWorldSizeVec2;
-
-        // Manual placement objects
-        for (int curSpawnerLayerIdx = 0; curSpawnerLayerIdx < spawnerLayerNodeList.Count; curSpawnerLayerIdx++)
+        lock (Asset)
         {
-            var spawnerLayerNode = spawnerLayerNodeList[curSpawnerLayerIdx];
-            if (spawnerLayerNode?.Layer is not IObjectSpawnerLayer spawnerLayer)
+            if (!TryGetTerrainMapAsset(Asset.TerrainMap, out var terrainMapAsset))
             {
-                continue;
+                return false;
             }
-            if (spawnerLayer.LayerDataType != typeof(ManualPrefabSpawnerData))
+            var editorEntityIdToLayerTree = _editorEntityIdToPlacementLayerTree.FirstOrDefault();  // There shouldn't be more than one
+            var placementLayerTree = editorEntityIdToLayerTree.Value;
+            if (placementLayerTree is null || terrainMapAsset.HeightmapData is null)
             {
-                continue;
+                return false;
             }
 
-            var manualPrefabSpawnerData = (ManualPrefabSpawnerData)Asset.GetOrCreateLayerData(spawnerLayer.LayerId, spawnerLayer.LayerDataType);
-            spawnerDataList.Add(manualPrefabSpawnerData);
+            var terrainMapTextureSize = terrainMapAsset.HeightmapTextureSize.ToSize2();
+            LoadLayerDataAndClearObjectPlacementData(placementLayerTree.RootLayers, Asset, terrainMapTextureSize);
 
-            var spawnInstancingIdToUrlRefListIndexAndCollisionRadiusMap = GetOrCreateSpawnInstancingIdToPrefabUrlRefListIndexAndCollisionRadiusMap(manualPrefabSpawnerData, prefabAssetUrlList);
+            var spawnerLayerNodeList = new List<ObjectPlacementLayerTreeNode>();
+            CollectSpawners(placementLayerTree.RootLayers, spawnerLayerNodeList);
 
-            var placementDataList = manualPrefabSpawnerData.SpawnPlacementDataList;
-            for (int i = 0; i < placementDataList.Count; i++)
+            var quadPerChunk = terrainMapAsset.QuadsPerMesh * terrainMapAsset.MeshPerChunk.GetSingleAxisLength();
+            var chunkWorldSizeVec2 = terrainMapAsset.MeshQuadSize * (Vector2)quadPerChunk;
+
+            var terrainMapHeightmapData = terrainMapAsset.HeightmapData;
+            var terrainMapHeightRange = terrainMapAsset.HeightRange;
+            var terrainMapMeshQuadSize = terrainMapAsset.MeshQuadSize;
+            var terrainMapQuadCount = terrainMapHeightmapData.Length2d.Subtract(Int2.One);
+            var terrainMapWorldSize = terrainMapMeshQuadSize * terrainMapQuadCount.ToVector2();
+
+            // Track pending placements and separate into chunks to speed up collision check
+            var chunkIndexToPendingObjects = new Dictionary<TerrainChunkIndex2d, List<PendingObjectPlacement>>();
+
+            var modelAssetUrlList = new List<string>();
+            var prefabAssetUrlList = new List<string>();
+            var spawnerDataList = new List<ObjectSpawnerDataBase>();
+
+            var posToChunkIndex = 1f / chunkWorldSizeVec2;
+
+            // Manual placement objects
+            for (int curSpawnerLayerIdx = 0; curSpawnerLayerIdx < spawnerLayerNodeList.Count; curSpawnerLayerIdx++)
             {
-                var objPlcData = placementDataList[i];
-                var spawnInstancingId = objPlcData.SpawnInstancingId;
-                if (!spawnInstancingIdToUrlRefListIndexAndCollisionRadiusMap.TryGetValue(spawnInstancingId, out var assetUrlListIndexAndCollisionRadius))
+                var spawnerLayerNode = spawnerLayerNodeList[curSpawnerLayerIdx];
+                if (spawnerLayerNode?.Layer is not IObjectSpawnerLayer spawnerLayer)
                 {
                     continue;
                 }
-                int assetUrlListIndex = assetUrlListIndexAndCollisionRadius.PrefabUrlRefListIndex;
-                objPlcData.AssetUrlListIndex = assetUrlListIndex;
-
-                float collisionRadius = assetUrlListIndexAndCollisionRadius.CollisionRadius;
-                if (collisionRadius > 0)
+                if (spawnerLayer.LayerDataType != typeof(ManualPrefabSpawnerData))
                 {
-                    // Place in all occupied chunks (assume box rather than sphere)
-                    var objWorldPosXZ = objPlcData.Position.XZ();
-                    var minChunkIndex = MathExt.ToInt2Floor((objWorldPosXZ - new Vector2(collisionRadius)) * posToChunkIndex);
-                    var maxChunkIndex = MathExt.ToInt2Floor((objWorldPosXZ + new Vector2(collisionRadius)) * posToChunkIndex);
-                    var objCollisionSphere = new BoundingSphere(objPlcData.Position, collisionRadius);
-                    for (int chunkIndexY = minChunkIndex.Y; chunkIndexY <= maxChunkIndex.Y; chunkIndexY++)
-                    {
-                        for (int chunkIndexX = minChunkIndex.X; chunkIndexX <= maxChunkIndex.X; chunkIndexX++)
-                        {
-                            var chunkIdx = new TerrainChunkIndex2d(chunkIndexX, chunkIndexY);
-                            if (!chunkIndexToPendingObjects.TryGetValue(chunkIdx, out var pendingObjList))
-                            {
-                                pendingObjList = [];
-                                chunkIndexToPendingObjects[chunkIdx] = pendingObjList;
-                            }
-                            var pendingObj = new PendingObjectPlacement
-                            {
-                                LayerId = spawnerLayer.LayerId,
-                                CollisionSphere = objCollisionSphere,
-                                ObjectPlacementData = objPlcData
-                            };
-                            pendingObjList.Add(pendingObj);
-                        }
-                    }
+                    continue;
                 }
-                hasChanged = true;
-            }
-        }
 
-        // Procedurally generated objects
-        for (int curSpawnerLayerIdx = 0; curSpawnerLayerIdx < spawnerLayerNodeList.Count; curSpawnerLayerIdx++)
-        {
-            var spawnerLayerNode = spawnerLayerNodeList[curSpawnerLayerIdx];
-            if (spawnerLayerNode?.Layer is not IObjectSpawnerLayer spawnerLayer)
-            {
-                continue;
-            }
-            else if (spawnerLayer.LayerDataType == typeof(ManualPrefabSpawnerData))
-            {
-                // Already handled
-                continue;
-            }
-            if (spawnerLayer.ObjectSpacing == 0)
-            {
-                continue;
-            }
+                var manualPrefabSpawnerData = (ManualPrefabSpawnerData)Asset.GetOrCreateLayerData(spawnerLayer.LayerId, spawnerLayer.LayerDataType);
+                spawnerDataList.Add(manualPrefabSpawnerData);
 
-            var spawnerData = (ObjectSpawnerDataBase)Asset.GetOrCreateLayerData(spawnerLayer.LayerId, spawnerLayer.LayerDataType);
-            spawnerDataList.Add(spawnerData);
+                var spawnInstancingIdToUrlRefListIndexAndCollisionRadiusMap = GetOrCreateSpawnInstancingIdToPrefabUrlRefListIndexAndCollisionRadiusMap(manualPrefabSpawnerData, prefabAssetUrlList);
 
-            int[] spawnListIndexToUrlRefListIndex;
-            if (spawnerData is ModelInstancingSpawnerData modelInstancingSpawnerData)
-            {
-                spawnListIndexToUrlRefListIndex = GetOrCreateSpawnListIndexToModelUrlRefListIndex(modelInstancingSpawnerData, modelAssetUrlList);
-
-            }
-            else if (spawnerData is PrefabSpawnerData prefabSpawnerData)
-            {
-                spawnListIndexToUrlRefListIndex = GetOrCreateSpawnListIndexToPrefabUrlRefListIndex(prefabSpawnerData, prefabAssetUrlList);
-            }
-            else
-            {
-                Debug.WriteLine($"{nameof(UpdateObjectPlacementsFromSpawnerLayers)}: Unhandled spawner data type: {spawnerData?.GetType().Name}");
-                continue;
-            }
-
-            var rndSeed = spawnerLayer.SpawnerRandomSeed;
-            var random = new Random(rndSeed);
-
-            var objCountVec2 = terrainMapWorldSize / spawnerLayer.ObjectSpacing;
-            int objCountX = (int)Math.Floor(objCountVec2.X);
-            int objCountY = (int)Math.Floor(objCountVec2.Y);
-
-            float minimumDensityValueThreshold = spawnerLayer.MinimumDensityValueThreshold;
-
-            float rndPosOffsetMinRadius = spawnerLayer.PositionOffsetMinimumRadius;
-            float rndPosOffsetMaxRadius = spawnerLayer.PositionOffsetMaximumRadius;
-            float rndPosOffsetMinAngleRad = MathUtil.DegreesToRadians(spawnerLayer.RotationYOffsetMinimumAngleDegrees);
-            float rndPosOffsetMaxAngleRad = MathUtil.DegreesToRadians(spawnerLayer.RotationYOffsetMaximumAngleDegrees);
-            float rndScaleMin = spawnerLayer.ScaleMinimum;
-            float rndScaleMax = spawnerLayer.ScaleMaximum;
-
-            float rndSurfaceNormalMinAngleDeg = spawnerLayer.SurfaceNormalMinimumAngleDegrees;
-            float rndSurfaceNormalMaxAngleDeg = spawnerLayer.SurfaceNormalMaximumAngleDegrees;
-            bool alignWithSurfaceNormal = spawnerLayer.AlignWithSurfaceNormal;
-
-            for (int y = 0; y < objCountY; y++)
-            {
-                for (int x = 0; x < objCountX; x++)
+                var placementDataList = manualPrefabSpawnerData.SpawnPlacementDataList;
+                for (int i = 0; i < placementDataList.Count; i++)
                 {
-                    var worldPosXZ = new Vector2(x * spawnerLayer.ObjectSpacing, y * spawnerLayer.ObjectSpacing);
-
-                    // Execute all random values to make a mostly deterministic placement
-                    double rndSpawnAssetSelectorValue = random.NextDouble();
-                    float rndPosOffsetRadiusRndValue = random.NextSingle();
-                    float rndPosOffsetRadius = MathUtil.Lerp(rndPosOffsetMinRadius, rndPosOffsetMaxRadius, rndPosOffsetRadiusRndValue);
-                    float rndPosOffsetAngleRndValue = random.NextSingle();
-                    float rndPosOffsetAngle = rndPosOffsetAngleRndValue * MathUtil.TwoPi;
-
-                    float rndOrientationYAxisRndValue = random.NextSingle();
-
-                    float rndScaleRndValue = random.NextSingle();
-
-                    var rndPosOffsetRotation = Quaternion.RotationY(rndPosOffsetAngle);
-                    var rndPosOffsetVec = rndPosOffsetRotation * Vector3.UnitZ * rndPosOffsetRadius;
-
-                    var mapStartPosition = Vector3.Zero;    // Assume zero
-                    var objWorldPosXZ = worldPosXZ + rndPosOffsetVec.XZ();
-
-                    float densityValue = CalculateDensityValue(objWorldPosXZ, terrainMapWorldSize, spawnerLayerNode.ParentDensityMapLayerNode, Asset);
-                    if (densityValue == 0)
+                    var objPlcData = placementDataList[i];
+                    var spawnInstancingId = objPlcData.SpawnInstancingId;
+                    if (!spawnInstancingIdToUrlRefListIndexAndCollisionRadiusMap.TryGetValue(spawnInstancingId, out var assetUrlListIndexAndCollisionRadius))
                     {
                         continue;
                     }
-                    if (minimumDensityValueThreshold > densityValue)
+                    int assetUrlListIndex = assetUrlListIndexAndCollisionRadius.PrefabUrlRefListIndex;
+                    objPlcData.AssetUrlListIndex = assetUrlListIndex;
+
+                    float collisionRadius = assetUrlListIndexAndCollisionRadius.CollisionRadius;
+                    if (collisionRadius > 0)
                     {
-                        continue;
-                    }
-
-                    if (!TerrainRaycast.TryGetHeight(
-                        objWorldPosXZ,
-                        terrainMapHeightmapData, terrainMapHeightRange, terrainMapMeshQuadSize, mapStartPosition,
-                        out float heightValue, out Vector3 surfaceNormal))
-                    {
-                        continue;
-                    }
-
-                    // Check surface normal threshold
-                    float upVecDotSurfaceNormalValue = Vector3.Dot(Vector3.UnitY, surfaceNormal);
-                    float upVecToSurfaceNormalAngleDiffNormalized = (1f - upVecDotSurfaceNormalValue) * 0.5f;   // Change from [1, -1] to [0, 1] range
-                    float upVecToSurfaceNormalAngleDiffDegrees = upVecToSurfaceNormalAngleDiffNormalized * 180;
-                    if (upVecToSurfaceNormalAngleDiffDegrees < rndSurfaceNormalMinAngleDeg
-                        || upVecToSurfaceNormalAngleDiffDegrees > rndSurfaceNormalMaxAngleDeg)
-                    {
-                        continue;
-                    }
-
-                    // Pick random spawn object
-                    ObjectSpawnAssetDefinition? selectedAssetDef = null;
-                    int selectedAssetDefIndex = -1;
-
-                    double totalSpawnWeightValue = 0;
-                    foreach (var spawnAssetDef in spawnerData.SpawnAssetDefinitionList)
-                    {
-                        if (!spawnAssetDef.IsEnabled)
-                        {
-                            continue;
-                        }
-                        totalSpawnWeightValue += spawnAssetDef.SpawnWeightValue;
-                    }
-                    double spawnValue = rndSpawnAssetSelectorValue * totalSpawnWeightValue;
-                    double nextWeightThreshold = 0;
-                    for (int i = 0; i < spawnerData.SpawnAssetDefinitionList.Count; i++)
-                    {
-                        var spawnAssetDef = spawnerData.SpawnAssetDefinitionList[i];
-                        if (!spawnAssetDef.IsEnabled)
-                        {
-                            continue;
-                        }
-                        nextWeightThreshold += spawnAssetDef.SpawnWeightValue;
-                        if (spawnValue < nextWeightThreshold)
-                        {
-                            selectedAssetDef = spawnAssetDef;
-                            selectedAssetDefIndex = i;
-                            break;
-                        }
-                    }
-                    if (selectedAssetDef is null)
-                    {
-                        continue;       // Nothing selected
-                    }
-
-                    var nextObjWorldPos = new Vector3(objWorldPosXZ.X, heightValue, objWorldPosXZ.Y);
-                    // Check if it has already been occupied
-                    bool canPlaceObject = true;
-                    var minChunkIndex = MathExt.ToInt2Floor((nextObjWorldPos.XZ() - new Vector2(selectedAssetDef.CollisionRadius)) * posToChunkIndex);
-                    var maxChunkIndex = MathExt.ToInt2Floor((nextObjWorldPos.XZ() + new Vector2(selectedAssetDef.CollisionRadius)) * posToChunkIndex);
-                    var nextObjSphere = new BoundingSphere(nextObjWorldPos, selectedAssetDef.CollisionRadius);
-                    for (int chunkIndexY = minChunkIndex.Y; chunkIndexY <= maxChunkIndex.Y; chunkIndexY++)
-                    {
-                        for (int chunkIndexX = minChunkIndex.X; chunkIndexX <= maxChunkIndex.X; chunkIndexX++)
-                        {
-                            var chunkIdx = new TerrainChunkIndex2d(chunkIndexX, chunkIndexY);
-                            if (!chunkIndexToPendingObjects.TryGetValue(chunkIdx, out var objectList))
-                            {
-                                continue;
-                            }
-                            foreach (var prevObjPlc in objectList)
-                            {
-                                if (prevObjPlc.IsOccupied(nextObjSphere))
-                                {
-                                    canPlaceObject = false;
-                                    goto ExitIsOccupiedCheck;
-                                }
-                            }
-                        }
-                    }
-                ExitIsOccupiedCheck:
-
-                    if (canPlaceObject)
-                    {
-                        float rndScaleValue = MathUtil.Lerp(rndScaleMin, rndScaleMax, rndScaleRndValue);
-                        var scaleVec = new Vector3(rndScaleValue);
-
-                        float rndOrientationYAxisValue = MathUtil.Lerp(rndPosOffsetMinAngleRad, rndPosOffsetMaxAngleRad, rndOrientationYAxisRndValue);
-                        float orientationValue = (float)MathUtil.Lerp(0, MathUtil.TwoPi, rndOrientationYAxisValue);
-                        var orientationQuat = Quaternion.RotationY(orientationValue);
-                        if (alignWithSurfaceNormal)
-                        {
-                            var upVecToSurfaceNormalRotation = Quaternion.BetweenDirections(Vector3.UnitY, surfaceNormal);
-                            orientationQuat = orientationQuat * upVecToSurfaceNormalRotation;
-                        }
-
-                        Matrix.Transformation(in scaleVec, in orientationQuat, in nextObjWorldPos, out var worldTransform);
-                        var surfaceNormalModelSpace = Vector3.TransformNormal(surfaceNormal, Matrix.Invert(worldTransform));
-                        surfaceNormalModelSpace.Normalize();
-
-                        int assetUrlListIndex = spawnListIndexToUrlRefListIndex[selectedAssetDefIndex];
-                        var objPlcData = new ObjectPlacementSpawnPlacementData
-                        {
-                            AssetUrlListIndex = assetUrlListIndex,
-                            Position = nextObjWorldPos,
-                            Orientation = orientationQuat,
-                            Scale = scaleVec,
-                            SurfaceNormalModelSpace = surfaceNormalModelSpace,
-                        };
-                        spawnerData.SpawnPlacementDataList.Add(objPlcData);
-
                         // Place in all occupied chunks (assume box rather than sphere)
+                        var objWorldPosXZ = objPlcData.Position.XZ();
+                        var minChunkIndex = MathExt.ToInt2Floor((objWorldPosXZ - new Vector2(collisionRadius)) * posToChunkIndex);
+                        var maxChunkIndex = MathExt.ToInt2Floor((objWorldPosXZ + new Vector2(collisionRadius)) * posToChunkIndex);
+                        var objCollisionSphere = new BoundingSphere(objPlcData.Position, collisionRadius);
                         for (int chunkIndexY = minChunkIndex.Y; chunkIndexY <= maxChunkIndex.Y; chunkIndexY++)
                         {
                             for (int chunkIndexX = minChunkIndex.X; chunkIndexX <= maxChunkIndex.X; chunkIndexX++)
@@ -1183,20 +973,18 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                                 var pendingObj = new PendingObjectPlacement
                                 {
                                     LayerId = spawnerLayer.LayerId,
-                                    CollisionSphere = nextObjSphere,
+                                    CollisionSphere = objCollisionSphere,
                                     ObjectPlacementData = objPlcData
                                 };
                                 pendingObjList.Add(pendingObj);
                             }
                         }
-                        hasChanged = true;
                     }
+                    hasChanged = true;
                 }
             }
-        }
 
-        if (hasChanged && sendSetObjectPlacementObjectDataMessage && _editorToRuntimeMessagingService is not null)
-        {
+            // Procedurally generated objects
             for (int curSpawnerLayerIdx = 0; curSpawnerLayerIdx < spawnerLayerNodeList.Count; curSpawnerLayerIdx++)
             {
                 var spawnerLayerNode = spawnerLayerNodeList[curSpawnerLayerIdx];
@@ -1206,47 +994,275 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
                 }
                 else if (spawnerLayer.LayerDataType == typeof(ManualPrefabSpawnerData))
                 {
+                    // Already handled
+                    continue;
+                }
+                if (spawnerLayer.ObjectSpacing == 0)
+                {
                     continue;
                 }
 
                 var spawnerData = (ObjectSpawnerDataBase)Asset.GetOrCreateLayerData(spawnerLayer.LayerId, spawnerLayer.LayerDataType);
-                if (spawnerData is null)
-                {
-                    continue;   // Shoudn't be null...
-                }
+                spawnerDataList.Add(spawnerData);
 
-                if (spawnerData.IsSerializeIntermediateFileRequired)
+                int[] spawnListIndexToUrlRefListIndex;
+                if (spawnerData is ModelInstancingSpawnerData modelInstancingSpawnerData)
                 {
-                    spawnerData.PreviousSpawnPlacementDataList.Clear();     // Can safely discard without checking if the placement data has changed
-                    continue;
-                }
+                    spawnListIndexToUrlRefListIndex = GetOrCreateSpawnListIndexToModelUrlRefListIndex(modelInstancingSpawnerData, modelAssetUrlList);
 
-                bool isSerializeIntermediateFileRequired = false;
-                if (spawnerData.PreviousSpawnPlacementDataList.Count != spawnerData.SpawnPlacementDataList.Count)
+                }
+                else if (spawnerData is PrefabSpawnerData prefabSpawnerData)
                 {
-                    isSerializeIntermediateFileRequired = true;
+                    spawnListIndexToUrlRefListIndex = GetOrCreateSpawnListIndexToPrefabUrlRefListIndex(prefabSpawnerData, prefabAssetUrlList);
                 }
                 else
                 {
-                    var prevListSpan = CollectionsMarshal.AsSpan(spawnerData.PreviousSpawnPlacementDataList);
-                    var curListSpan = CollectionsMarshal.AsSpan(spawnerData.SpawnPlacementDataList);
-                    for (int i = 0; i < curListSpan.Length; i++)
+                    Debug.WriteLine($"{nameof(UpdateObjectPlacementsFromSpawnerLayers)}: Unhandled spawner data type: {spawnerData?.GetType().Name}");
+                    continue;
+                }
+
+                var rndSeed = spawnerLayer.SpawnerRandomSeed;
+                var random = new Random(rndSeed);
+
+                var objCountVec2 = terrainMapWorldSize / spawnerLayer.ObjectSpacing;
+                int objCountX = (int)Math.Floor(objCountVec2.X);
+                int objCountY = (int)Math.Floor(objCountVec2.Y);
+
+                float minimumDensityValueThreshold = spawnerLayer.MinimumDensityValueThreshold;
+
+                float rndPosOffsetMinRadius = spawnerLayer.PositionOffsetMinimumRadius;
+                float rndPosOffsetMaxRadius = spawnerLayer.PositionOffsetMaximumRadius;
+                float rndPosOffsetMinAngleRad = MathUtil.DegreesToRadians(spawnerLayer.RotationYOffsetMinimumAngleDegrees);
+                float rndPosOffsetMaxAngleRad = MathUtil.DegreesToRadians(spawnerLayer.RotationYOffsetMaximumAngleDegrees);
+                float rndScaleMin = spawnerLayer.ScaleMinimum;
+                float rndScaleMax = spawnerLayer.ScaleMaximum;
+
+                float rndSurfaceNormalMinAngleDeg = spawnerLayer.SurfaceNormalMinimumAngleDegrees;
+                float rndSurfaceNormalMaxAngleDeg = spawnerLayer.SurfaceNormalMaximumAngleDegrees;
+                bool alignWithSurfaceNormal = spawnerLayer.AlignWithSurfaceNormal;
+
+                for (int y = 0; y < objCountY; y++)
+                {
+                    for (int x = 0; x < objCountX; x++)
                     {
-                        if (!curListSpan[i].IsSame(prevListSpan[i]))
+                        var worldPosXZ = new Vector2(x * spawnerLayer.ObjectSpacing, y * spawnerLayer.ObjectSpacing);
+
+                        // Execute all random values to make a mostly deterministic placement
+                        double rndSpawnAssetSelectorValue = random.NextDouble();
+                        float rndPosOffsetRadiusRndValue = random.NextSingle();
+                        float rndPosOffsetRadius = MathUtil.Lerp(rndPosOffsetMinRadius, rndPosOffsetMaxRadius, rndPosOffsetRadiusRndValue);
+                        float rndPosOffsetAngleRndValue = random.NextSingle();
+                        float rndPosOffsetAngle = rndPosOffsetAngleRndValue * MathUtil.TwoPi;
+
+                        float rndOrientationYAxisRndValue = random.NextSingle();
+
+                        float rndScaleRndValue = random.NextSingle();
+
+                        var rndPosOffsetRotation = Quaternion.RotationY(rndPosOffsetAngle);
+                        var rndPosOffsetVec = rndPosOffsetRotation * Vector3.UnitZ * rndPosOffsetRadius;
+
+                        var mapStartPosition = Vector3.Zero;    // Assume zero
+                        var objWorldPosXZ = worldPosXZ + rndPosOffsetVec.XZ();
+
+                        float densityValue = CalculateDensityValue(objWorldPosXZ, terrainMapWorldSize, spawnerLayerNode.ParentDensityMapLayerNode, Asset);
+                        if (densityValue == 0)
                         {
-                            isSerializeIntermediateFileRequired = true;
-                            break;
+                            continue;
+                        }
+                        if (minimumDensityValueThreshold > densityValue)
+                        {
+                            continue;
+                        }
+
+                        if (!TerrainRaycast.TryGetHeight(
+                            objWorldPosXZ,
+                            terrainMapHeightmapData, terrainMapHeightRange, terrainMapMeshQuadSize, mapStartPosition,
+                            out float heightValue, out Vector3 surfaceNormal))
+                        {
+                            continue;
+                        }
+
+                        // Check surface normal threshold
+                        float upVecDotSurfaceNormalValue = Vector3.Dot(Vector3.UnitY, surfaceNormal);
+                        float upVecToSurfaceNormalAngleDiffNormalized = (1f - upVecDotSurfaceNormalValue) * 0.5f;   // Change from [1, -1] to [0, 1] range
+                        float upVecToSurfaceNormalAngleDiffDegrees = upVecToSurfaceNormalAngleDiffNormalized * 180;
+                        if (upVecToSurfaceNormalAngleDiffDegrees < rndSurfaceNormalMinAngleDeg
+                            || upVecToSurfaceNormalAngleDiffDegrees > rndSurfaceNormalMaxAngleDeg)
+                        {
+                            continue;
+                        }
+
+                        // Pick random spawn object
+                        ObjectSpawnAssetDefinition? selectedAssetDef = null;
+                        int selectedAssetDefIndex = -1;
+
+                        double totalSpawnWeightValue = 0;
+                        foreach (var spawnAssetDef in spawnerData.SpawnAssetDefinitionList)
+                        {
+                            if (!spawnAssetDef.IsEnabled)
+                            {
+                                continue;
+                            }
+                            totalSpawnWeightValue += spawnAssetDef.SpawnWeightValue;
+                        }
+                        double spawnValue = rndSpawnAssetSelectorValue * totalSpawnWeightValue;
+                        double nextWeightThreshold = 0;
+                        for (int i = 0; i < spawnerData.SpawnAssetDefinitionList.Count; i++)
+                        {
+                            var spawnAssetDef = spawnerData.SpawnAssetDefinitionList[i];
+                            if (!spawnAssetDef.IsEnabled)
+                            {
+                                continue;
+                            }
+                            nextWeightThreshold += spawnAssetDef.SpawnWeightValue;
+                            if (spawnValue < nextWeightThreshold)
+                            {
+                                selectedAssetDef = spawnAssetDef;
+                                selectedAssetDefIndex = i;
+                                break;
+                            }
+                        }
+                        if (selectedAssetDef is null)
+                        {
+                            continue;       // Nothing selected
+                        }
+
+                        var nextObjWorldPos = new Vector3(objWorldPosXZ.X, heightValue, objWorldPosXZ.Y);
+                        // Check if it has already been occupied
+                        bool canPlaceObject = true;
+                        var minChunkIndex = MathExt.ToInt2Floor((nextObjWorldPos.XZ() - new Vector2(selectedAssetDef.CollisionRadius)) * posToChunkIndex);
+                        var maxChunkIndex = MathExt.ToInt2Floor((nextObjWorldPos.XZ() + new Vector2(selectedAssetDef.CollisionRadius)) * posToChunkIndex);
+                        var nextObjSphere = new BoundingSphere(nextObjWorldPos, selectedAssetDef.CollisionRadius);
+                        for (int chunkIndexY = minChunkIndex.Y; chunkIndexY <= maxChunkIndex.Y; chunkIndexY++)
+                        {
+                            for (int chunkIndexX = minChunkIndex.X; chunkIndexX <= maxChunkIndex.X; chunkIndexX++)
+                            {
+                                var chunkIdx = new TerrainChunkIndex2d(chunkIndexX, chunkIndexY);
+                                if (!chunkIndexToPendingObjects.TryGetValue(chunkIdx, out var objectList))
+                                {
+                                    continue;
+                                }
+                                foreach (var prevObjPlc in objectList)
+                                {
+                                    if (prevObjPlc.IsOccupied(nextObjSphere))
+                                    {
+                                        canPlaceObject = false;
+                                        goto ExitIsOccupiedCheck;
+                                    }
+                                }
+                            }
+                        }
+                    ExitIsOccupiedCheck:
+
+                        if (canPlaceObject)
+                        {
+                            float rndScaleValue = MathUtil.Lerp(rndScaleMin, rndScaleMax, rndScaleRndValue);
+                            var scaleVec = new Vector3(rndScaleValue);
+
+                            float rndOrientationYAxisValue = MathUtil.Lerp(rndPosOffsetMinAngleRad, rndPosOffsetMaxAngleRad, rndOrientationYAxisRndValue);
+                            float orientationValue = (float)MathUtil.Lerp(0, MathUtil.TwoPi, rndOrientationYAxisValue);
+                            var orientationQuat = Quaternion.RotationY(orientationValue);
+                            if (alignWithSurfaceNormal)
+                            {
+                                var upVecToSurfaceNormalRotation = Quaternion.BetweenDirections(Vector3.UnitY, surfaceNormal);
+                                orientationQuat = orientationQuat * upVecToSurfaceNormalRotation;
+                            }
+
+                            Matrix.Transformation(in scaleVec, in orientationQuat, in nextObjWorldPos, out var worldTransform);
+                            var surfaceNormalModelSpace = Vector3.TransformNormal(surfaceNormal, Matrix.Invert(worldTransform));
+                            surfaceNormalModelSpace.Normalize();
+
+                            int assetUrlListIndex = spawnListIndexToUrlRefListIndex[selectedAssetDefIndex];
+                            var objPlcData = new ObjectPlacementSpawnPlacementData
+                            {
+                                SpawnInstancingId = default,    // Not applicable
+                                AssetUrlListIndex = assetUrlListIndex,
+                                Position = nextObjWorldPos,
+                                Orientation = orientationQuat,
+                                Scale = scaleVec,
+                                SurfaceNormalModelSpace = surfaceNormalModelSpace,
+                            };
+                            spawnerData.SpawnPlacementDataList.Add(objPlcData);
+
+                            // Place in all occupied chunks (assume box rather than sphere)
+                            for (int chunkIndexY = minChunkIndex.Y; chunkIndexY <= maxChunkIndex.Y; chunkIndexY++)
+                            {
+                                for (int chunkIndexX = minChunkIndex.X; chunkIndexX <= maxChunkIndex.X; chunkIndexX++)
+                                {
+                                    var chunkIdx = new TerrainChunkIndex2d(chunkIndexX, chunkIndexY);
+                                    if (!chunkIndexToPendingObjects.TryGetValue(chunkIdx, out var pendingObjList))
+                                    {
+                                        pendingObjList = [];
+                                        chunkIndexToPendingObjects[chunkIdx] = pendingObjList;
+                                    }
+                                    var pendingObj = new PendingObjectPlacement
+                                    {
+                                        LayerId = spawnerLayer.LayerId,
+                                        CollisionSphere = nextObjSphere,
+                                        ObjectPlacementData = objPlcData
+                                    };
+                                    pendingObjList.Add(pendingObj);
+                                }
+                            }
+                            hasChanged = true;
                         }
                     }
                 }
-
-                spawnerData.IsSerializeIntermediateFileRequired = isSerializeIntermediateFileRequired;
-                spawnerData.PreviousSpawnPlacementDataList.Clear();
             }
 
-            AssetReplaceableExt.ReplaceListAssignItems(sourceList: modelAssetUrlList, destinationList: Asset.ModelAssetUrlList);
-            AssetReplaceableExt.ReplaceListAssignItems(sourceList: prefabAssetUrlList, destinationList: Asset.PrefabAssetUrlList);
-            SendUpdatedObjectPlacementObjectData(modelAssetUrlList, prefabAssetUrlList, spawnerDataList);
+            if (hasChanged && sendSetObjectPlacementObjectDataMessage && _editorToRuntimeMessagingService is not null)
+            {
+                for (int curSpawnerLayerIdx = 0; curSpawnerLayerIdx < spawnerLayerNodeList.Count; curSpawnerLayerIdx++)
+                {
+                    var spawnerLayerNode = spawnerLayerNodeList[curSpawnerLayerIdx];
+                    if (spawnerLayerNode?.Layer is not IObjectSpawnerLayer spawnerLayer)
+                    {
+                        continue;
+                    }
+                    else if (spawnerLayer.LayerDataType == typeof(ManualPrefabSpawnerData))
+                    {
+                        continue;
+                    }
+
+                    var spawnerData = (ObjectSpawnerDataBase)Asset.GetOrCreateLayerData(spawnerLayer.LayerId, spawnerLayer.LayerDataType);
+                    if (spawnerData is null)
+                    {
+                        continue;   // Shoudn't be null...
+                    }
+
+                    if (spawnerData.IsSerializeIntermediateFileRequired)
+                    {
+                        spawnerData.PreviousSpawnPlacementDataList.Clear();     // Can safely discard without checking if the placement data has changed
+                        continue;
+                    }
+
+                    bool isSerializeIntermediateFileRequired = false;
+                    if (spawnerData.PreviousSpawnPlacementDataList.Count != spawnerData.SpawnPlacementDataList.Count)
+                    {
+                        isSerializeIntermediateFileRequired = true;
+                    }
+                    else
+                    {
+                        var prevListSpan = CollectionsMarshal.AsSpan(spawnerData.PreviousSpawnPlacementDataList);
+                        var curListSpan = CollectionsMarshal.AsSpan(spawnerData.SpawnPlacementDataList);
+                        for (int i = 0; i < curListSpan.Length; i++)
+                        {
+                            if (!curListSpan[i].IsSame(prevListSpan[i]))
+                            {
+                                isSerializeIntermediateFileRequired = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    spawnerData.IsSerializeIntermediateFileRequired = isSerializeIntermediateFileRequired;
+                    spawnerData.PreviousSpawnPlacementDataList.Clear();
+                }
+
+                AssetReplaceableExt.ReplaceListAssignItems(sourceList: modelAssetUrlList, destinationList: Asset.ModelAssetUrlList);
+                AssetReplaceableExt.ReplaceListAssignItems(sourceList: prefabAssetUrlList, destinationList: Asset.PrefabAssetUrlList);
+                SendUpdatedObjectPlacementObjectData(modelAssetUrlList, prefabAssetUrlList, spawnerDataList);
+            }
         }
         return hasChanged;
 
@@ -1509,7 +1525,7 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
             blendType = densityMapLayer.BlendType;
             if (objectPlacementMapAsset.TryGetDensityMapLayerData<ObjectDensityMapLayerDataBase>(densityMapLayer.LayerId, out var dmLayerData))
             {
-                var texturePixelStartPosition = dmLayerData.ObjectDensityMapTexturePixelStartPosition ?? Int2.Zero;
+                var texturePixelStartPosition = dmLayerData.ObjectDensityMapTexturePixelStartPosition;
                 bool isInverted = densityMapLayer.IsInverted;
                 if (dmLayerData is PainterObjectDensityMapLayerData painterLayerData)
                 {
@@ -1623,19 +1639,6 @@ public class ObjectPlacementMapAssetViewModel : AssetViewModel<ObjectPlacementMa
         public required Guid EditorEntityId { get; init; }
         public required SceneRootViewModel SceneRootViewModel { get; init; }
         public List<ObjectPlacementLayerTreeNode> RootLayers { get; } = [];
-    }
-
-    private record struct TerrainMapData
-    {
-        public required Array2d<float> HeightmapData;
-        public required Vector2 HeightRange;
-        public required Int2 QuadsPerMesh;
-        public required Vector2 MeshQuadSize;
-        public required TerrainMeshPerChunk MeshPerChunk;
-        public required Vector2 ChunkWorldSizeVec2;
-
-        public readonly Size2 MapQuadCount => HeightmapData.Length2d.Subtract(Int2.One);
-        public readonly Vector2 MapWorldSize => MeshQuadSize *  MapQuadCount.ToVector2();
     }
 
     private record struct PendingObjectPlacement

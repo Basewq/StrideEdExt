@@ -1,8 +1,8 @@
 using Stride.Core;
 using Stride.Core.Assets;
-using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
+using Stride.Core.Mathematics;
 using Stride.Core.Serialization.Contents;
 using StrideEdExt.SharedData.ProceduralPlacement;
 using StrideEdExt.SharedData.Terrain3d;
@@ -23,103 +23,71 @@ namespace StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement;
 [AssetFormatVersion(StrideEdExtConfig.PackageName, CurrentVersion)]
 //[AssetUpgrader(StrideEdExtConfig.PackageName, "0.0.0.1", "1.0.0.0", typeof(ObjectPlacementMapAssetUpgrader))]    // Can be used to update an old asset format to a new format.
 [Display(10000, "Object Placement Map")]
-public class ObjectPlacementMapAsset : Asset
+public class ObjectPlacementMapAsset : Asset, IStrideCustomAsset
 {
     private const string CurrentVersion = "0.0.0.1";
 
-    private readonly object _serializationLock = new();
+    /// <summary>
+    /// The full file path of the asset if it was deserialized from a file.
+    /// </summary>
+    internal string? OriginalAssetFullFilePath;
+    /// <summary>
+    /// Full file path of the asset. This is only applicable for serialization since
+    /// this is only set in OnAssetLoaded or ObjectPlacementMapAssetViewModel.Initialize (after the asset has been loaded).
+    /// </summary>
+    internal string? AssetFullFilePath;
+    /// <summary>
+    /// Path relative to <see cref="OriginalAssetFullFilePath"/>.
+    /// </summary>
+    internal string? OriginalResourceRelativeFolderPath;
 
     //public Int2 ChunkSize { get; set; }         // HACK: Int2 instead of Size2 because the editor UI doesn't have an inline version of Size2 control
     public TerrainMap? TerrainMap { get; set; }
+
+    [Display(Browsable = false)]
+    [DataMember]
+    internal Size2 TerrainMapTextureSize { get; set; }
 
     /// <summary>
     /// Debug only field. Used to quickly determine how many objects have been serialized.
     /// </summary>
     [Display(Browsable = false)]
     public int TotalObjectPlacementCount { get; set; }
-    // Do not make this Browsable, it'll crash the editor due to too much data.
-    ////[Display(Browsable = false)]
-    ////public List<ModelPlacement> ModelPlacements { get; set; } = new();
 
     private readonly List<ObjectPlacementLayerDataBase> _pendingRemovalLayerDataList = [];
 
-    private TrackingCollection<ObjectDensityMapLayerDataBase>? _densityMapLayerDataList;
+    /// <summary>
+    /// List must not be directly modified externally.
+    /// Use <see cref="GetOrCreateLayerData"/> or <see cref="GetOrCreateDensityMapLayerData"/>, and <see cref="TryRemoveLayerData"/>.
+    /// </summary>
     [Display(Browsable = false)]
     [DataMember]
-    internal TrackingCollection<ObjectDensityMapLayerDataBase>? DensityMapLayerDataList
-    {
-        get => _densityMapLayerDataList;
-        set
-        {
-            if (_densityMapLayerDataList is not null)
-            {
-                _densityMapLayerDataList.CollectionChanged -= OnDensityMapLayerCollectionChanged;
-            }
-            _densityMapLayerDataList = value;
-            if (_densityMapLayerDataList is not null)
-            {
-                _densityMapLayerDataList.CollectionChanged += OnDensityMapLayerCollectionChanged;
-            }
-        }
-    }
+    internal List<ObjectDensityMapLayerDataBase> DensityMapLayerDataList { get; } = [];
 
-    private void OnDensityMapLayerCollectionChanged(object? sender, TrackingCollectionChangedEventArgs e)
-    {
-        if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
-        {
-            var layerData = (ObjectDensityMapLayerDataBase)e.Item!;
-            _pendingRemovalLayerDataList.Add(layerData);
-        }
-    }
-
-    private TrackingCollection<ObjectSpawnerDataBase>? _spawnerDataList;
+    /// <summary>
+    /// List must not be directly modified externally.
+    /// Use <see cref="GetOrCreateLayerData"/> or <see cref="GetOrCreateSpawnerData"/>, and <see cref="TryRemoveLayerData"/>.
+    /// </summary>
     [Display(Browsable = false)]
     [DataMember]
-    internal TrackingCollection<ObjectSpawnerDataBase>? SpawnerDataList
-    {
-        get => _spawnerDataList;
-        set
-        {
-            if (_spawnerDataList is not null)
-            {
-                _spawnerDataList.CollectionChanged -= OnSpawnerCollectionChanged;
-            }
-            _spawnerDataList = value;
-            if (_spawnerDataList is not null)
-            {
-                _spawnerDataList.CollectionChanged += OnSpawnerCollectionChanged;
-            }
-        }
-    }
-
-    private void OnSpawnerCollectionChanged(object? sender, TrackingCollectionChangedEventArgs e)
-    {
-        if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
-        {
-            var layerData = (ObjectSpawnerDataBase)e.Item!;
-            _pendingRemovalLayerDataList.Add(layerData);
-        }
-    }
+    internal List<ObjectSpawnerDataBase> SpawnerDataList { get; } = [];
 
     [Display(Browsable = false)]
     [DataMember]
     internal DateTimeOffset? LastUserModifiedDateTimeUtc { get; set; }
 
-    [DataMemberIgnore]
-    public bool HasObjectPlacementLayerSerializedIntermediateFiles { get; set; }
-
     /// <remarks>
     /// Folder path should be unique for each <see cref="ObjectPlacementMapAsset"/> due to hardcoded file names for generated intermediate files.
+    /// Path relative to <see cref="AssetFullFilePath"/>.
     /// </remarks>
-    [UPath(UPathRelativeTo.Package)]
-    public UDirectory? ResourceFolderPath { get; set; }
+    public UDirectory? ResourceRelativeFolderPath { get; set; }
 
     [Display(Browsable = false)]
     [DataMember]
-    internal List<string> ModelAssetUrlList { get; set; } = [];
+    internal List<string> ModelAssetUrlList { get; } = [];
     [Display(Browsable = false)]
     [DataMember]
-    internal List<string> PrefabAssetUrlList { get; set; } = [];
+    internal List<string> PrefabAssetUrlList { get; } = [];
 
     public ObjectPlacementMapAsset()
     {
@@ -131,10 +99,9 @@ public class ObjectPlacementMapAsset : Asset
         where TLayerData : ObjectDensityMapLayerDataBase
     {
         layerData = null;
-        if (DensityMapLayerDataList is not null
-            && DensityMapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (DensityMapLayerDataList.TryFindItem(x => x.LayerId == layerId, out var dmLayerData))
         {
-            layerData = DensityMapLayerDataList[index] as TLayerData;
+            layerData = dmLayerData as TLayerData;
         }
         return layerData is not null;
     }
@@ -143,10 +110,9 @@ public class ObjectPlacementMapAsset : Asset
         where TSpawnerData : ObjectSpawnerDataBase
     {
         spawnerData = null;
-        if (SpawnerDataList is not null
-            && SpawnerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (SpawnerDataList.TryFindItem(x => x.LayerId == layerId, out var spwnLayerData))
         {
-            spawnerData = SpawnerDataList[index] as TSpawnerData;
+            spawnerData = spwnLayerData as TSpawnerData;
         }
         return spawnerData is not null;
     }
@@ -154,15 +120,13 @@ public class ObjectPlacementMapAsset : Asset
     public bool TryGetLayerData(Guid layerId, [NotNullWhen(true)] out ObjectPlacementLayerDataBase? layerData)
     {
         layerData = null;
-        if (DensityMapLayerDataList is not null
-            && DensityMapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (DensityMapLayerDataList.TryFindItem(x => x.LayerId == layerId, out var dmLayerData))
         {
-            layerData = DensityMapLayerDataList[index];
+            layerData = dmLayerData;
         }
-        else if (SpawnerDataList is not null
-            && SpawnerDataList.TryFindIndex(x => x.LayerId == layerId, out index))
+        else if (SpawnerDataList.TryFindItem(x => x.LayerId == layerId, out var spwnLayerData))
         {
-            layerData = SpawnerDataList[index];
+            layerData = spwnLayerData;
         }
         return layerData is not null;
     }
@@ -206,24 +170,22 @@ public class ObjectPlacementMapAsset : Asset
 
     private ObjectDensityMapLayerDataBase GetOrCreateDensityMapLayerData(Guid layerId, Type layerDataType)
     {
-        DensityMapLayerDataList ??= [];
-        if (DensityMapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (DensityMapLayerDataList.TryFindItem(x => x.LayerId == layerId, out var layerData))
         {
-            var layerData = DensityMapLayerDataList[index];
             return layerData;
         }
         else
         {
-            var layerData = _pendingRemovalLayerDataList.Find(x => x.LayerId == layerId) as ObjectDensityMapLayerDataBase;
-            if (layerData is not null)
+            if (_pendingRemovalLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var restoredLayerData))
             {
                 // Add back to active list
-                _pendingRemovalLayerDataList.Remove(layerData);
+                layerData = (ObjectDensityMapLayerDataBase)restoredLayerData;
             }
             else
             {
                 layerData = (ObjectDensityMapLayerDataBase)Activator.CreateInstance(layerDataType)!;
                 layerData.LayerId = layerId;
+                layerData.IsSerializeIntermediateFileRequired = true;
                 layerData.IsDeserializeIntermediateFileRequired = false;
             }
             DensityMapLayerDataList.Add(layerData!);
@@ -233,19 +195,16 @@ public class ObjectPlacementMapAsset : Asset
 
     private ObjectSpawnerDataBase GetOrCreateSpawnerData(Guid layerId, Type layerDataType)
     {
-        SpawnerDataList ??= [];
-        if (SpawnerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (SpawnerDataList.TryFindItem(x => x.LayerId == layerId, out var layerData))
         {
-            var layerData = SpawnerDataList[index];
             return layerData;
         }
         else
         {
-            var layerData = _pendingRemovalLayerDataList.Find(x => x.LayerId == layerId) as ObjectSpawnerDataBase;
-            if (layerData is not null)
+            if (_pendingRemovalLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var restoredLayerData))
             {
                 // Add back to active list
-                _pendingRemovalLayerDataList.Remove(layerData);
+                layerData = (ObjectSpawnerDataBase)restoredLayerData;
             }
             else
             {
@@ -261,16 +220,14 @@ public class ObjectPlacementMapAsset : Asset
 
     public bool TryRemoveLayerData(Guid layerId)
     {
-        if (DensityMapLayerDataList is not null
-            && DensityMapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (DensityMapLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var dmLayerData))
         {
-            DensityMapLayerDataList.RemoveAt(index);
+            _pendingRemovalLayerDataList.Add(dmLayerData);
             return true;
         }
-        else if (SpawnerDataList is not null
-            && SpawnerDataList.TryFindIndex(x => x.LayerId == layerId, out index))
+        else if (SpawnerDataList.TryRemoveItem(x => x.LayerId == layerId, out var spwnLayerData))
         {
-            SpawnerDataList.RemoveAt(index);
+            _pendingRemovalLayerDataList.Add(spwnLayerData);
             return true;
         }
         return false;
@@ -278,19 +235,16 @@ public class ObjectPlacementMapAsset : Asset
 
     public void SetDensityMapLayerOrdering(List<Guid> densityMapLayerIds)
     {
-        DensityMapLayerDataList ??= [];
         var layerIdToLayerData = DensityMapLayerDataList.ToDictionary(x => x.LayerId);
         DensityMapLayerDataList.Clear();
         foreach (var layerId in densityMapLayerIds)
         {
-            if (!layerIdToLayerData.TryGetValue(layerId, out var layerData))
+            if (!layerIdToLayerData.Remove(layerId, out var layerData))
             {
-                if (_pendingRemovalLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int removalListIndex))
+                if (_pendingRemovalLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var restoredLayerData))
                 {
-                    layerData = (ObjectDensityMapLayerDataBase)_pendingRemovalLayerDataList[removalListIndex];
-
                     // Add back to active list
-                    _pendingRemovalLayerDataList.RemoveAt(removalListIndex);
+                    layerData = (ObjectDensityMapLayerDataBase)restoredLayerData;
                 }
                 else
                 {
@@ -308,19 +262,16 @@ public class ObjectPlacementMapAsset : Asset
 
     public void SetSpawnerOrdering(List<Guid> spawnerIds)
     {
-        SpawnerDataList ??= [];
         var layerIdToLayerData = SpawnerDataList.ToDictionary(x => x.LayerId);
         SpawnerDataList.Clear();
         foreach (var layerId in spawnerIds)
         {
-            if (!layerIdToLayerData.TryGetValue(layerId, out var layerData))
+            if (!layerIdToLayerData.Remove(layerId, out var layerData))
             {
-                if (_pendingRemovalLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int removalListIndex))
+                if (_pendingRemovalLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var restoredLayerData))
                 {
-                    layerData = (ObjectSpawnerDataBase)_pendingRemovalLayerDataList[removalListIndex];
-
                     // Add back to active list
-                    _pendingRemovalLayerDataList.RemoveAt(removalListIndex);
+                    layerData = (ObjectSpawnerDataBase)restoredLayerData;
                 }
                 else
                 {
@@ -336,75 +287,153 @@ public class ObjectPlacementMapAsset : Asset
         }
     }
 
-    private bool _hasCalledFinalizeContentDeserialization = false;
-    public void EnsureFinalizeContentDeserialization(ILogger logger, UDirectory packageFolderPath)
+    private bool _hasCalledOnAssetLoaded = false;
+    public void OnAssetLoaded(UFile assetFullFilePath, ILogger? logger)
     {
-        lock (_serializationLock)
+        if (_hasCalledOnAssetLoaded)
         {
-            if (_hasCalledFinalizeContentDeserialization)
-            {
-                return;
-            }
-
-            if (ResourceFolderPath is not null)
-            {
-                var resourceFolderFullPath = UPath.Combine(packageFolderPath, ResourceFolderPath)?.ToOSPath();
-                if (resourceFolderFullPath is not null)
-                {
-                    Directory.CreateDirectory(resourceFolderFullPath);
-                }
-            }
-
-            _hasCalledFinalizeContentDeserialization = true;
+            return;
         }
+        _hasCalledOnAssetLoaded = true;
+        OriginalAssetFullFilePath = assetFullFilePath.ToOSPath();
+        AssetFullFilePath = OriginalAssetFullFilePath;
+
+        if (string.IsNullOrWhiteSpace(AssetFullFilePath))
+        {
+            logger?.Error($"{nameof(ObjectPlacementMapAsset)} {Id}: '{nameof(AssetFullFilePath)}' was not assigned.");
+            return;
+        }
+
+        var assetFullFolderPath = assetFullFilePath.GetFullDirectory();
+
+        if (string.IsNullOrWhiteSpace(ResourceRelativeFolderPath?.FullPath))
+        {
+            logger?.Warning($"{nameof(ObjectPlacementMapAsset)} {Id}: '{nameof(ResourceRelativeFolderPath)}' was not assigned. Creating default path.");
+
+            ResourceRelativeFolderPath = CreateDefaultResourceRelativeFolderPath(assetFullFilePath);
+        }
+        else
+        {
+            // Ensure path is relative to this asset's path
+            ResourceRelativeFolderPath = ResourceRelativeFolderPath.MakeRelative(assetFullFolderPath);
+            OriginalResourceRelativeFolderPath = ResourceRelativeFolderPath.FullPath;
+        }
+
+        // Note that layer data for DensityMapLayerDataList & SpawnerDataList are lazy loaded
     }
 
-    public void PrepareContentSerialization()
+    public void OnAssetSaving(ILogger? logger)
     {
-        //lock (_serializationLock)
-        //{
-        //}
-    }
-
-    public void SerializeIntermediateFiles(ILogger logger, UDirectory packageFolderPath)
-    {
-        lock (_serializationLock)
+        if (string.IsNullOrWhiteSpace(AssetFullFilePath))
         {
-            if (ResourceFolderPath is not null)
-            {
-                var resourceFolderFullPath = UPath.Combine(packageFolderPath, ResourceFolderPath)?.ToOSPath();
-                if (resourceFolderFullPath is not null)
-                {
-                    Directory.CreateDirectory(resourceFolderFullPath);
+            logger?.Error($"{nameof(ObjectPlacementMapAsset)} {Id}: '{nameof(AssetFullFilePath)}' was not assigned.");
+            return;
+        }
 
-                    if (DensityMapLayerDataList is not null)
-                    {
-                        foreach (var layerData in DensityMapLayerDataList)
-                        {
-                            if (layerData.IsSerializeIntermediateFileRequired)
-                            {
-                                layerData.SerializeIntermediateFile(resourceFolderFullPath, this, logger);
-                                layerData.LastModifiedIntermediateFile = DateTimeOffset.UtcNow;
-                                layerData.IsSerializeIntermediateFileRequired = false;
-                                HasObjectPlacementLayerSerializedIntermediateFiles = true;
-                            }
-                        }
-                    }
-                    if (SpawnerDataList is not null)
-                    {
-                        foreach (var layerData in SpawnerDataList)
-                        {
-                            if (layerData.IsSerializeIntermediateFileRequired)
-                            {
-                                layerData.SerializeIntermediateFile(resourceFolderFullPath, this, logger);
-                                layerData.LastModifiedIntermediateFile = DateTimeOffset.UtcNow;
-                                layerData.IsSerializeIntermediateFileRequired = false;
-                                HasObjectPlacementLayerSerializedIntermediateFiles = true;
-                            }
-                        }
-                    }
+        var assetFullFilePath = new UFile(AssetFullFilePath);
+        var assetFullFolderPath = assetFullFilePath.GetFullDirectory();
+
+        if (string.IsNullOrWhiteSpace(ResourceRelativeFolderPath?.FullPath))
+        {
+            logger?.Warning($"{nameof(ObjectPlacementMapAsset)} {Id}: '{nameof(ResourceRelativeFolderPath)}' was not assigned. Creating default path.");
+
+            ResourceRelativeFolderPath = CreateDefaultResourceRelativeFolderPath(assetFullFilePath);
+        }
+        else
+        {
+            // Ensure path is relative to this asset's path
+            ResourceRelativeFolderPath = ResourceRelativeFolderPath.MakeRelative(assetFullFolderPath);
+        }
+
+        // Delete any old intermediate files due to moving the asset or changing ResourceRelativeFolderPath
+        bool hasAssetOrResourceMoved = false;
+        string pendingDeleteResourceRelativeFolderPath = ResourceRelativeFolderPath.FullPath;
+        string pendingDeleteTerrainMapAssetFullFolderPath = AssetFullFilePath;
+        if (!string.IsNullOrWhiteSpace(OriginalResourceRelativeFolderPath)
+            && !string.Equals(OriginalResourceRelativeFolderPath, ResourceRelativeFolderPath.FullPath, StringComparison.OrdinalIgnoreCase))
+        {
+            pendingDeleteResourceRelativeFolderPath = OriginalResourceRelativeFolderPath;
+            hasAssetOrResourceMoved = true;
+        }
+        else if (!string.IsNullOrWhiteSpace(OriginalAssetFullFilePath)
+            && !string.IsNullOrWhiteSpace(AssetFullFilePath)
+            && !string.Equals(OriginalAssetFullFilePath, AssetFullFilePath, StringComparison.OrdinalIgnoreCase))
+        {
+            pendingDeleteTerrainMapAssetFullFolderPath = OriginalAssetFullFilePath;
+            hasAssetOrResourceMoved = true;
+        }
+
+        var pendingDeleteResourceRelativeDir = new UDirectory(pendingDeleteResourceRelativeFolderPath);
+        var pendingDeleteAssetFullFolderPath = new UFile(pendingDeleteTerrainMapAssetFullFolderPath).GetFullDirectory();
+        var pendingDeleteIntermediateFilesFullFolderPath = UPath.Combine(pendingDeleteAssetFullFolderPath, pendingDeleteResourceRelativeDir);
+        if (hasAssetOrResourceMoved)
+        {
+            // Delete layer intermediate files in old location
+            if (DensityMapLayerDataList is not null)
+            {
+                foreach (var layerData in DensityMapLayerDataList)
+                {
+                    layerData.DeleteIntermediateFile(pendingDeleteIntermediateFilesFullFolderPath, pendingDeleteAssetFullFolderPath, logger);
+                    layerData.IsSerializeIntermediateFileRequired = true;   // In case of undo, we may need to regenerate this file after deletion
+                }
+            }
+            if (SpawnerDataList is not null)
+            {
+                foreach (var layerData in SpawnerDataList)
+                {
+                    layerData.DeleteIntermediateFile(pendingDeleteIntermediateFilesFullFolderPath, pendingDeleteAssetFullFolderPath, logger);
+                    layerData.IsSerializeIntermediateFileRequired = true;   // In case of undo, we may need to regenerate this file after deletion
                 }
             }
         }
+        // Delete any old intermediate files from deleted layers
+        foreach (var layerData in _pendingRemovalLayerDataList)
+        {
+            layerData.DeleteIntermediateFile(pendingDeleteIntermediateFilesFullFolderPath, pendingDeleteAssetFullFolderPath, logger);
+            layerData.IsSerializeIntermediateFileRequired = true;   // In case of undo, we may need to regenerate this file after deletion
+        }
+
+        // Save layer intermediate files
+        string intermediateFilesFullFolderPath = UPath.Combine(assetFullFolderPath, ResourceRelativeFolderPath).ToOSPath();
+        Directory.CreateDirectory(intermediateFilesFullFolderPath);
+        if (DensityMapLayerDataList is not null)
+        {
+            foreach (var layerData in DensityMapLayerDataList)
+            {
+                if (!layerData.IsSerializeIntermediateFileRequired)
+                {
+                    continue;
+                }
+                layerData.SerializeIntermediateFile(intermediateFilesFullFolderPath, assetFullFolderPath, this, logger);
+                layerData.LastModifiedIntermediateFile = DateTimeOffset.UtcNow;
+                layerData.IsSerializeIntermediateFileRequired = false;
+            }
+        }
+        if (SpawnerDataList is not null)
+        {
+            foreach (var layerData in SpawnerDataList)
+            {
+                if (!layerData.IsSerializeIntermediateFileRequired)
+                {
+                    continue;
+                }
+                layerData.SerializeIntermediateFile(intermediateFilesFullFolderPath, assetFullFolderPath, this, logger);
+                layerData.LastModifiedIntermediateFile = DateTimeOffset.UtcNow;
+                layerData.IsSerializeIntermediateFileRequired = false;
+            }
+
+            TotalObjectPlacementCount = SpawnerDataList.Sum(x => x.SpawnPlacementDataList.Count);
+        }
+
+        // Save the actual paths used as the 'original' paths for reloading intermediate files
+        OriginalAssetFullFilePath = AssetFullFilePath;
+        OriginalResourceRelativeFolderPath = ResourceRelativeFolderPath;
+    }
+
+    private static UDirectory CreateDefaultResourceRelativeFolderPath(UFile assetFullFilePath)
+    {
+        string assetFileName = assetFullFilePath.GetFileNameWithoutExtension()!;
+        var path = new UDirectory($"{assetFileName}_OpmData");
+        return path;
     }
 }

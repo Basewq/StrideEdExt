@@ -12,9 +12,9 @@ public static class HeightmapSerializationHelper
     /// <summary>
     /// Serializes the normalized <paramref name="heightmapData"/> (in range [0...1]) to the file in <see cref="ushort"/> hex values.
     /// </summary>
-    public static void SerializeFloatArray2dToHexFile(Array2d<float> heightmapData, string outputHeightmapFilePath)
+    public static void SerializeFloatArray2dToHexFile(Array2d<float> heightmapData, string outputHeightmapFullFilePath)
     {
-        using var writer = new AssetTextWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
+        using var writer = new AssetTextWriter(outputHeightmapFullFilePath);  // Will overwrite the file if it already exists
         // Write the array dimensions
         writer.Write(heightmapData.LengthX);
         writer.WriteSpace();
@@ -41,11 +41,11 @@ public static class HeightmapSerializationHelper
     /// <summary>
     /// Deserializes a file with <see cref="ushort"/> hex values to <see cref="Array2d{T}"/> <see cref="float"/> normalized in range [0...1].
     /// </summary>
-    public static bool TryDeserializeFloatArray2dFromHexFile(string heightmapFilePath, [NotNullWhen(true)] out Array2d<float>? heightmapData, [NotNullWhen(false)] out string? errorMessage)
+    public static bool TryDeserializeFloatArray2dFromHexFile(string heightmapFullFilePath, [NotNullWhen(true)] out Array2d<float>? heightmapData, [NotNullWhen(false)] out string? errorMessage)
     {
         errorMessage = null;
 
-        using var reader = new StreamReader(heightmapFilePath);  // Will overwrite the file if it already exists
+        using var reader = new StreamReader(heightmapFullFilePath);  // Will overwrite the file if it already exists
         // Read the array dimensions
         var arrayDimensions = reader.ReadLine();
         if (arrayDimensions is null)
@@ -124,9 +124,9 @@ public static class HeightmapSerializationHelper
     /// <summary>
     /// Serializes the normalized <paramref name="heightmapData"/> (in range [0...1]) to the file in <see cref="byte"/> hex values.
     /// </summary>
-    public static void SerializeHalfArray2dToHexFile(Array2d<Half> heightmapData, string outputHeightmapFilePath)
+    public static void SerializeHalfArray2dToHexFile(Array2d<Half> heightmapData, string outputHeightmapFullFilePath)
     {
-        using var writer = new AssetTextWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
+        using var writer = new AssetTextWriter(outputHeightmapFullFilePath);  // Will overwrite the file if it already exists
         // Write the array dimensions
         writer.Write(heightmapData.LengthX);
         writer.WriteSpace();
@@ -153,11 +153,11 @@ public static class HeightmapSerializationHelper
     /// <summary>
     /// Deserializes a file with <see cref="byte"/> hex values to <see cref="Array2d{T}"/> <see cref="byte"/> normalized in range [0...1].
     /// </summary>
-    public static bool TryDeserializeHalfArray2dFromHexFile(string heightmapFilePath, [NotNullWhen(true)] out Array2d<Half>? heightmapData, [NotNullWhen(false)] out string? errorMessage)
+    public static bool TryDeserializeHalfArray2dFromHexFile(string heightmapFullFilePath, [NotNullWhen(true)] out Array2d<Half>? heightmapData, [NotNullWhen(false)] out string? errorMessage)
     {
         errorMessage = null;
 
-        using var reader = new StreamReader(heightmapFilePath);  // Will overwrite the file if it already exists
+        using var reader = new StreamReader(heightmapFullFilePath);  // Will overwrite the file if it already exists
         // Read the array dimensions
         var arrayDimensions = reader.ReadLine();
         if (arrayDimensions is null)
@@ -236,9 +236,9 @@ public static class HeightmapSerializationHelper
     /// <summary>
     /// Serializes the <paramref name="heightmapData"/> to the file in <see cref="byte"/> hex values.
     /// </summary>
-    public static void SerializeByteArray2dToHexFile(Array2d<byte> heightmapData, string outputHeightmapFilePath)
+    public static void SerializeByteArray2dToHexFile(Array2d<byte> heightmapData, string outputHeightmapFullFilePath)
     {
-        using var writer = new AssetTextWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
+        using var writer = new AssetTextWriter(outputHeightmapFullFilePath);  // Will overwrite the file if it already exists
         // Write the array dimensions
         writer.Write(heightmapData.LengthX);
         writer.WriteSpace();
@@ -264,11 +264,11 @@ public static class HeightmapSerializationHelper
     /// <summary>
     /// Deserializes a file with <see cref="byte"/> hex values to <see cref="Array2d{T}"/> <see cref="byte"/>.
     /// </summary>
-    public static bool TryDeserializeByteArray2dFromHexFile(string heightmapFilePath, [NotNullWhen(true)] out Array2d<byte>? heightmapData, [NotNullWhen(false)] out string? errorMessage)
+    public static bool TryDeserializeByteArray2dFromHexFile(string heightmapFullFilePath, [NotNullWhen(true)] out Array2d<byte>? heightmapData, [NotNullWhen(false)] out string? errorMessage)
     {
         errorMessage = null;
 
-        using var reader = new StreamReader(heightmapFilePath);  // Will overwrite the file if it already exists
+        using var reader = new StreamReader(heightmapFullFilePath);  // Will overwrite the file if it already exists
         // Read the array dimensions
         var arrayDimensions = reader.ReadLine();
         if (arrayDimensions is null)
@@ -343,9 +343,9 @@ public static class HeightmapSerializationHelper
         return true;
     }
 
-    public static void SerializeMaskableHalfArray2dToFile(Array2d<Half?> heightmapData, string outputHeightmapFilePath)
+    public static void SerializeMaskableHalfArray2dToFile(Array2d<Half?> heightmapData, string outputHeightmapFullFilePath)
     {
-        using var writer = new AssetTextWriter(outputHeightmapFilePath);  // Will overwrite the file if it already exists
+        using var writer = new AssetTextWriter(outputHeightmapFullFilePath);  // Will overwrite the file if it already exists
         // Write the array dimensions
         writer.Write(heightmapData.LengthX);
         writer.WriteSpace();
@@ -374,11 +374,11 @@ public static class HeightmapSerializationHelper
         }
     }
 
-    public static bool TryDeserializeMaskableHalfArray2dFromFile(string heightmapFilePath, [NotNullWhen(true)] out Array2d<Half?>? heightmapData, [NotNullWhen(false)] out string? errorMessage)
+    public static bool TryDeserializeMaskableHalfArray2dFromFile(string heightmapFullFilePath, [NotNullWhen(true)] out Array2d<Half?>? heightmapData, [NotNullWhen(false)] out string? errorMessage)
     {
         errorMessage = null;
 
-        using var reader = new StreamReader(heightmapFilePath);  // Will overwrite the file if it already exists
+        using var reader = new StreamReader(heightmapFullFilePath);  // Will overwrite the file if it already exists
         // Read the array dimensions
         var arrayDimensions = reader.ReadLine();
         if (arrayDimensions is null)

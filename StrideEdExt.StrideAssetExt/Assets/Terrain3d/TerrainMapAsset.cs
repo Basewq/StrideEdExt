@@ -1,7 +1,6 @@
 using Stride.Core;
 using Stride.Core.Annotations;
 using Stride.Core.Assets;
-using Stride.Core.Collections;
 using Stride.Core.Diagnostics;
 using Stride.Core.IO;
 using Stride.Core.Mathematics;
@@ -26,7 +25,7 @@ namespace StrideEdExt.StrideAssetExt.Assets.Terrain3d;
 [AssetFormatVersion(StrideEdExtConfig.PackageName, CurrentVersion)]
 //[AssetUpgrader(StrideEdExtConfig.PackageName, "0.0.0.1", "1.0.0.0", typeof(TerrainMapAssetUpgrader))]    // Can be used to update an old asset format to a new format.
 [Display(10000, "Terrain Map 3D")]
-public class TerrainMapAsset : Asset
+public class TerrainMapAsset : Asset, IStrideCustomAsset
 {
     private const string CurrentVersion = "0.0.0.1";
 
@@ -35,7 +34,19 @@ public class TerrainMapAsset : Asset
     private const string IntermediateHeightmapFileName = "terrain_heightmap.txt";
     private const string IntermediateMaterialIndexMapFileName = "terrain_materialmap.txt";
 
-    private readonly object _serializationLock = new();
+    /// <summary>
+    /// The full file path of the asset if it was deserialized from a file.
+    /// </summary>
+    internal string? OriginalAssetFullFilePath;
+    /// <summary>
+    /// Full file path of the asset. This is only applicable for serialization since
+    /// this is only set in OnAssetLoaded or TerrainMapAssetViewModel.Initialize (after the asset has been loaded).
+    /// </summary>
+    internal string? AssetFullFilePath;
+    /// <summary>
+    /// Path relative to <see cref="OriginalAssetFullFilePath"/>.
+    /// </summary>
+    internal string? OriginalResourceRelativeFolderPath;
 
     /// <summary>
     /// Normalized heightmap data.
@@ -53,67 +64,32 @@ public class TerrainMapAsset : Asset
     public Array2d<Half>? MaterialWeightMapData { get; set; }
 
     private readonly List<TerrainMapLayerDataBase> _pendingRemovalLayerDataList = [];
-    private TrackingCollection<TerrainHeightmapLayerDataBase>? _heightmapLayerDataList;
+
+    /// <summary>
+    /// List must not be directly modified externally.
+    /// Use <see cref="GetOrCreateLayerData"/> or <see cref="GetOrCreateHeightmapLayerData"/>,  and <see cref="TryRemoveLayerData"/>.
+    /// </summary>
     [Display(Browsable = false)]
     [DataMember]
-    internal TrackingCollection<TerrainHeightmapLayerDataBase>? HeightmapLayerDataList
-    {
-        get => _heightmapLayerDataList;
-        set
-        {
-            if (_heightmapLayerDataList is not null)
-            {
-                _heightmapLayerDataList.CollectionChanged -= OnLayerCollectionChanged;
-            }
-            _heightmapLayerDataList = value;
-            if (_heightmapLayerDataList is not null)
-            {
-                _heightmapLayerDataList.CollectionChanged += OnLayerCollectionChanged;
-            }
-        }
-    }
+    internal List<TerrainHeightmapLayerDataBase> HeightmapLayerDataList { get; } = [];
 
-    private TrackingCollection<TerrainMaterialMapLayerDataBase>? _materialWeightMapLayerDataList;
+    /// <summary>
+    /// List must not be directly modified externally.
+    /// Use <see cref="GetOrCreateLayerData"/> or <see cref="GetOrCreateMaterialMapLayerData"/>,  and <see cref="TryRemoveLayerData"/>.
+    /// </summary>
     [Display(Browsable = false)]
     [DataMember]
-    internal TrackingCollection<TerrainMaterialMapLayerDataBase>? MaterialWeightMapLayerDataList
-    {
-        get => _materialWeightMapLayerDataList;
-        set
-        {
-            if (_materialWeightMapLayerDataList is not null)
-            {
-                _materialWeightMapLayerDataList.CollectionChanged -= OnLayerCollectionChanged;
-            }
-            _materialWeightMapLayerDataList = value;
-            if (_materialWeightMapLayerDataList is not null)
-            {
-                _materialWeightMapLayerDataList.CollectionChanged += OnLayerCollectionChanged;
-            }
-        }
-    }
-
-    private void OnLayerCollectionChanged(object? sender, TrackingCollectionChangedEventArgs e)
-    {
-        if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
-        {
-            var layerData = (TerrainMapLayerDataBase)e.Item!;
-            _pendingRemovalLayerDataList.Add(layerData);
-        }
-    }
+    internal List<TerrainMaterialMapLayerDataBase> MaterialWeightMapLayerDataList { get; } = [];
 
     [Display(Browsable = false)]
     [DataMember]
     internal DateTimeOffset? LastUserModifiedDateTimeUtc { get; set; }
 
-    [DataMemberIgnore]
-    public bool HasTerrainMapLayerSerializedIntermediateFiles { get; set; }
-
     /// <remarks>
     /// Folder path should be unique for each <see cref="TerrainMapAsset"/> due to hardcoded file names for generated intermediate files.
+    /// Path relative to <see cref="AssetFullFilePath"/>.
     /// </remarks>
-    [UPath(UPathRelativeTo.Package)]
-    public UDirectory? ResourceFolderPath { get; set; }
+    public UDirectory? ResourceRelativeFolderPath { get; set; }
 
     /// <inheritdoc cref="TerrainMap.MapSize"/>
     ///<remarks>
@@ -154,10 +130,9 @@ public class TerrainMapAsset : Asset
         where TLayerData : TerrainHeightmapLayerDataBase
     {
         layerData = null;
-        if (HeightmapLayerDataList is not null
-            && HeightmapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (HeightmapLayerDataList.TryFindItem(x => x.LayerId == layerId, out var hmLayerData))
         {
-            layerData = HeightmapLayerDataList[index] as TLayerData;
+            layerData = hmLayerData as TLayerData;
         }
         return layerData is not null;
     }
@@ -166,10 +141,9 @@ public class TerrainMapAsset : Asset
         where TLayerData : TerrainMaterialMapLayerDataBase
     {
         layerData = null;
-        if (MaterialWeightMapLayerDataList is not null
-            && MaterialWeightMapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (MaterialWeightMapLayerDataList.TryFindItem(x => x.LayerId == layerId, out var wmLayerData))
         {
-            layerData = MaterialWeightMapLayerDataList[index] as TLayerData;
+            layerData = wmLayerData as TLayerData;
         }
         return layerData is not null;
     }
@@ -177,15 +151,13 @@ public class TerrainMapAsset : Asset
     public bool TryGetLayerData(Guid layerId, [NotNullWhen(true)] out TerrainMapLayerDataBase? layerData)
     {
         layerData = null;
-        if (HeightmapLayerDataList is not null
-            && HeightmapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (HeightmapLayerDataList.TryFindItem(x => x.LayerId == layerId, out var hmLayerData))
         {
-            layerData = HeightmapLayerDataList[index];
+            layerData = hmLayerData;
         }
-        else if (MaterialWeightMapLayerDataList is not null
-            && MaterialWeightMapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out index))
+        else if (MaterialWeightMapLayerDataList.TryFindItem(x => x.LayerId == layerId, out var wmLayerData))
         {
-            layerData = MaterialWeightMapLayerDataList[index];
+            layerData = wmLayerData;
         }
         return layerData is not null;
     }
@@ -229,46 +201,41 @@ public class TerrainMapAsset : Asset
 
     private TerrainHeightmapLayerDataBase GetOrCreateHeightmapLayerData(Guid layerId, Type layerDataType)
     {
-        HeightmapLayerDataList ??= [];
-        if (HeightmapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (HeightmapLayerDataList.TryFindItem(x => x.LayerId == layerId, out var layerData))
         {
-            var layerData = HeightmapLayerDataList[index];
             return layerData;
         }
         else
         {
-            var layerData = _pendingRemovalLayerDataList.Find(x => x.LayerId == layerId) as TerrainHeightmapLayerDataBase;
-            if (layerData is not null)
+            if (_pendingRemovalLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var restoredLayerData))
             {
                 // Add back to active list
-                _pendingRemovalLayerDataList.Remove(layerData);
+                layerData = (TerrainHeightmapLayerDataBase)restoredLayerData;
             }
             else
             {
                 layerData = (TerrainHeightmapLayerDataBase)Activator.CreateInstance(layerDataType)!;
                 layerData.LayerId = layerId;
+                layerData.IsSerializeIntermediateFileRequired = true;
                 layerData.IsDeserializeIntermediateFileRequired = false;
             }
-            HeightmapLayerDataList.Add(layerData!);
+            HeightmapLayerDataList.Add(layerData);
             return layerData;
         }
     }
 
     private TerrainMaterialMapLayerDataBase GetOrCreateMaterialMapLayerData(Guid layerId, Type layerDataType)
     {
-        MaterialWeightMapLayerDataList ??= [];
-        if (MaterialWeightMapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (MaterialWeightMapLayerDataList.TryFindItem(x => x.LayerId == layerId, out var layerData))
         {
-            var layerData = MaterialWeightMapLayerDataList[index];
             return layerData;
         }
         else
         {
-            var layerData = _pendingRemovalLayerDataList.Find(x => x.LayerId == layerId) as TerrainMaterialMapLayerDataBase;
-            if (layerData is not null)
+            if (_pendingRemovalLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var restoredLayerData))
             {
                 // Add back to active list
-                _pendingRemovalLayerDataList.Remove(layerData);
+                layerData = (TerrainMaterialMapLayerDataBase)restoredLayerData;
             }
             else
             {
@@ -277,23 +244,21 @@ public class TerrainMapAsset : Asset
                 layerData.IsSerializeIntermediateFileRequired = true;
                 layerData.IsDeserializeIntermediateFileRequired = false;
             }
-            MaterialWeightMapLayerDataList.Add(layerData!);
+            MaterialWeightMapLayerDataList.Add(layerData);
             return layerData;
         }
     }
 
     public bool TryRemoveLayerData(Guid layerId)
     {
-        if (HeightmapLayerDataList is not null
-            && HeightmapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int index))
+        if (HeightmapLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var hmLayerData))
         {
-            HeightmapLayerDataList.RemoveAt(index);
+            _pendingRemovalLayerDataList.Add(hmLayerData);
             return true;
         }
-        else if (MaterialWeightMapLayerDataList is not null
-            && MaterialWeightMapLayerDataList.TryFindIndex(x => x.LayerId == layerId, out index))
+        else if (MaterialWeightMapLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var wmLayerData))
         {
-            MaterialWeightMapLayerDataList.RemoveAt(index);
+            _pendingRemovalLayerDataList.Add(wmLayerData);
             return true;
         }
         return false;
@@ -301,19 +266,16 @@ public class TerrainMapAsset : Asset
 
     public void SetHeightmapLayerOrdering(List<Guid> heightmapLayerIds)
     {
-        HeightmapLayerDataList ??= [];
         var layerIdToLayerData = HeightmapLayerDataList.ToDictionary(x => x.LayerId);
         HeightmapLayerDataList.Clear();
         foreach (var layerId in heightmapLayerIds)
         {
-            if (!layerIdToLayerData.TryGetValue(layerId, out var layerData))
+            if (!layerIdToLayerData.Remove(layerId, out var layerData))
             {
-                if (_pendingRemovalLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int removalListIndex))
+                if (_pendingRemovalLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var restoredLayerData))
                 {
-                    layerData = (TerrainHeightmapLayerDataBase)_pendingRemovalLayerDataList[removalListIndex];
-
                     // Add back to active list
-                    _pendingRemovalLayerDataList.RemoveAt(removalListIndex);
+                    layerData = (TerrainHeightmapLayerDataBase)restoredLayerData;
                 }
                 else
                 {
@@ -331,19 +293,16 @@ public class TerrainMapAsset : Asset
 
     public void SetMaterialWeightMapLayerOrdering(List<Guid> materialWeightMapLayerIds)
     {
-        MaterialWeightMapLayerDataList ??= [];
         var layerIdToLayerData = MaterialWeightMapLayerDataList.ToDictionary(x => x.LayerId);
         MaterialWeightMapLayerDataList.Clear();
         foreach (var layerId in materialWeightMapLayerIds)
         {
-            if (!layerIdToLayerData.TryGetValue(layerId, out var layerData))
+            if (!layerIdToLayerData.Remove(layerId, out var layerData))
             {
-                if (_pendingRemovalLayerDataList.TryFindIndex(x => x.LayerId == layerId, out int removalListIndex))
+                if (_pendingRemovalLayerDataList.TryRemoveItem(x => x.LayerId == layerId, out var restoredLayerData))
                 {
-                    layerData = (TerrainMaterialMapLayerDataBase)_pendingRemovalLayerDataList[removalListIndex];
-
                     // Add back to active list
-                    _pendingRemovalLayerDataList.RemoveAt(removalListIndex);
+                    layerData = (TerrainMaterialMapLayerDataBase)restoredLayerData;
                 }
                 else
                 {
@@ -359,198 +318,227 @@ public class TerrainMapAsset : Asset
         }
     }
 
-    private bool _hasCalledFinalizeContentDeserialization = false;
-    public void EnsureFinalizeContentDeserialization(ILogger logger, UDirectory packageFolderPath)
+    private bool _hasCalledOnAssetLoaded = false;
+    public void OnAssetLoaded(UFile assetFullFilePath, ILogger? logger)
     {
-        lock (_serializationLock)
+        if (_hasCalledOnAssetLoaded)
         {
-            if (_hasCalledFinalizeContentDeserialization)
-            {
-                return;
-            }
+            return;
+        }
+        _hasCalledOnAssetLoaded = true;
+        OriginalAssetFullFilePath = assetFullFilePath.ToOSPath();
+        AssetFullFilePath = OriginalAssetFullFilePath;
 
-            if (ResourceFolderPath is not null)
+        if (string.IsNullOrWhiteSpace(AssetFullFilePath))
+        {
+            logger?.Error($"{nameof(TerrainMapAsset)} {Id}: '{nameof(AssetFullFilePath)}' was not assigned.");
+            return;
+        }
+
+        var assetFullFolderPath = assetFullFilePath.GetFullDirectory();
+
+        if (string.IsNullOrWhiteSpace(ResourceRelativeFolderPath?.FullPath))
+        {
+            logger?.Warning($"{nameof(TerrainMapAsset)} {Id}: '{nameof(ResourceRelativeFolderPath)}' was not assigned. Creating default path.");
+
+            ResourceRelativeFolderPath = CreateDefaultResourceRelativeFolderPath(assetFullFilePath);
+        }
+        else
+        {
+            // Ensure path is relative to this asset's path
+            ResourceRelativeFolderPath = ResourceRelativeFolderPath.MakeRelative(assetFullFolderPath);
+            OriginalResourceRelativeFolderPath = ResourceRelativeFolderPath.FullPath;
+        }
+
+        string intermediateFilesFullFolderPath = UPath.Combine(assetFullFolderPath, ResourceRelativeFolderPath).ToOSPath();
+
+        var expectedDataSize = HeightmapTextureSize.ToSize2();
+        // Load HeightmapData
+        {
+            string heightmapFullFilePath = Path.Combine(intermediateFilesFullFolderPath, IntermediateHeightmapFileName);
+            logger?.Info($"{nameof(TerrainMapAsset)} {Id}: Deserializing heightmap: {heightmapFullFilePath}");
+            if (File.Exists(heightmapFullFilePath))
             {
-                var resourceFolderFullPath = UPath.Combine(packageFolderPath, ResourceFolderPath)?.ToOSPath();
-                if (resourceFolderFullPath is not null)
+                if (HeightmapSerializationHelper.TryDeserializeFloatArray2dFromHexFile(heightmapFullFilePath, out var heightmapData, out var errorMessage))
                 {
-                    var expectedDataSize = HeightmapTextureSize.ToSize2();
-                    Directory.CreateDirectory(resourceFolderFullPath);
-                    if (HeightmapData is null)
+                    if (heightmapData.Length2d != expectedDataSize)
                     {
-                        string heightmapFilePath = Path.Combine(resourceFolderFullPath, IntermediateHeightmapFileName);
-                        logger.Info($"Deserializing heightmap: {heightmapFilePath}");
-                        if (File.Exists(heightmapFilePath))
-                        {
-                            if (HeightmapSerializationHelper.TryDeserializeFloatArray2dFromHexFile(heightmapFilePath, out var heightmapData, out var errorMessage))
-                            {
-                                if (heightmapData.Length2d != expectedDataSize)
-                                {
-                                    logger.Warning($"Deserialized heightmap size mismatch with asset map size: RawFile: {heightmapData.Length2d} - Asset: {expectedDataSize}. Resizing the array.");
-                                    heightmapData.Resize(expectedDataSize);
-                                }
-                                HeightmapData = heightmapData;
-                                Debug.WriteLineIf(condition: true, $"Deserialized heightmap size: {HeightmapData.Length2d}");
-                                logger.Info($"Deserialized heightmap size: {HeightmapData.Length2d}");
-                            }
-                            else
-                            {
-                                logger.Error($"Failed to deserialize intermediate heightmap file: {heightmapFilePath}\r\n{errorMessage}");
-                            }
-                        }
-                        else
-                        {
-                            logger.Info($"Heightmap file does not exist at path: {heightmapFilePath}");
-                        }
+                        logger?.Warning($"{nameof(TerrainMapAsset)} {Id}: Deserialized heightmap size mismatch with asset map size: RawFile: {heightmapData.Length2d} - Asset: {expectedDataSize}. Resizing the array.");
+                        heightmapData.Resize(expectedDataSize);
                     }
-                    if (MaterialIndexMapData is null)
-                    {
-                        string materialIndexMapFilePath = Path.Combine(resourceFolderFullPath, IntermediateMaterialIndexMapFileName);
-                        logger.Info($"Deserializing material index map: {materialIndexMapFilePath}");
-                        if (File.Exists(materialIndexMapFilePath))
-                        {
-                            if (HeightmapSerializationHelper.TryDeserializeByteArray2dFromHexFile(materialIndexMapFilePath, out var materialIndexMapData, out var errorMessage))
-                            {
-                                if (materialIndexMapData.Length2d != expectedDataSize)
-                                {
-                                    logger.Warning($"Deserialized material index map size mismatch with asset map size: RawFile: {materialIndexMapData.Length2d} - Asset: {expectedDataSize}. Resizing the array.");
-                                    materialIndexMapData.Resize(expectedDataSize);
-                                }
-                                MaterialIndexMapData = materialIndexMapData;
-                                logger.Info($"Deserialized material index map size: {MaterialIndexMapData.Length2d}");
-                            }
-                            else
-                            {
-                                logger.Error($"Failed to deserialize intermediate material index map file: {materialIndexMapFilePath}\r\n{errorMessage}");
-                            }
-                        }
-                        else
-                        {
-                            logger.Info($"Material index map file does not exist at path: {materialIndexMapFilePath}");
-                        }
-                    }
-
-                    //foreach (var layerData in LayerDataList)
-                    //{
-                    //    layerData.DeserializeIntermediateFile(resourceFolderFullPath, this, logger);
-                    //}
+                    HeightmapData = heightmapData;
+                    Debug.WriteLineIf(condition: true, $"Deserialized heightmap size: {HeightmapData.Length2d}");
+                    logger?.Info($"{nameof(TerrainMapAsset)} {Id}: Deserialized heightmap size: {HeightmapData.Length2d}");
+                }
+                else
+                {
+                    logger?.Error($"{nameof(TerrainMapAsset)} {Id}: Failed to deserialize intermediate heightmap file: {heightmapFullFilePath}\r\n{errorMessage}");
                 }
             }
-
-            //var chunkItemIdSerializationFixer = GetChunkItemIdSerializationFixer();
-            //chunkItemIdSerializationFixer.TrackIds();
-            //foreach (var chunk in Chunks)
-            //{
-            //    chunk.FinalizeDeserialization();
-            //}
-
-            _hasCalledFinalizeContentDeserialization = true;
-        }
-    }
-
-    public void PrepareContentSerialization()
-    {
-        lock (_serializationLock)
-        {
-            //var resourceFolderPath = ResourceFolderPath?.ToOSPath();
-            //if (resourceFolderPath is not null && HeightmapData is not null)
-            //{
-            //    Directory.CreateDirectory(resourceFolderPath);
-            //    string heightmapRawFilePath = Path.Combine(resourceFolderPath, HeightmapRawFileName);
-
-            //    HeightmapSerializationHelper.SerializeRawToFile(heightmapRawFilePath, HeightmapData);
-            //}
-
-
-            //    bool doFixId = false;
-            //    var chunkItemIdSerializationFixer = GetChunkItemIdSerializationFixer();
-            //    chunkItemIdSerializationFixer.TrackIds();
-            //    if (chunkAsset is not null)
-            //    {
-            //        //bool isNotEmpty = chunkAsset.HasNonEmptyTile();
-            //        //if (isNotEmpty)
-            //        {
-            //            chunkAsset.PrepareSerialization();
-            //        }
-            //        //else
-            //        //{
-            //        //    doFixId = TryRemoveChunkAssetInternal(chunkAsset.ChunkIndex);
-            //        //}
-            //    }
-            //    else
-            //    {
-            //        for (int i = Chunks.Count - 1; i >= 0; i--)
-            //        {
-            //            var chAsset = Chunks[i];
-            //            //bool isNotEmpty = chAsset.HasNonEmptyTile();
-            //            //if (isNotEmpty)
-            //            {
-            //                chAsset.PrepareSerialization();
-            //            }
-            //            //else
-            //            //{
-            //            //    Chunks.RemoveAt(i);
-            //            //    doFixId = true;
-            //            //}
-            //        }
-            //    }
-            //    if (doFixId)
-            //    {
-            //        chunkItemIdSerializationFixer.FixIds();
-            //    }
-        }
-    }
-
-    public void SerializeIntermediateFiles(ILogger logger, UDirectory packageFolderPath)
-    {
-        lock (_serializationLock)
-        {
-            if (ResourceFolderPath is not null)
+            else
             {
-                var resourceFolderFullPath = UPath.Combine(packageFolderPath, ResourceFolderPath)?.ToOSPath();
-                if (resourceFolderFullPath is not null)
+                logger?.Info($"{nameof(TerrainMapAsset)} {Id}: Heightmap file does not exist at path: {heightmapFullFilePath}");
+            }
+        }
+        // Load MaterialIndexMapData
+        {
+            string materialIndexMapFullFilePath = Path.Combine(intermediateFilesFullFolderPath, IntermediateMaterialIndexMapFileName);
+            logger?.Info($"{nameof(TerrainMapAsset)} {Id}: Deserializing material index map: {materialIndexMapFullFilePath}");
+            if (File.Exists(materialIndexMapFullFilePath))
+            {
+                if (HeightmapSerializationHelper.TryDeserializeByteArray2dFromHexFile(materialIndexMapFullFilePath, out var materialIndexMapData, out var errorMessage))
                 {
-                    Directory.CreateDirectory(resourceFolderFullPath);
-                    if (HeightmapData is not null)
+                    if (materialIndexMapData.Length2d != expectedDataSize)
                     {
-                        string heightmapFilePath = Path.Combine(resourceFolderFullPath, IntermediateHeightmapFileName);
-                        HeightmapSerializationHelper.SerializeFloatArray2dToHexFile(HeightmapData, heightmapFilePath);
+                        logger?.Warning($"{nameof(TerrainMapAsset)} {Id}: Deserialized material index map size mismatch with asset map size: RawFile: {materialIndexMapData.Length2d} - Asset: {expectedDataSize}. Resizing the array.");
+                        materialIndexMapData.Resize(expectedDataSize);
                     }
-                    if (MaterialIndexMapData is not null)
-                    {
-                        string materialMapFilePath = Path.Combine(resourceFolderFullPath, IntermediateMaterialIndexMapFileName);
-                        HeightmapSerializationHelper.SerializeByteArray2dToHexFile(MaterialIndexMapData, materialMapFilePath);
-                    }
+                    MaterialIndexMapData = materialIndexMapData;
+                    logger?.Info($"{nameof(TerrainMapAsset)} {Id}: Deserialized material index map size: {MaterialIndexMapData.Length2d}");
+                }
+                else
+                {
+                    logger?.Error($"{nameof(TerrainMapAsset)} {Id}: Failed to deserialize intermediate material index map file: {materialIndexMapFullFilePath}\r\n{errorMessage}");
+                }
+            }
+            else
+            {
+                logger?.Info($"{nameof(TerrainMapAsset)} {Id}: Material index map file does not exist at path: {materialIndexMapFullFilePath}");
+            }
+        }
 
-                    if (HeightmapLayerDataList is not null)
-                    {
-                        foreach (var layerData in HeightmapLayerDataList)
-                        {
-                            if (layerData.IsSerializeIntermediateFileRequired)
-                            {
-                                layerData.SerializeIntermediateFile(resourceFolderFullPath, this, logger);
-                                layerData.LastModifiedIntermediateFile = DateTimeOffset.UtcNow;
-                                layerData.IsSerializeIntermediateFileRequired = false;
-                                HasTerrainMapLayerSerializedIntermediateFiles = true;
-                            }
-                        }
-                    }
-                    if (MaterialWeightMapLayerDataList is not null)
-                    {
-                        foreach (var layerData in MaterialWeightMapLayerDataList)
-                        {
-                            if (layerData.IsSerializeIntermediateFileRequired)
-                            {
-                                layerData.SerializeIntermediateFile(resourceFolderFullPath, this, logger);
-                                layerData.LastModifiedIntermediateFile = DateTimeOffset.UtcNow;
-                                layerData.IsSerializeIntermediateFileRequired = false;
-                                HasTerrainMapLayerSerializedIntermediateFiles = true;
-                            }
-                        }
-                    }
+        // Note that layer data for HeightmapLayerDataList & MaterialWeightMapLayerDataList are lazy loaded
+    }
+
+    public void OnAssetSaving(ILogger? logger)
+    {
+        if (string.IsNullOrWhiteSpace(AssetFullFilePath))
+        {
+            logger?.Error($"{nameof(TerrainMapAsset)} {Id}: '{nameof(AssetFullFilePath)}' was not assigned.");
+            return;
+        }
+
+        var assetFullFilePath = new UFile(AssetFullFilePath);
+        var assetFullFolderPath = assetFullFilePath.GetFullDirectory();
+
+        if (string.IsNullOrWhiteSpace(ResourceRelativeFolderPath?.FullPath))
+        {
+            logger?.Warning($"{nameof(TerrainMapAsset)} {Id}: '{nameof(ResourceRelativeFolderPath)}' was not assigned. Creating default path.");
+
+            ResourceRelativeFolderPath = CreateDefaultResourceRelativeFolderPath(assetFullFilePath);
+        }
+        else if (!ResourceRelativeFolderPath.IsRelative)
+        {
+            // Ensure path is relative to this asset's path
+            ResourceRelativeFolderPath = ResourceRelativeFolderPath.MakeRelative(assetFullFolderPath);
+        }
+
+        // Delete any old intermediate files due to moving the asset or changing ResourceRelativeFolderPath
+        bool hasAssetOrResourceMoved = false;
+        string pendingDeleteResourceRelativeFolderPath = ResourceRelativeFolderPath.FullPath;
+        string pendingDeleteTerrainMapAssetFullFolderPath = AssetFullFilePath;
+        if (!string.IsNullOrWhiteSpace(OriginalResourceRelativeFolderPath)
+            && !string.Equals(OriginalResourceRelativeFolderPath, ResourceRelativeFolderPath.FullPath, StringComparison.OrdinalIgnoreCase))
+        {
+            pendingDeleteResourceRelativeFolderPath = OriginalResourceRelativeFolderPath;
+            hasAssetOrResourceMoved = true;
+        }
+        else if (!string.IsNullOrWhiteSpace(OriginalAssetFullFilePath)
+            && !string.IsNullOrWhiteSpace(AssetFullFilePath)
+            && !string.Equals(OriginalAssetFullFilePath, AssetFullFilePath, StringComparison.OrdinalIgnoreCase))
+        {
+            pendingDeleteTerrainMapAssetFullFolderPath = OriginalAssetFullFilePath;
+            hasAssetOrResourceMoved = true;
+        }
+
+        var pendingDeleteResourceRelativeDir = new UDirectory(pendingDeleteResourceRelativeFolderPath);
+        var pendingDeleteAssetFullFolderPath = new UFile(pendingDeleteTerrainMapAssetFullFolderPath).GetFullDirectory();
+        var pendingDeleteIntermediateFilesFullFolderPath = UPath.Combine(pendingDeleteAssetFullFolderPath, pendingDeleteResourceRelativeDir);
+        if (hasAssetOrResourceMoved)
+        {
+            // Delete intermediate files in old location
+            string heightmapFullFilePath = UPath.Combine(pendingDeleteIntermediateFilesFullFolderPath, new UFile(IntermediateHeightmapFileName)).ToOSPath();
+            _ = AssetExt.TryDeleteFile(heightmapFullFilePath, logger);
+            string materialMapFullFilePath = UPath.Combine(pendingDeleteIntermediateFilesFullFolderPath, new UFile(IntermediateMaterialIndexMapFileName)).ToOSPath();
+            _ = AssetExt.TryDeleteFile(materialMapFullFilePath, logger);
+
+            // Delete layer intermediate files in old location
+            if (HeightmapLayerDataList is not null)
+            {
+                foreach (var layerData in HeightmapLayerDataList)
+                {
+                    layerData.DeleteIntermediateFile(pendingDeleteIntermediateFilesFullFolderPath, pendingDeleteAssetFullFolderPath, logger);
+                    layerData.IsSerializeIntermediateFileRequired = true;   // In case of undo, we may need to regenerate this file after deletion
+                }
+            }
+            if (MaterialWeightMapLayerDataList is not null)
+            {
+                foreach (var layerData in MaterialWeightMapLayerDataList)
+                {
+                    layerData.DeleteIntermediateFile(pendingDeleteIntermediateFilesFullFolderPath, pendingDeleteAssetFullFolderPath, logger);
+                    layerData.IsSerializeIntermediateFileRequired = true;   // In case of undo, we may need to regenerate this file after deletion
                 }
             }
         }
+        // Delete any old intermediate files from deleted layers
+        foreach (var layerData in _pendingRemovalLayerDataList)
+        {
+            layerData.DeleteIntermediateFile(pendingDeleteIntermediateFilesFullFolderPath, pendingDeleteAssetFullFolderPath, logger);
+            layerData.IsSerializeIntermediateFileRequired = true;   // In case of undo, we may need to regenerate this file after deletion
+        }
+
+        // Save intermediate files
+        string intermediateFilesFullFolderPath = UPath.Combine(assetFullFolderPath, ResourceRelativeFolderPath).ToOSPath();
+        Directory.CreateDirectory(intermediateFilesFullFolderPath);
+        if (HeightmapData is not null)
+        {
+            string heightmapFullFilePath = Path.Combine(intermediateFilesFullFolderPath, IntermediateHeightmapFileName);
+            HeightmapSerializationHelper.SerializeFloatArray2dToHexFile(HeightmapData, heightmapFullFilePath);
+        }
+        if (MaterialIndexMapData is not null)
+        {
+            string materialMapFullFilePath = Path.Combine(intermediateFilesFullFolderPath, IntermediateMaterialIndexMapFileName);
+            HeightmapSerializationHelper.SerializeByteArray2dToHexFile(MaterialIndexMapData, materialMapFullFilePath);
+        }
+
+        // Save layer intermediate files
+        if (HeightmapLayerDataList is not null)
+        {
+            foreach (var layerData in HeightmapLayerDataList)
+            {
+                if (!layerData.IsSerializeIntermediateFileRequired)
+                {
+                    continue;
+                }
+                layerData.SerializeIntermediateFile(intermediateFilesFullFolderPath, assetFullFolderPath, this, logger);
+                layerData.LastModifiedIntermediateFile = DateTimeOffset.UtcNow;
+                layerData.IsSerializeIntermediateFileRequired = false;
+            }
+        }
+        if (MaterialWeightMapLayerDataList is not null)
+        {
+            foreach (var layerData in MaterialWeightMapLayerDataList)
+            {
+                if (!layerData.IsSerializeIntermediateFileRequired)
+                {
+                    continue;
+                }
+                layerData.SerializeIntermediateFile(intermediateFilesFullFolderPath, assetFullFolderPath, this, logger);
+                layerData.LastModifiedIntermediateFile = DateTimeOffset.UtcNow;
+                layerData.IsSerializeIntermediateFileRequired = false;
+            }
+        }
+
+        // Save the actual paths used as the 'original' paths for reloading intermediate files
+        OriginalAssetFullFilePath = AssetFullFilePath;
+        OriginalResourceRelativeFolderPath = ResourceRelativeFolderPath;
+    }
+
+    private static UDirectory CreateDefaultResourceRelativeFolderPath(UFile assetFullFilePath)
+    {
+        string assetFileName = assetFullFilePath.GetFileNameWithoutExtension()!;
+        var path = new UDirectory($"{assetFileName}_TerrainData");
+        return path;
     }
 
     public void TerrainPropertiesCopyTo(TerrainMap terrainMap) => TerrainPropertiesCopyToInternal(terrainMap, reuseHeightmapData: false);
@@ -588,12 +576,9 @@ public class TerrainMapAsset : Asset
 
     public TerrainMap ToTerrainMap(ILogger? logger = null)
     {
-        lock (_serializationLock)
-        {
-            var terrainMap = new TerrainMap();
-            TerrainPropertiesCopyToInternal(terrainMap, reuseHeightmapData: true);
-            terrainMap.TerrainMaterial = TerrainMaterial;
-            return terrainMap;
-        }
+        var terrainMap = new TerrainMap();
+        TerrainPropertiesCopyToInternal(terrainMap, reuseHeightmapData: true);
+        terrainMap.TerrainMaterial = TerrainMaterial;
+        return terrainMap;
     }
 }
