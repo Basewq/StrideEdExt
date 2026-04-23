@@ -22,7 +22,6 @@ namespace StrideEdExt.StrideAssetExt.Assets.ProceduralPlacement;
 //[CategoryOrder(1000, "Placement")]
 [AssetFormatVersion(StrideEdExtConfig.PackageName, CurrentVersion)]
 //[AssetUpgrader(StrideEdExtConfig.PackageName, "0.0.0.1", "1.0.0.0", typeof(ObjectPlacementMapAssetUpgrader))]    // Can be used to update an old asset format to a new format.
-[Display(10000, "Object Placement Map")]
 public class ObjectPlacementMapAsset : Asset, IStrideCustomAsset
 {
     private const string CurrentVersion = "0.0.0.1";

@@ -24,7 +24,6 @@ namespace StrideEdExt.StrideAssetExt.Assets.Terrain3d;
 //[CategoryOrder(1000, "Terrain")]
 [AssetFormatVersion(StrideEdExtConfig.PackageName, CurrentVersion)]
 //[AssetUpgrader(StrideEdExtConfig.PackageName, "0.0.0.1", "1.0.0.0", typeof(TerrainMapAssetUpgrader))]    // Can be used to update an old asset format to a new format.
-[Display(10000, "Terrain Map 3D")]
 public class TerrainMapAsset : Asset, IStrideCustomAsset
 {
     private const string CurrentVersion = "0.0.0.1";

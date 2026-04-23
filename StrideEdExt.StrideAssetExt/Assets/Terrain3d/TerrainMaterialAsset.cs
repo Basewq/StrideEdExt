@@ -51,7 +51,6 @@ public static class TerrainMaterialTextureSizeExtensions
 //[CategoryOrder(1000, "Terrain")]
 [AssetFormatVersion(StrideEdExtConfig.PackageName, CurrentVersion)]
 //[AssetUpgrader(StrideEdExtConfig.PackageName, "0.0.0.1", "1.0.0.0", typeof(TerrainMaterialAssetUpgrader))]    // Can be used to update an old asset format to a new format.
-[Display(10000, "Terrain Material")]
 public class TerrainMaterialAsset : Asset
 {
     private const string CurrentVersion = "0.0.0.1";
